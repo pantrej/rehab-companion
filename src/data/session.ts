@@ -1,0 +1,14 @@
+import type { Exercise } from '../types/session'
+
+export const currentExercise: Exercise = {
+  name: 'Seated calf raise',
+  position: 1,
+  total: 4,
+  sets: 3,
+  reps: 12,
+  equipment: 'Light resistance band',
+  instruction:
+    'Keep your foot flat and slowly raise your heel while keeping control throughout the movement.',
+  prescribedBy: 'your physiotherapist',
+  lastSession: { difficulty: 6, pain: 2, sets: 3, reps: 12 },
+}

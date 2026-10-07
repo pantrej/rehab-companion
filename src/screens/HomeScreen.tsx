@@ -34,7 +34,7 @@ export function HomeScreen() {
         </p>
         <p className="mt-1 text-[13px] text-ink-faint">Set by {todayPlan.prescribedBy}</p>
 
-        <Button icon={<Play className="size-4 fill-current" aria-hidden />} className="mt-7">
+        <Button to="/session" icon={<Play className="size-4 fill-current" aria-hidden />} className="mt-7">
           Start session
         </Button>
       </Card>

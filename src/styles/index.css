@@ -8,6 +8,8 @@
   --color-canvas: #f6f4ef;
   --color-surface: #ffffff;
   --color-line: #e9e5dd;
+  /* Inset surface for media placeholders. */
+  --color-sunken: #ece8e1;
 
   --color-ink: #1d1c21;
   --color-ink-soft: #5d5a64;
