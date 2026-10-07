@@ -1,0 +1,36 @@
+@import 'tailwindcss';
+
+/* The app's visual language. Kept deliberately small: a warm neutral base,
+   one accent, and two signal colours used only for meaning. */
+@theme {
+  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+
+  --color-canvas: #f6f4ef;
+  --color-surface: #ffffff;
+  --color-line: #e9e5dd;
+
+  --color-ink: #1d1c21;
+  --color-ink-soft: #5d5a64;
+  --color-ink-faint: #8f8c96;
+
+  --color-accent: #4f4a8c;
+  --color-accent-strong: #403b78;
+  --color-accent-soft: #edebf6;
+
+  --color-positive: #36704f;
+  --color-positive-soft: #e5efe8;
+
+  --color-attention: #9a5f0c;
+  --color-attention-soft: #f7ecd9;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
