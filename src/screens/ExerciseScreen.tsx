@@ -1,11 +1,16 @@
 import { ArrowLeft, Check, ChevronRight, LifeBuoy, Play } from 'lucide-react'
-import { Link } from 'react-router'
+import { useCallback, useState } from 'react'
+import { Link, useNavigate } from 'react-router'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { StatusItem } from '../components/StatusItem'
+import { SupportSheet } from '../components/SupportSheet'
 import { currentExercise as exercise } from '../data/session'
 
 export function ExerciseScreen() {
+  const navigate = useNavigate()
+  const [supportOpen, setSupportOpen] = useState(false)
+  const closeSupport = useCallback(() => setSupportOpen(false), [])
   const { lastSession } = exercise
 
   return (
@@ -37,7 +42,7 @@ export function ExerciseScreen() {
           <span className="text-[15px] font-medium text-ink-soft">Watch demonstration</span>
         </button>
 
-        <div>
+        <div className="flex flex-col gap-3">
           <Card className="p-6">
             <dl className="grid grid-cols-2 gap-4">
               <div className="flex flex-col-reverse">
@@ -55,7 +60,21 @@ export function ExerciseScreen() {
             </dl>
             <p className="mt-5 border-t border-line pt-4 text-[15px] text-ink">{exercise.equipment}</p>
           </Card>
-          <p className="mt-3 px-1 text-[13px] text-ink-faint">Exercise prescribed by {exercise.prescribedBy}</p>
+
+          <section aria-labelledby="last-session" className="rounded-3xl border border-line px-5 py-4">
+            <h2 id="last-session" className="text-sm font-medium text-ink-soft">
+              Last session
+            </h2>
+            <ul className="mt-2.5 flex flex-col gap-2">
+              <StatusItem label="Difficulty" status={`${lastSession.difficulty}/10`} tone="neutral" />
+              <StatusItem label="Pain" status={`${lastSession.pain}/10`} tone="neutral" />
+              <StatusItem
+                label="Completed"
+                status={`${lastSession.sets} × ${lastSession.reps}`}
+                tone="neutral"
+              />
+            </ul>
+          </section>
         </div>
 
         <section aria-labelledby="how-to" className="px-1">
@@ -64,40 +83,35 @@ export function ExerciseScreen() {
           </h2>
           <p className="mt-2 text-[17px] leading-relaxed text-ink">{exercise.instruction}</p>
 
-          <Link
-            to="/support"
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            onClick={() => setSupportOpen(true)}
             className="-ml-1 mt-4 inline-flex h-11 items-center gap-2 rounded-xl px-1 text-[15px] text-ink-soft transition-colors hover:text-ink"
           >
             <LifeBuoy className="size-[18px]" strokeWidth={1.75} aria-hidden />
             Something doesn't feel right
             <ChevronRight className="size-4 text-ink-faint" aria-hidden />
-          </Link>
-        </section>
-
-        <section aria-labelledby="last-session" className="rounded-3xl border border-line p-5">
-          <h2 id="last-session" className="text-sm font-medium text-ink-soft">
-            Last session
-          </h2>
-          <ul className="mt-3 flex flex-col gap-2.5">
-            <StatusItem label="Difficulty" status={`${lastSession.difficulty}/10`} tone="neutral" />
-            <StatusItem label="Pain" status={`${lastSession.pain}/10`} tone="neutral" />
-            <StatusItem
-              label="Completed"
-              status={`${lastSession.sets} × ${lastSession.reps}`}
-              tone="neutral"
-            />
-          </ul>
+          </button>
         </section>
       </div>
 
       <div className="sticky bottom-0 border-t border-line bg-surface px-5 pt-4 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
-        <Button icon={<Check className="size-[18px]" strokeWidth={2.25} aria-hidden />}>
+        <Button
+          onClick={() => navigate('/check-in')}
+          icon={<Check className="size-[18px]" strokeWidth={2.25} aria-hidden />}
+        >
           Complete exercise
         </Button>
         <Button variant="quiet" className="mt-1">
           Skip for now
         </Button>
+        <p className="mt-1 text-center text-[13px] text-ink-faint">
+          Exercise prescribed by {exercise.prescribedBy}
+        </p>
       </div>
+
+      {supportOpen && <SupportSheet onClose={closeSupport} />}
     </div>
   )
 }

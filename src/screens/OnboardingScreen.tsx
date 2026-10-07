@@ -1,9 +1,10 @@
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { ChoiceOption } from '../components/ChoiceOption'
+import { StepHeader } from '../components/StepHeader'
 import { onboardingSteps, onboardingSummary } from '../data/onboarding'
 import type { OnboardingAnswers } from '../types/onboarding'
 
@@ -30,33 +31,11 @@ export function OnboardingScreen() {
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex flex-1 flex-col px-5 pt-[max(env(safe-area-inset-top),2.5rem)] pb-10">
-        <div className="flex items-center gap-3">
-          {stepIndex > 0 ? (
-            <button
-              type="button"
-              aria-label="Previous question"
-              onClick={() => setStepIndex(stepIndex - 1)}
-              className="-ml-2.5 flex size-11 shrink-0 items-center justify-center rounded-full text-ink transition-colors hover:bg-line/60"
-            >
-              <ArrowLeft className="size-[22px]" strokeWidth={1.75} aria-hidden />
-            </button>
-          ) : (
-            <span className="-ml-2.5 size-11 shrink-0" aria-hidden />
-          )}
-
-          <div className="flex flex-1 gap-1.5" aria-hidden>
-            {onboardingSteps.map((s, i) => (
-              <span
-                key={s.id}
-                className={`h-1 flex-1 rounded-full transition-colors ${i <= stepIndex ? 'bg-accent' : 'bg-line'}`}
-              />
-            ))}
-          </div>
-
-          <p className="w-11 shrink-0 text-right text-[13px] text-ink-faint">
-            {isSummary ? '' : `${stepIndex + 1} of ${total}`}
-          </p>
-        </div>
+        <StepHeader
+          current={stepIndex}
+          total={total}
+          onBack={stepIndex > 0 ? () => setStepIndex(stepIndex - 1) : undefined}
+        />
 
         {step ? (
           <>
