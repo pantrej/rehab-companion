@@ -8,6 +8,15 @@ export type RecoverySignal = {
   tone: SignalTone
 }
 
+// The one-line read of all signals together.
+export type RecoveryOverall = Omit<RecoverySignal, 'id'>
+
+export type RecoveryInsight = {
+  title: string
+  text: string
+  basis: string
+}
+
 export type TodayPlan = {
   exerciseCount: number
   durationMinutes: number
