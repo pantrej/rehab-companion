@@ -3,6 +3,7 @@ import { MobileLayout } from './layouts/MobileLayout'
 import { CheckInScreen } from './screens/CheckInScreen'
 import { ExerciseScreen } from './screens/ExerciseScreen'
 import { HomeScreen } from './screens/HomeScreen'
+import { InsightScreen } from './screens/InsightScreen'
 import { OnboardingScreen } from './screens/OnboardingScreen'
 import { PlaceholderScreen } from './screens/PlaceholderScreen'
 
@@ -22,8 +23,7 @@ export const router = createBrowserRouter([
       { path: 'onboarding', element: <OnboardingScreen /> },
       { path: 'session', element: <ExerciseScreen /> },
       { path: 'check-in', element: <CheckInScreen /> },
-      // Next step in the core loop; designed later.
-      { path: 'insight', element: <PlaceholderScreen title="Recovery insight" /> },
+      { path: 'insight', element: <InsightScreen /> },
     ],
   },
 ])

@@ -8,6 +8,9 @@ export type RecoverySignal = {
   tone: SignalTone
 }
 
+// A signal with the evidence behind its status, for the Recovery Insight screen.
+export type InsightSignal = RecoverySignal & { detail: string }
+
 // The one-line read of all signals together.
 export type RecoveryOverall = Omit<RecoverySignal, 'id'>
 
