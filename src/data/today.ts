@@ -22,5 +22,5 @@ export const recoverySignals: RecoverySignal[] = [
 export const recoveryInsight: RecoveryInsight = {
   title: 'What changed',
   text: 'Your pain has remained stable while your recent sessions are becoming easier.',
-  basis: 'Based on your last 7 check-ins',
+  basis: 'Based on your recent check-ins',
 }

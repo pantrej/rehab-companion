@@ -7,7 +7,6 @@ import { PainScale } from '../components/PainScale'
 import { StepHeader } from '../components/StepHeader'
 import {
   checkInSteps,
-  checkInStorageKey,
   checkInTitle,
   difficultyOptions,
   movementOptions,
@@ -15,6 +14,7 @@ import {
   unsureOptions,
 } from '../data/checkin'
 import type { CheckIn } from '../types/checkin'
+import { storageKeys, writeStored } from '../utils/storage'
 
 const total = checkInSteps.length
 
@@ -55,12 +55,9 @@ export function CheckInScreen() {
     })
 
   const finish = () => {
-    try {
-      localStorage.setItem(checkInStorageKey, JSON.stringify({ ...checkIn, at: new Date().toISOString() }))
-    } catch {
-      // Storage can be unavailable (private mode); the prototype carries on without it.
-    }
-    navigate('/insight')
+    writeStored(storageKeys.lastCheckIn, { ...checkIn, at: new Date().toISOString() })
+    // Replace, so going back from the insight doesn't reopen a finished check-in.
+    navigate('/insight', { replace: true })
   }
 
   return (

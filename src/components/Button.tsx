@@ -18,11 +18,12 @@ const variants: Record<Variant, string> = {
 type Props = {
   variant?: Variant
   icon?: ReactNode
-  // Renders a link instead of a button when set.
+  // Renders a link instead of a button when set; state travels with the navigation.
   to?: string
+  state?: unknown
 } & ButtonHTMLAttributes<HTMLButtonElement>
 
-export function Button({ variant = 'primary', icon, to, className = '', children, ...props }: Props) {
+export function Button({ variant = 'primary', icon, to, state, className = '', children, ...props }: Props) {
   const classes = `${base} ${variants[variant]} ${className}`
   const content = (
     <>
@@ -33,7 +34,7 @@ export function Button({ variant = 'primary', icon, to, className = '', children
 
   if (to) {
     return (
-      <Link to={to} className={classes}>
+      <Link to={to} state={state} className={classes}>
         {content}
       </Link>
     )

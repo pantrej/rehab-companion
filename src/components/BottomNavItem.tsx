@@ -11,7 +11,8 @@ export function BottomNavItem({ to, label, icon: Icon }: Props) {
   return (
     <NavLink
       to={to}
-      end
+      // Today matches only "/"; other tabs stay selected on their sub-pages (e.g. /support/pain).
+      end={to === '/'}
       className={({ isActive }) =>
         `flex flex-1 flex-col items-center gap-1 pt-2.5 pb-2 text-xs font-medium transition-colors ${
           isActive ? 'text-accent' : 'text-ink-faint hover:text-ink-soft'

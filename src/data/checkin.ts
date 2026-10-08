@@ -26,6 +26,3 @@ export const unsureOptions = [
   'How active I should be',
   'Something else',
 ]
-
-// Prototype only: the check-in is kept in this browser so later screens can read it.
-export const checkInStorageKey = 'rehab.lastCheckIn'

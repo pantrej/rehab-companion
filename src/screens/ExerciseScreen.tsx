@@ -103,7 +103,8 @@ export function ExerciseScreen() {
         >
           Complete exercise
         </Button>
-        <Button variant="quiet" className="mt-1">
+        {/* Only exercise 1 is modelled, so skipping also ends the session at the check-in. */}
+        <Button variant="quiet" className="mt-1" onClick={() => navigate('/check-in')}>
           Skip for now
         </Button>
         <p className="mt-1 text-center text-[13px] text-ink-faint">

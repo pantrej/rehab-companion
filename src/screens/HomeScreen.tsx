@@ -1,11 +1,16 @@
 import { ArrowRight, Play, UserRound } from 'lucide-react'
+import { Link, Navigate } from 'react-router'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { StatusItem } from '../components/StatusItem'
 import { recoveryInsight, recoveryOverall, recoverySignals, todayPlan } from '../data/today'
 import { toneDot } from '../utils/tone'
+import { readStored, storageKeys } from '../utils/storage'
 
 export function HomeScreen() {
+  // First visit: set up the recovery context before showing today's plan.
+  if (!readStored(storageKeys.setup, null)) return <Navigate to="/onboarding" replace />
+
   return (
     <div className="flex flex-col gap-10 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
       <header className="flex items-start justify-between gap-4">
@@ -15,13 +20,12 @@ export function HomeScreen() {
             Today's rehabilitation
           </h1>
         </div>
-        <button
-          type="button"
-          aria-label="Profile"
-          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-line/70 text-ink-soft"
-        >
-          <UserRound className="size-[18px]" strokeWidth={1.75} aria-hidden />
-        </button>
+        {/* 44px touch target around the quieter 36px avatar. */}
+        <Link to="/profile" aria-label="Profile" className="-m-1 flex size-11 shrink-0 items-center justify-center">
+          <span className="flex size-9 items-center justify-center rounded-full bg-line/70 text-ink-soft">
+            <UserRound className="size-[18px]" strokeWidth={1.75} aria-hidden />
+          </span>
+        </Link>
       </header>
 
       <Card className="p-6">

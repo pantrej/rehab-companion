@@ -1,8 +1,9 @@
 import type { InsightSignal, RecoverySignal } from '../types/recovery'
 import { recoveryOverall, recoverySignals } from './today'
 
+// ⁠ (word joiner) keeps a range like 2–3/10 from breaking across lines.
 const details: Record<RecoverySignal['id'], string> = {
-  pain: 'Pain has remained between 2–3/10 across recent sessions.',
+  pain: 'Pain has remained between 2–\u20603/10 across recent sessions.',
   mobility: 'You reported better movement in 3 consecutive check-ins.',
   difficulty: 'Average difficulty decreased from 7/10 to 5/10.',
 }
@@ -18,7 +19,7 @@ export const recoveryInsightScreen = {
   nextStep: {
     heading: 'What should I do next?',
     recommendation: 'Continue as planned',
-    detail: 'No significant negative change has been detected in your recent recovery signals.',
+    detail: 'Your recent check-ins do not show a clear negative change.',
   },
   safetyNote: 'This does not replace professional medical advice.',
 }

@@ -1,5 +1,5 @@
-import { Check, X } from 'lucide-react'
-import { Link, useNavigate } from 'react-router'
+import { ArrowLeft, Check, X } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { SignalDetail } from '../components/SignalDetail'
@@ -9,6 +9,9 @@ import { toneDot } from '../utils/tone'
 // Read top to bottom in a few seconds: where you are, why we think so, what it may mean, what to do.
 export function InsightScreen() {
   const navigate = useNavigate()
+  // Opened from Progress it goes back there; after a check-in it closes to Today.
+  const returnTo: string = useLocation().state?.returnTo ?? '/'
+  const fromProgress = returnTo === '/progress'
   const { overall, signals, nextStep } = insight
 
   return (
@@ -16,11 +19,15 @@ export function InsightScreen() {
       <div className="flex flex-1 flex-col gap-10 px-5 pt-[max(env(safe-area-inset-top),2.5rem)] pb-10">
         <header>
           <Link
-            to="/"
-            aria-label="Close and go to Today"
+            to={returnTo}
+            aria-label={fromProgress ? 'Back to Progress' : 'Close and go to Today'}
             className="-ml-2.5 flex size-11 items-center justify-center rounded-full text-ink transition-colors hover:bg-line/60"
           >
-            <X className="size-[22px]" strokeWidth={1.75} aria-hidden />
+            {fromProgress ? (
+              <ArrowLeft className="size-[22px]" strokeWidth={1.75} aria-hidden />
+            ) : (
+              <X className="size-[22px]" strokeWidth={1.75} aria-hidden />
+            )}
           </Link>
           <h1 className="mt-5 text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">
             {insight.title}
