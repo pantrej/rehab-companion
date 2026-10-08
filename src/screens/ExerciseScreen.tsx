@@ -3,14 +3,17 @@ import { useCallback, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
 import { StatusItem } from '../components/StatusItem'
 import { SupportSheet } from '../components/SupportSheet'
 import { currentExercise as exercise } from '../data/session'
+import { useCare } from '../utils/care'
 
 export function ExerciseScreen() {
   const navigate = useNavigate()
   const [supportOpen, setSupportOpen] = useState(false)
   const closeSupport = useCallback(() => setSupportOpen(false), [])
+  const { professional } = useCare()
   const { lastSession } = exercise
 
   return (
@@ -30,6 +33,13 @@ export function ExerciseScreen() {
           <h1 className="mt-1.5 text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">
             {exercise.name}
           </h1>
+          {/* Provenance: only a real, connected professional is ever named as prescriber. */}
+          {professional && (
+            <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-surface py-1 pr-3 pl-1 text-[13px] text-ink-soft ring-1 ring-line">
+              <ProfessionalAvatar professional={professional} size="sm" />
+              Prescribed by {professional.name}, {professional.credential}
+            </p>
+          )}
         </header>
 
         <button
@@ -107,12 +117,12 @@ export function ExerciseScreen() {
         <Button variant="quiet" className="mt-1" onClick={() => navigate('/check-in')}>
           Skip for now
         </Button>
-        <p className="mt-1 text-center text-[13px] text-ink-faint">
-          Exercise prescribed by {exercise.prescribedBy}
-        </p>
+        {!professional && (
+          <p className="mt-1 text-center text-[13px] text-ink-faint">From your existing rehabilitation plan</p>
+        )}
       </div>
 
-      {supportOpen && <SupportSheet onClose={closeSupport} />}
+      {supportOpen && <SupportSheet professionalName={professional?.name} onClose={closeSupport} />}
     </div>
   )
 }

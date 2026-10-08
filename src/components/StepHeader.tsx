@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react'
+import { BackButton } from './BackButton'
 
 type Props = {
   // Zero-based. Equal to total once the flow is complete: all segments fill and the count hides.
@@ -13,18 +13,7 @@ type Props = {
 export function StepHeader({ current, total, onBack, backLabel = 'Previous question' }: Props) {
   return (
     <div className="flex items-center gap-3">
-      {onBack ? (
-        <button
-          type="button"
-          aria-label={backLabel}
-          onClick={onBack}
-          className="-ml-2.5 flex size-11 shrink-0 items-center justify-center rounded-full text-ink transition-colors hover:bg-line/60"
-        >
-          <ArrowLeft className="size-[22px]" strokeWidth={1.75} aria-hidden />
-        </button>
-      ) : (
-        <span className="-ml-2.5 size-11 shrink-0" aria-hidden />
-      )}
+      {onBack ? <BackButton label={backLabel} onClick={onBack} /> : <span className="-ml-2.5 size-11 shrink-0" aria-hidden />}
 
       <div className="flex flex-1 gap-1.5" aria-hidden>
         {Array.from({ length: total }, (_, i) => (

@@ -2,6 +2,13 @@ import type { CheckInStep } from '../types/checkin'
 
 export const checkInTitle = 'How did today’s session feel?'
 
+// Why the check-in is worth a minute. Connected care names the review it feeds, without implying live monitoring.
+export const checkInPurpose = {
+  connected:
+    'Your check-in helps you understand changes over time and gives your physiotherapist context for your next rehabilitation review.',
+  independent: 'Your check-in helps you understand changes in your recovery over time.',
+}
+
 export const checkInSteps: CheckInStep[] = [
   { id: 'pain', question: 'Pain during session' },
   { id: 'difficulty', question: 'Exercise difficulty' },

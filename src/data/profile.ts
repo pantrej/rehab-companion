@@ -9,7 +9,7 @@ export const carePrinciple = 'This app supports, but does not replace, professio
 export const aboutGuidance = {
   title: 'About rehabilitation guidance',
   paragraphs: [
-    'Guidance in this app comes from your check-ins and the plan your rehabilitation professional set. It highlights patterns and suggests when professional input may be useful.',
-    'It does not diagnose conditions, prescribe treatment, or change your plan. Those decisions stay with your rehabilitation professional.',
+    'Guidance in this app comes from your check-ins and your existing rehabilitation plan. It highlights patterns and suggests when professional input may be useful.',
+    'It does not diagnose conditions, prescribe treatment, or change your plan. Those decisions stay with a rehabilitation professional.',
   ],
 }

@@ -2,20 +2,24 @@ import { ArrowRight, Play, UserRound } from 'lucide-react'
 import { Link, Navigate } from 'react-router'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
 import { StatusItem } from '../components/StatusItem'
 import { recoveryInsight, recoveryOverall, recoverySignals, todayPlan } from '../data/today'
+import { useCare } from '../utils/care'
 import { toneDot } from '../utils/tone'
-import { readStored, storageKeys } from '../utils/storage'
 
 export function HomeScreen() {
-  // First visit: set up the recovery context before showing today's plan.
-  if (!readStored(storageKeys.setup, null)) return <Navigate to="/onboarding" replace />
+  const { care, professional } = useCare()
+  // First visit: set up how rehabilitation is managed before showing today's plan.
+  if (!care) return <Navigate to="/onboarding" replace />
 
   return (
     <div className="flex flex-col gap-10 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[15px] text-ink-soft">Good morning</p>
+          <p className="text-[15px] text-ink-soft">
+            Good morning{care.preferredName ? `, ${care.preferredName}` : ''}
+          </p>
           <h1 className="mt-1.5 text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">
             Today's rehabilitation
           </h1>
@@ -36,7 +40,14 @@ export function HomeScreen() {
         <p className="mt-2 text-[15px] text-ink-soft">
           {todayPlan.exerciseCount} exercises · About {todayPlan.durationMinutes} min
         </p>
-        <p className="mt-1 text-[13px] text-ink-faint">Set by {todayPlan.prescribedBy}</p>
+        {professional ? (
+          <p className="mt-4 flex items-center gap-2.5 text-[13px] text-ink-soft">
+            <ProfessionalAvatar professional={professional} size="sm" />
+            Plan prepared by {professional.name}, {professional.credential}
+          </p>
+        ) : (
+          <p className="mt-1 text-[13px] text-ink-faint">From your existing rehabilitation plan</p>
+        )}
 
         <Button to="/session" icon={<Play className="size-4 fill-current" aria-hidden />} className="mt-7">
           Start session

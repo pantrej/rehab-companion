@@ -1,9 +1,10 @@
-import { ArrowLeft, Check, X } from 'lucide-react'
+import { ArrowLeft, Check, FileText, X } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { SignalDetail } from '../components/SignalDetail'
 import { recoveryInsightScreen as insight } from '../data/insight'
+import { useCare } from '../utils/care'
 import { toneDot } from '../utils/tone'
 
 // Read top to bottom in a few seconds: where you are, why we think so, what it may mean, what to do.
@@ -12,6 +13,7 @@ export function InsightScreen() {
   // Opened from Progress it goes back there; after a check-in it closes to Today.
   const returnTo: string = useLocation().state?.returnTo ?? '/'
   const fromProgress = returnTo === '/progress'
+  const { professional } = useCare()
   const { overall, signals, nextStep } = insight
 
   return (
@@ -74,6 +76,13 @@ export function InsightScreen() {
               <p className="mt-1.5 text-[15px] leading-relaxed text-ink-soft">{nextStep.detail}</p>
             </div>
           </Card>
+          {/* Continuity, not monitoring: the check-in joins the summary; nobody is said to have reviewed it. */}
+          {professional && (
+            <p className="mt-4 flex items-start gap-2.5 px-1 text-[15px] leading-relaxed text-ink-soft">
+              <FileText className="mt-0.5 size-[18px] shrink-0" strokeWidth={1.75} aria-hidden />
+              Your latest check-in will be included in your recovery summary for {professional.name}.
+            </p>
+          )}
         </section>
       </div>
 

@@ -9,6 +9,5 @@ export const currentExercise: Exercise = {
   equipment: 'Light resistance band',
   instruction:
     'Keep your foot flat and slowly raise your heel while maintaining control throughout the movement.',
-  prescribedBy: 'your physiotherapist',
   lastSession: { difficulty: 6, pain: 2, sets: 3, reps: 12 },
 }

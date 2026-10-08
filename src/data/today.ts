@@ -4,7 +4,6 @@ export const todayPlan: TodayPlan = {
   exerciseCount: 4,
   durationMinutes: 25,
   focus: ['Mobility', 'Strength'],
-  prescribedBy: 'your physiotherapist',
 }
 
 export const recoveryOverall: RecoveryOverall = {

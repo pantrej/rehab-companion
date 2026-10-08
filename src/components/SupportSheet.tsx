@@ -1,13 +1,20 @@
+import { professionalPhrase } from '../utils/care'
 import { Button } from './Button'
 import { Sheet } from './Sheet'
 
+type Props = {
+  // The connected professional, if any; never invented.
+  professionalName?: string
+  onClose: () => void
+}
+
 // A calm pause during an exercise, not an alert: reassures, points to support, and lets the user return.
-export function SupportSheet({ onClose }: { onClose: () => void }) {
+export function SupportSheet({ professionalName, onClose }: Props) {
   return (
     <Sheet title="It’s okay to pause" onClose={onClose}>
       <p className="mt-2 text-base leading-relaxed text-ink-soft">
-        You can stop this exercise at any time. If something feels different from usual, let your
-        physiotherapist know — they can help you decide how to continue.
+        You can stop this exercise at any time. If something feels different from usual, consider letting{' '}
+        {professionalPhrase(professionalName)} know before you continue with it.
       </p>
       <div className="mt-6 flex flex-col gap-1">
         <Button to="/support" variant="secondary">

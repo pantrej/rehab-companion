@@ -1,27 +1,25 @@
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, FileText } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { CheckInList } from '../components/CheckInList'
+import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
+import { RecoverySignalsCard } from '../components/RecoverySignalsCard'
 import { SegmentedControl } from '../components/SegmentedControl'
 import { Section } from '../components/Section'
-import { SignalDetail } from '../components/SignalDetail'
-import { TrendLine } from '../components/TrendLine'
-import {
-  daysAgoLabel,
-  movementTone,
-  progressPeriods,
-  progressSummary,
-  recentCheckIns,
-  whatChangedRecently,
-} from '../data/progress'
+import { progressPeriods, progressSummary, recentCheckIns, whatChangedRecently } from '../data/progress'
+import { sinceLastAppointment } from '../data/summary'
 import { recoveryOverall } from '../data/today'
 import type { ProgressRangeId } from '../types/progress'
-import { toneDot, toneText } from '../utils/tone'
+import { useCare } from '../utils/care'
+import { toneDot } from '../utils/tone'
 
-// "Am I making progress?" — the overall read first, then each signal with its evidence, then the raw check-ins.
+// "Am I making progress?" — the overall read first, then each signal with its evidence, then continuity
+// with professional care, then the raw check-ins.
 export function ProgressScreen() {
   const [range, setRange] = useState<ProgressRangeId>('7d')
   const period = progressPeriods.find((p) => p.id === range) ?? progressPeriods[0]
+  const { professional } = useCare()
 
   return (
     <div className="flex flex-col gap-10 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
@@ -47,25 +45,10 @@ export function ProgressScreen() {
       </Card>
 
       <Section id="signals" title="Recovery signals" aside={`Last ${period.label}`}>
-        <Card className="px-6 py-2">
-          <ul className="divide-y divide-line">
-            {period.signals.map((signal) => (
-              <SignalDetail key={signal.id} {...signal}>
-                {signal.id === 'pain' && (
-                  <>
-                    <TrendLine
-                      points={period.painPoints}
-                      max={10}
-                      label="Pain at each check-in, out of 10"
-                      formatValue={(v) => `${v}/10`}
-                    />
-                    <p className="mt-3 text-[15px] leading-relaxed text-ink">{period.painReading}</p>
-                  </>
-                )}
-              </SignalDetail>
-            ))}
-          </ul>
-        </Card>
+        <RecoverySignalsCard
+          signals={period.signals}
+          pain={{ points: period.painPoints, reading: period.painReading }}
+        />
       </Section>
 
       <Section id="what-changed" title="What changed recently">
@@ -83,25 +66,53 @@ export function ProgressScreen() {
         </Card>
       </Section>
 
+      {professional ? (
+        <Section id="review" title="Next rehabilitation review">
+          <Card className="p-6">
+            <div className="flex items-center gap-4">
+              <ProfessionalAvatar professional={professional} />
+              <div>
+                <p className="text-[17px] font-semibold text-ink">
+                  {professional.name}, {professional.credential}
+                </p>
+                <p className="text-[15px] text-ink-soft">{professional.nextAppointment}</p>
+              </div>
+            </div>
+            <p className="mt-4 border-t border-line pt-4 text-[15px] leading-relaxed text-ink">
+              {sinceLastAppointment(professional.daysSinceLastAppointment).records.length} new check-ins since your
+              last appointment.
+            </p>
+            <Button
+              to="/summary"
+              variant="secondary"
+              icon={<FileText className="size-4" strokeWidth={1.75} aria-hidden />}
+              className="mt-4"
+            >
+              View recovery summary
+            </Button>
+          </Card>
+        </Section>
+      ) : (
+        <Section id="share" title="Recovery summary">
+          <Card className="p-6">
+            <p className="text-[15px] leading-relaxed text-ink-soft">
+              A short summary of your recent signals and check-ins, to share with a rehabilitation professional if
+              you want another view.
+            </p>
+            <Button
+              to="/summary"
+              variant="secondary"
+              icon={<FileText className="size-4" strokeWidth={1.75} aria-hidden />}
+              className="mt-4"
+            >
+              Share recovery summary
+            </Button>
+          </Card>
+        </Section>
+      )}
+
       <Section id="check-ins" title="Recent check-ins">
-        <Card className="px-6 py-2">
-          <ul className="divide-y divide-line">
-            {recentCheckIns.map((c) => (
-              <li key={c.daysAgo} className="flex items-center justify-between gap-4 py-4">
-                <div>
-                  <p className="text-base font-medium text-ink">{daysAgoLabel(c.daysAgo)}</p>
-                  <p className="mt-0.5 text-sm text-ink-soft">
-                    Pain {c.pain}/10 · Difficulty {c.difficulty}/10
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[13px] text-ink-faint">Movement</p>
-                  <p className={`text-[15px] font-medium ${toneText[movementTone[c.movement]]}`}>{c.movement}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Card>
+        <CheckInList records={recentCheckIns} />
       </Section>
     </div>
   )

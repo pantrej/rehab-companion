@@ -19,6 +19,9 @@ export function writeStored(key: string, value: unknown) {
 }
 
 export const storageKeys = {
+  care: 'rehab.care',
+  // Older independent-only setups; read once and migrated into `care`.
   setup: 'rehab.setup',
   lastCheckIn: 'rehab.lastCheckIn',
+  appointmentNote: 'rehab.appointmentNote',
 }

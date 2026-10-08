@@ -2,6 +2,8 @@ import { Check } from 'lucide-react'
 
 type Props = {
   label: string
+  // Optional supporting line under the label.
+  description?: string
   selected: boolean
   onSelect: () => void
   // Multi-select: a checkbox with a square indicator, inside a role="group" instead of a radiogroup.
@@ -9,7 +11,7 @@ type Props = {
 }
 
 // One answer in a choice question. Single-choice by default, inside a role="radiogroup".
-export function ChoiceOption({ label, selected, onSelect, multiple = false }: Props) {
+export function ChoiceOption({ label, description, selected, onSelect, multiple = false }: Props) {
   return (
     <button
       type="button"
@@ -22,7 +24,10 @@ export function ChoiceOption({ label, selected, onSelect, multiple = false }: Pr
           : 'border-line bg-surface text-ink hover:border-[#d9d4ca]'
       }`}
     >
-      {label}
+      <span>
+        {label}
+        {description && <span className="mt-1 block text-[15px] leading-snug text-ink-soft">{description}</span>}
+      </span>
       <span
         className={`flex size-6 shrink-0 items-center justify-center border transition-colors ${
           multiple ? 'rounded-md' : 'rounded-full'

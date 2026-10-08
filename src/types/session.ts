@@ -7,7 +7,6 @@ export type Exercise = {
   reps: number
   equipment: string
   instruction: string
-  prescribedBy: string
   lastSession: {
     difficulty: number
     pain: number

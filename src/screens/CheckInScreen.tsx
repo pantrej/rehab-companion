@@ -6,6 +6,7 @@ import { ChoiceOption } from '../components/ChoiceOption'
 import { PainScale } from '../components/PainScale'
 import { StepHeader } from '../components/StepHeader'
 import {
+  checkInPurpose,
   checkInSteps,
   checkInTitle,
   difficultyOptions,
@@ -14,6 +15,7 @@ import {
   unsureOptions,
 } from '../data/checkin'
 import type { CheckIn } from '../types/checkin'
+import { useCare } from '../utils/care'
 import { storageKeys, writeStored } from '../utils/storage'
 
 const total = checkInSteps.length
@@ -25,6 +27,7 @@ export function CheckInScreen() {
   const [stepIndex, setStepIndex] = useState(0)
   const [checkIn, setCheckIn] = useState<CheckIn>({ unsure: [], note: '' })
   const [noteOpen, setNoteOpen] = useState(false)
+  const { connected } = useCare()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const hasMounted = useRef(false)
 
@@ -80,6 +83,11 @@ export function CheckInScreen() {
           {step.question}
         </h1>
         {step.hint && <p className="mt-2 text-[15px] text-ink-soft">{step.hint}</p>}
+        {stepIndex === 0 && (
+          <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
+            {connected ? checkInPurpose.connected : checkInPurpose.independent}
+          </p>
+        )}
 
         <div className="mt-8">
           {step.id === 'pain' && (

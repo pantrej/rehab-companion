@@ -24,5 +24,4 @@ export type TodayPlan = {
   exerciseCount: number
   durationMinutes: number
   focus: string[]
-  prescribedBy: string
 }
