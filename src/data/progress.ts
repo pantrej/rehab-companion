@@ -1,13 +1,14 @@
 import type { CheckInRecord, Movement, ProgressPeriod, TrendPoint } from '../types/progress'
 import type { InsightSignal, SignalTone } from '../types/recovery'
 
-// One consistent recent history behind Home, Progress and Insight:
-// pain steady at 2–3/10, movement better in the last 3 check-ins, difficulty 7/10 → 5/10.
+// One consistent recent history behind Home, Progress, Insight and the calendar (today is 9 October):
+// pain steady at 2–3/10, movement better in the 3 check-ins since the 3 October appointment,
+// difficulty 7/10 → 5/10, and the 6 October rise during loading that led to the plan update.
 export const recentCheckIns: CheckInRecord[] = [
-  { daysAgo: 0, pain: 2, difficulty: 5, movement: 'Better' },
-  { daysAgo: 2, pain: 3, difficulty: 6, movement: 'Better' },
-  { daysAgo: 4, pain: 2, difficulty: 7, movement: 'Better' },
-  { daysAgo: 6, pain: 3, difficulty: 7, movement: 'About the same' },
+  { daysAgo: 2, pain: 2, difficulty: 5, movement: 'Better', note: 'Walking felt easier today.' },
+  { daysAgo: 3, pain: 3, difficulty: 6, movement: 'Better', note: 'Calf felt tight during the loaded raises.' },
+  { daysAgo: 5, pain: 2, difficulty: 7, movement: 'Better' },
+  { daysAgo: 7, pain: 3, difficulty: 7, movement: 'About the same' },
 ]
 
 // Older check-ins, only shown on the 30-day view. Oldest first.

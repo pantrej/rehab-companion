@@ -7,6 +7,7 @@ export type CheckInRecord = {
   pain: number
   difficulty: number
   movement: Movement
+  note?: string
 }
 
 export type TrendPoint = {

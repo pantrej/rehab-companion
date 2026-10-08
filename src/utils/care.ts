@@ -19,18 +19,11 @@ export function saveCare(care: CareState) {
 // The care state for a screen. The professional exists only in connected care, so screens that
 // check `professional` can never show an invented one.
 export function useCare() {
-  const [care, setCare] = useState(readCare)
-  const update = (patch: Partial<CareState>) => {
-    if (!care) return
-    const next = { ...care, ...patch }
-    saveCare(next)
-    setCare(next)
-  }
+  const [care] = useState(readCare)
   return {
     care,
     connected: care?.mode === 'connected',
     professional: care?.mode === 'connected' ? professional : undefined,
-    update,
   }
 }
 

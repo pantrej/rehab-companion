@@ -1,12 +1,16 @@
 import { ArrowRight, FileText } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
-import { CheckInList } from '../components/CheckInList'
+import { DaySummarySheet } from '../components/DaySummarySheet'
+import { MonthCalendar } from '../components/MonthCalendar'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
 import { RecoverySignalsCard } from '../components/RecoverySignalsCard'
 import { SegmentedControl } from '../components/SegmentedControl'
 import { Section } from '../components/Section'
+import { TomorrowPlanCard } from '../components/TomorrowPlanCard'
+import { buildMonth } from '../data/calendar'
+import type { CalendarDay } from '../data/calendar'
 import { progressPeriods, progressSummary, recentCheckIns, whatChangedRecently } from '../data/progress'
 import { sinceLastAppointment } from '../data/summary'
 import { recoveryOverall } from '../data/today'
@@ -14,26 +18,27 @@ import type { ProgressRangeId } from '../types/progress'
 import { useCare } from '../utils/care'
 import { toneDot } from '../utils/tone'
 
-// "Am I making progress?" — the overall read first, then each signal with its evidence, then continuity
-// with professional care, then the raw check-ins.
+// The calendar is the long view: each day's rehabilitation at a glance, with the detail one tap away.
+// Below it: what's next, how signals are trending, and continuity with professional care.
 export function ProgressScreen() {
+  const { professional, connected } = useCare()
   const [range, setRange] = useState<ProgressRangeId>('7d')
+  const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null)
+  const closeDay = useCallback(() => setSelectedDay(null), [])
+  const days = useMemo(() => buildMonth(recentCheckIns, connected), [connected])
   const period = progressPeriods.find((p) => p.id === range) ?? progressPeriods[0]
-  const { professional } = useCare()
 
   return (
     <div className="flex flex-col gap-10 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
-      <header>
-        <h1 className="text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">Progress</h1>
-        <div className="mt-5">
-          <SegmentedControl
-            label="Time range"
-            options={progressPeriods.map((p) => ({ id: p.id, label: p.label }))}
-            value={range}
-            onChange={setRange}
-          />
-        </div>
-      </header>
+      <h1 className="text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">Progress</h1>
+
+      <Section id="calendar" title="Your rehabilitation days" aside="Tap a day">
+        <MonthCalendar days={days} onSelect={setSelectedDay} showAppointments={connected} />
+      </Section>
+
+      <Section id="tomorrow" title="Tomorrow’s plan">
+        <TomorrowPlanCard updated={!!professional} />
+      </Section>
 
       <Card className="p-6">
         <p className="text-sm text-ink-soft">{recoveryOverall.label}</p>
@@ -44,7 +49,13 @@ export function ProgressScreen() {
         <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{progressSummary}</p>
       </Card>
 
-      <Section id="signals" title="Recovery signals" aside={`Last ${period.label}`}>
+      <Section id="signals" title="Recovery trends" aside={`Last ${period.label}`}>
+        <SegmentedControl
+          label="Time range"
+          options={progressPeriods.map((p) => ({ id: p.id, label: p.label }))}
+          value={range}
+          onChange={setRange}
+        />
         <RecoverySignalsCard
           signals={period.signals}
           pain={{ points: period.painPoints, reading: period.painReading }}
@@ -111,9 +122,7 @@ export function ProgressScreen() {
         </Section>
       )}
 
-      <Section id="check-ins" title="Recent check-ins">
-        <CheckInList records={recentCheckIns} />
-      </Section>
+      {selectedDay && <DaySummarySheet day={selectedDay} professional={professional} onClose={closeDay} />}
     </div>
   )
 }

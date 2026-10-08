@@ -1,4 +1,4 @@
-import { CalendarCheck, ChevronRight, FileText, MessageSquare } from 'lucide-react'
+import { CalendarCheck, ChevronRight, FileText, MessageSquare, UserRound } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { Link } from 'react-router'
 import { Button } from '../components/Button'
@@ -37,6 +37,13 @@ export function SupportScreen() {
                 icon={<CalendarCheck className="size-4" strokeWidth={1.75} aria-hidden />}
               >
                 Prepare for appointment
+              </Button>
+              <Button
+                to="/therapist"
+                variant="quiet"
+                icon={<UserRound className="size-4" strokeWidth={1.75} aria-hidden />}
+              >
+                View therapist profile
               </Button>
             </div>
           </ProfessionalCard>

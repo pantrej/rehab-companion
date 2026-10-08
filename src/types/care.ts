@@ -7,7 +7,6 @@ export type CareState = {
   mode: CareMode
   // Independent only: the context the user set up themselves.
   setup?: OnboardingAnswers
-  preferredName?: string
 }
 
 export type Professional = {
@@ -20,4 +19,6 @@ export type Professional = {
   nextAppointment: string
   lastAppointment: string
   daysSinceLastAppointment: number
+  about: string
+  noteToPatient: string
 }

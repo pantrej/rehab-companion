@@ -9,7 +9,16 @@ export const professional: Professional = {
   clinic: 'Rehabilitation Centre',
   nextAppointment: '20 October · 10:30',
   lastAppointment: '3 October',
-  daysSinceLastAppointment: 5,
+  daysSinceLastAppointment: 6,
+  about: 'Specialises in rehabilitation after spinal injury and surgery, with a focus on a safe return to daily movement.',
+  noteToPatient:
+    'Keep checking in after each session. Your notes help me adjust your plan safely at our reviews.',
+}
+
+// Connection is by an invitation from the clinic. Prototype code and link only.
+export const connection = {
+  code: '482913',
+  inviteLinkHint: 'rehab.example/invite/482913',
 }
 
 // What the professional has already supplied, so a connected user is never asked to recreate it.
