@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "board": "vite --config vite.board.config.ts",
+    "board:mcp": "node case-study/mcp/server.ts",
+    "board:mcp:http": "node case-study/mcp/server.ts --http"
   },
   "dependencies": {
     "lucide-react": "^1.52.0",
@@ -16,6 +19,8 @@
     "react-router": "^8.4.0"
   },
   "devDependencies": {
+    "@excalidraw/excalidraw": "^0.18.1",
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
@@ -24,6 +29,7 @@
     "oxlint": "^1.81.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "zod": "^4.6.5"
   }
 }
