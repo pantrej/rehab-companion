@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "rehab-board": {
-      "command": "node",
-      "args": ["case-study/mcp/server.ts"]
-    }
-  }
-}
