@@ -1,11 +1,8 @@
 import { HeartPulse } from 'lucide-react'
-import { Navigate } from 'react-router'
 import { Button } from '../components/Button'
-import { isSignedIn } from '../utils/auth'
 
+// Always shown at /welcome, even with a saved account, so every test session can start here.
 export function WelcomeScreen() {
-  if (isSignedIn()) return <Navigate to="/" replace />
-
   return (
     <div className="flex flex-1 flex-col px-5 pt-[max(env(safe-area-inset-top),5rem)] pb-[max(env(safe-area-inset-bottom),1.5rem)]">
       <span className="flex size-14 items-center justify-center rounded-2xl bg-accent-soft text-accent">
