@@ -19,13 +19,17 @@ import { SupportScreen } from './screens/SupportScreen'
 import { SupportTopicScreen } from './screens/SupportTopicScreen'
 import { TherapistScreen } from './screens/TherapistScreen'
 import { WelcomeScreen } from './screens/WelcomeScreen'
+import { hasPendingSetup } from './utils/care'
 
 // Loaded only when visited, so the showcase never weighs on the prototype.
 const DesignSystemPage = lazy(() => import('./design-system/DesignSystemPage').then((m) => ({ default: m.DesignSystemPage })))
 
-// Every visit to the app starts with the care question. Only a fresh load of the root is redirected,
-// so in-app navigation to Today and direct links (/welcome for usability tests) keep working.
-if (window.location.pathname === '/' && !window.location.search) window.history.replaceState(null, '', '/onboarding')
+// Every visit to the app starts at Welcome, which leads into setup and ends at the account step. A setup
+// finished without an account resumes there instead, so a reload never loses it. Only a fresh load of the
+// root is redirected, so in-app navigation to Today and direct links keep working.
+if (window.location.pathname === '/' && !window.location.search) {
+  window.history.replaceState(null, '', hasPendingSetup() ? '/register' : '/welcome')
+}
 
 export const router = createBrowserRouter([
   {

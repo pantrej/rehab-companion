@@ -1,6 +1,7 @@
-import { ArrowRight, Check, Play, RefreshCw } from 'lucide-react'
+import { ArrowRight, Check, Minus, Play, RefreshCw } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
+import { exercisesPerSession } from '../data/calendar'
 import type { DayView } from '../data/days'
 import { tomorrow } from '../data/plan'
 import type { Professional } from '../types/care'
@@ -27,9 +28,9 @@ export function DailyPlanCard({ day, professional, onViewSummary, onLogRest, res
 
   return (
     <div className="-mt-px flex flex-1 flex-col rounded-b-[32px] px-5 pt-1 pb-6" style={{ background: theme.tint }}>
-      <p className={`text-caption font-semibold ${theme.label}`}>{day.plan.label}</p>
-      <h2 className="mt-1.5 text-[26px] leading-tight font-bold tracking-[-0.02em] text-ink">{day.plan.focus}</h2>
-      <p className="mt-1 text-body text-ink-soft">{day.plan.meta}</p>
+      <p className={`text-caption font-semibold ${theme.label}`}>{day.activity.label}</p>
+      <h2 className="mt-1.5 text-[26px] leading-tight font-bold tracking-[-0.02em] text-ink">{day.activity.focus}</h2>
+      <p className="mt-1 text-body text-ink-soft">{day.activity.meta}</p>
 
       {(day.state === 'active' || day.state === 'attention') && (
         <>
@@ -63,12 +64,12 @@ export function DailyPlanCard({ day, professional, onViewSummary, onLogRest, res
       {day.state === 'completed' && (
         <>
           <Completion
-            title={day.doneToday ? 'Today’s session is done' : 'Session completed'}
+            title={day.doneToday ? 'Today’s session is done' : day.outcome === 'partial' ? 'Session partly completed' : 'Session completed'}
             text={
               day.doneToday
                 ? `Next session: tomorrow · ${tomorrow.focus}`
-                : day.calendar?.status === 'partial'
-                  ? `${day.calendar.exercisesDone} of 4 exercises done. Your check-in helps your plan stay right.`
+                : day.outcome === 'partial'
+                  ? `${day.calendar?.exercisesDone} of ${exercisesPerSession} exercises done. Your check-in helps your plan stay right.`
                   : 'Great job! You completed your plan.'
             }
           />
@@ -95,6 +96,25 @@ export function DailyPlanCard({ day, professional, onViewSummary, onLogRest, res
                 View summary
               </button>
             )}
+          </Actions>
+        </>
+      )}
+
+      {day.state === 'missed' && (
+        <>
+          <Completion
+            tone="neutral"
+            title="No session recorded"
+            text="Missing one session doesn’t undo your progress. Your plan carries on from today."
+          />
+          <Actions>
+            <button
+              type="button"
+              onClick={onViewSummary}
+              className={`${softAction} border-[1.5px] border-line bg-white/70 text-ink-soft hover:bg-white`}
+            >
+              View summary
+            </button>
           </Actions>
         </>
       )}
@@ -151,11 +171,17 @@ function Actions({ children }: { children: ReactNode }) {
   return <div className="mt-auto flex flex-col gap-1 pt-5">{children}</div>
 }
 
-function Completion({ title, text }: { title: string; text: string }) {
+// The small mark says what happened: a tick for a session that ran, a plain dash for one that didn't.
+function Completion({ title, text, tone = 'positive' }: { title: string; text: string; tone?: 'positive' | 'neutral' }) {
   return (
     <div className="mt-4 flex items-start gap-3">
-      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-positive text-white" aria-hidden>
-        <Check className="size-4" strokeWidth={2.75} />
+      <span
+        className={`flex size-7 shrink-0 items-center justify-center rounded-full ${
+          tone === 'positive' ? 'bg-positive text-white' : 'bg-line text-ink-soft'
+        }`}
+        aria-hidden
+      >
+        {tone === 'positive' ? <Check className="size-4" strokeWidth={2.75} /> : <Minus className="size-4" strokeWidth={2.75} />}
       </span>
       <div>
         <p className="text-[15px] font-semibold text-ink">{title}</p>

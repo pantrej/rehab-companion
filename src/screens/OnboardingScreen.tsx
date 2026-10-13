@@ -42,10 +42,11 @@ import { planDetails } from '../data/plan'
 import { careModeOptions, connection, professional } from '../data/professional'
 import type { CareMode } from '../types/care'
 import type { OnboardingAnswers, OnboardingStepId } from '../types/onboarding'
-import { demoAccount, initialsOf, useAccount } from '../utils/auth'
+import { demoAccount, initialsOf, isSignedIn, useAccount } from '../utils/auth'
 import { readCare, saveCare } from '../utils/care'
 
-// entry → connected care: connect → connected → plan · independent: questions 0–3 → summary
+// entry → connected care: connect → connected → plan · independent: questions 0–3 → summary.
+// Both paths end plan-ready and hand over to the account step, which saves what setup produced.
 type Phase = 'entry' | 'connect' | 'connected' | 'plan' | 'summary' | number
 type ConnectMethod = 'code' | 'link'
 
@@ -109,13 +110,15 @@ export function OnboardingScreen() {
     setPhase('connected')
   }
 
+  // Setup is saved first, then the account step explains what it is saving. Returning users skip it.
+  const signedIn = isSignedIn()
   const finishConnected = () => {
     saveCare({ mode: 'connected' })
-    navigate('/')
+    navigate(signedIn ? '/' : '/register')
   }
   const finishIndependent = () => {
     saveCare({ mode: 'independent', setup: answers })
-    navigate(isEdit ? '/profile' : '/')
+    navigate(isEdit ? '/profile' : signedIn ? '/' : '/register')
   }
 
   const back = () => {
@@ -126,8 +129,8 @@ export function OnboardingScreen() {
     else if (typeof phase === 'number' && phase > 0) setPhase(phase - 1)
     else if (phase === 0 && !isEdit) setPhase('entry')
     else if (fromProfile) navigate('/profile')
+    else navigate('/welcome')
   }
-  const canGoBack = phase !== 'entry' || fromProfile
   // Before an account exists, the clinic record names the (mock) patient.
   const name = account?.fullName ?? demoAccount.fullName
 
@@ -149,13 +152,15 @@ export function OnboardingScreen() {
     <StepHeader
       current={progressCurrent}
       total={progressTotal}
-      onBack={canGoBack ? back : undefined}
+      onBack={back}
       backLabel={
-        (phase === 'entry' && fromProfile) || (phase === 0 && isEdit)
-          ? 'Back to Profile'
-          : typeof phase === 'number' || phase === 'summary'
-            ? 'Previous question'
-            : 'Back'
+        phase === 'entry' && !fromProfile
+          ? 'Back to welcome'
+          : (phase === 'entry' && fromProfile) || (phase === 0 && isEdit)
+            ? 'Back to Profile'
+            : typeof phase === 'number' || phase === 'summary'
+              ? 'Previous question'
+              : 'Back'
       }
     />
   )
@@ -198,7 +203,7 @@ export function OnboardingScreen() {
           <>
             <p className="text-[12px] font-semibold tracking-[0.16em] text-ink-faint uppercase">Rehab Companion</p>
             <h1 ref={headingRef} id="question" tabIndex={-1} className={`mt-3 ${titleClass}`}>
-              Choose your care type
+              How are you managing your rehabilitation?
             </h1>
             <p className={bodyClass}>We’ll tailor the app and its support to how you recover today.</p>
             {/* Equal rows, so both care types read as equal choices. */}
@@ -425,7 +430,7 @@ export function OnboardingScreen() {
         {phase === 'summary' && (
           <>
             <h1 ref={headingRef} tabIndex={-1} className={titleClass}>
-              {onboardingSummary.title}
+              {isEdit ? onboardingSummary.title : onboardingSummary.readyTitle}
             </h1>
             <p className={bodyClass}>{onboardingSummary.text}</p>
             <DetailList
@@ -458,7 +463,7 @@ export function OnboardingScreen() {
         )}
         {phase === 'plan' && (
           <Button onClick={finishConnected} icon={arrow}>
-            Start my plan
+            {signedIn ? 'Start my plan' : 'Save my plan'}
           </Button>
         )}
         {typeof phase === 'number' && (
@@ -468,7 +473,7 @@ export function OnboardingScreen() {
         )}
         {phase === 'summary' && (
           <Button onClick={finishIndependent} icon={arrow}>
-            {isEdit ? 'Save and return to Profile' : 'Continue to today’s plan'}
+            {isEdit ? 'Save and return to Profile' : signedIn ? 'Continue to today’s plan' : 'Save my plan'}
           </Button>
         )}
       </div>

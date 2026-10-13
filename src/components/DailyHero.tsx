@@ -8,6 +8,7 @@ const focus: Record<DayState, string> = {
   upcoming: '50% 55%',
   rest: '62% 30%',
   attention: '68% 28%',
+  missed: '50% 55%',
 }
 
 type Props = {
@@ -19,6 +20,7 @@ type Props = {
 }
 
 // The top of one day: its photo, when it is, and the pagination, easing into the plan card through the wave.
+// The hero carries only time — which day this is — and the plan card below says what happens on it.
 export function DailyHero({ day, index, count, onSelect, dayName }: Props) {
   const tint = dayTheme[day.state].tint
   return (
@@ -31,10 +33,16 @@ export function DailyHero({ day, index, count, onSelect, dayName }: Props) {
       />
       <div className="absolute inset-x-0 top-0 h-40 bg-linear-to-b from-black/45 via-black/15 to-black/0" aria-hidden />
 
-      <div className="relative px-5 pt-[max(env(safe-area-inset-top),3rem)] pr-20 text-white">
-        <p className="text-[15px] font-medium text-white/90 [text-shadow:0_1px_8px_rgb(0_0_0/0.25)]">{day.eyebrow}</p>
-        <p className="mt-0.5 text-[32px] leading-tight font-bold tracking-[-0.025em] [text-shadow:0_1px_12px_rgb(0_0_0/0.25)]">
-          {day.title}
+      {/* The greeting keeps its row on every day, so the date block sits at the same height across slides. */}
+      <div className="relative px-5 pt-[max(env(safe-area-inset-top),3rem)] pr-28 text-white">
+        <p className="h-5 text-[15px] font-medium text-white/90 [text-shadow:0_1px_8px_rgb(0_0_0/0.25)]">
+          {day.greeting ?? <span aria-hidden>&nbsp;</span>}
+        </p>
+        <p className="mt-1 text-[32px] leading-tight font-bold tracking-[-0.025em] [text-shadow:0_1px_12px_rgb(0_0_0/0.25)]">
+          {day.time}
+        </p>
+        <p className="mt-0.5 text-[15px] font-medium text-white/85 [text-shadow:0_1px_8px_rgb(0_0_0/0.3)]">
+          {day.dateLabel}
         </p>
       </div>
 

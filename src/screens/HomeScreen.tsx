@@ -1,15 +1,18 @@
+import { CalendarDays } from 'lucide-react'
 import { useState } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router'
 import { Button } from '../components/Button'
 import { ChoiceOption } from '../components/ChoiceOption'
 import { DailyHero } from '../components/DailyHero'
 import { DailyPlanCard } from '../components/DailyPlanCard'
+import { DayCalendarSheet } from '../components/DayCalendarSheet'
 import { DayCarousel } from '../components/DayCarousel'
 import { DaySummarySheet } from '../components/DaySummarySheet'
 import { RecoveryStatus } from '../components/RecoveryStatus'
 import { Sheet } from '../components/Sheet'
 import { assess, currentAssessment } from '../data/assessment'
-import { buildDays, dayOffsets } from '../data/days'
+import { TODAY } from '../data/calendar'
+import { buildDayMonth, buildDayWindow } from '../data/days'
 import type { DayView } from '../data/days'
 import { recentCheckIns } from '../data/progress'
 import type { CheckInRecord } from '../types/progress'
@@ -24,7 +27,6 @@ const worseningCheckIns: CheckInRecord[] = [
   { daysAgo: 5, pain: 3, difficulty: 6, movement: 'Better' },
 ]
 
-const todayIndex = dayOffsets.indexOf(0)
 const feelings = ['Better', 'About the same', 'Worse']
 const dateKey = (d: Date) => d.toISOString().slice(0, 10)
 
@@ -34,7 +36,10 @@ export function HomeScreen() {
   const { care, connected, professional } = useCare()
   const account = useAccount()
   const [params] = useSearchParams()
-  const [activeIndex, setActiveIndex] = useState(todayIndex)
+  // The carousel holds five days around `center`; the calendar is what moves the window.
+  const [center, setCenter] = useState(TODAY)
+  const [calendarOpen, setCalendarOpen] = useState(false)
+  const [swiped, setSwiped] = useState<{ center: string; index: number }>()
   const [summaryDay, setSummaryDay] = useState<DayView>()
   const [restDay, setRestDay] = useState<DayView>()
   const [restFeelings, setRestFeelings] = useState(() => readStored<Record<string, string>>(storageKeys.restFeelings, {}))
@@ -49,19 +54,24 @@ export function HomeScreen() {
   const preview = params.get('state') === 'attention'
   const records = preview ? worseningCheckIns : recentCheckIns
   const assessment = preview ? assess(worseningCheckIns, 'in the last 7 days') : currentAssessment(professional)
-  const days = buildDays({ firstName: firstName(name), connected, onTrack: assessment.onTrack, doneToday })
-  const dayName = (i: number) => (days[i].offset === 0 ? 'Today' : days[i].title)
+  const context = { firstName: firstName(name), connected, onTrack: assessment.onTrack, doneToday }
+  const { days, index } = buildDayWindow({ ...context, center })
+  const centerKey = dateKey(center)
+  // Swiping moves within the window; picking a date in the calendar rebuilds it around that day.
+  const activeIndex = swiped?.center === centerKey ? swiped.index : index
+  const dayName = (i: number) => `${days[i].time}, ${days[i].dateLabel}`
 
   return (
     <div className="relative flex flex-col pb-8">
       <h1 className="sr-only">Today's rehabilitation</h1>
 
       <DayCarousel
+        key={centerKey}
         count={days.length}
-        initial={todayIndex}
+        initial={index}
         label="Your rehabilitation, day by day"
-        slideLabel={(i) => `${dayName(i)}, ${days[i].date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}`}
-        onChange={setActiveIndex}
+        slideLabel={(i) => `${days[i].time}, ${days[i].date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}`}
+        onChange={(i) => setSwiped({ center: centerKey, index: i })}
       >
         {(i, goTo) => (
           <>
@@ -77,7 +87,20 @@ export function HomeScreen() {
         )}
       </DayCarousel>
 
-      {/* One avatar for every day, above the carousel. 44px target around the 36px avatar. */}
+      {/* Calendar and avatar sit above the carousel: one of each, whatever day is in view. */}
+      <button
+        type="button"
+        aria-label="Open calendar"
+        aria-haspopup="dialog"
+        aria-expanded={calendarOpen}
+        onClick={() => setCalendarOpen(true)}
+        className="absolute top-[max(env(safe-area-inset-top),2.75rem)] right-[3.75rem] flex size-11 items-center justify-center"
+      >
+        <span className="flex size-9 items-center justify-center rounded-full bg-white/80 text-ink-soft backdrop-blur-sm">
+          <CalendarDays className="size-[18px]" strokeWidth={1.75} aria-hidden />
+        </span>
+      </button>
+
       <Link
         to="/profile"
         aria-label="Profile"
@@ -91,6 +114,18 @@ export function HomeScreen() {
       <div className="px-5 pt-5">
         <RecoveryStatus assessment={assessment} day={days[activeIndex]} records={records} />
       </div>
+
+      {calendarOpen && (
+        <DayCalendarSheet
+          days={buildDayMonth(context)}
+          selected={days[activeIndex].date}
+          onClose={() => setCalendarOpen(false)}
+          onSelect={(date) => {
+            setCenter(date)
+            setCalendarOpen(false)
+          }}
+        />
+      )}
 
       {summaryDay?.calendar && (
         <DaySummarySheet day={summaryDay.calendar} professional={professional} onClose={() => setSummaryDay(undefined)} />

@@ -13,4 +13,6 @@ export const dayTheme: Record<DayState, { tint: string; label: string; line: str
   rest: { tint: '#e8eff8', label: 'text-rest', line: 'stroke-rest' },
   // Needs attention: restrained coral, not an alarm.
   attention: { tint: '#fbebe8', label: 'text-concern', line: 'stroke-concern' },
+  // A session that didn't happen: plain neutral, so a missed day is stated, never scolded.
+  missed: { tint: '#f1eee8', label: 'text-ink-soft', line: 'stroke-ink-faint' },
 }

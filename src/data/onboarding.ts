@@ -29,5 +29,7 @@ export const onboardingSteps: OnboardingStep[] = [
 
 export const onboardingSummary = {
   title: 'Your recovery setup',
+  // The end of setup, before the account step. The app never writes a plan: it makes an existing one followable.
+  readyTitle: 'Your plan is ready to follow',
   text: 'We’ll help you follow your existing plan, understand your progress, and know when professional input may be useful.',
 }

@@ -1,18 +1,13 @@
-import { HeartPulse, Mail } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowRight, HeartPulse } from 'lucide-react'
 import { Link } from 'react-router'
 // The Rehab Companion photography set. Swap the file to replace it.
 import welcomeImage from '../assets/sunlit-mindful-moment-by-the-window.webp'
-import { AppleMark, AuthButton, AuthDivider, GoogleMark } from '../components/AuthButton'
 import { Button } from '../components/Button'
 import { CurvedHero } from '../components/CurvedHero'
-import { SocialSignInSheet } from '../components/SocialSignInSheet'
-import type { SocialProvider } from '../components/SocialSignInSheet'
 
 // Always shown at /welcome, even with a saved account, so every test session can start here.
+// The way in is the product, not an account: setup comes first, and signing up saves what it produced.
 export function WelcomeScreen() {
-  const [provider, setProvider] = useState<SocialProvider>()
-
   return (
     <div className="flex flex-1 flex-col">
       <CurvedHero
@@ -38,16 +33,12 @@ export function WelcomeScreen() {
         </p>
 
         <div className="mt-auto flex flex-col gap-3 pt-7">
-          <AuthButton variant="primary" icon={<GoogleMark onColor />} onClick={() => setProvider('Google')}>
-            Continue with Google
-          </AuthButton>
-          <AuthButton icon={<AppleMark />} onClick={() => setProvider('Apple')}>
-            Continue with Apple
-          </AuthButton>
-          <AuthDivider />
-          <AuthButton variant="soft" icon={<Mail className="size-[22px]" strokeWidth={1.75} />} to="/register">
-            Continue with email
-          </AuthButton>
+          <Button to="/onboarding" icon={<ArrowRight className="size-4" aria-hidden />}>
+            Get started
+          </Button>
+          <p className="text-center text-[15px] text-ink-soft">
+            Set up your rehabilitation first. You can create an account at the end.
+          </p>
           <p className="mt-1 text-center text-[15px] text-ink-soft">
             Already have an account?{' '}
             <Link to="/login" className="-mx-1.5 inline-flex min-h-11 items-center rounded-full px-1.5 font-semibold text-accent">
@@ -56,14 +47,6 @@ export function WelcomeScreen() {
           </p>
         </div>
       </div>
-
-      {provider && (
-        <SocialSignInSheet
-          provider={provider}
-          onClose={() => setProvider(undefined)}
-          emailAction={<Button to="/register">Continue with email</Button>}
-        />
-      )}
     </div>
   )
 }
