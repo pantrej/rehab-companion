@@ -1,9 +1,11 @@
 import { ArrowRight, ChevronRight, Play, RefreshCw } from 'lucide-react'
 import { Link, Navigate } from 'react-router'
+import { AssessmentLine } from '../components/AssessmentLine'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
 import { StatusItem } from '../components/StatusItem'
+import { currentAssessment } from '../data/assessment'
 import { recoveryInsight, recoveryOverall, recoverySignals, todayPlan } from '../data/today'
 import { firstName, initialsOf, useAccount } from '../utils/auth'
 import { useCare } from '../utils/care'
@@ -95,6 +97,9 @@ export function HomeScreen() {
             <p className="text-sm font-medium text-ink">{recoveryInsight.title}</p>
             <p className="mt-1.5 text-[15px] leading-relaxed text-ink-soft">{recoveryInsight.text}</p>
             <p className="mt-3 text-[13px] text-ink-faint">{recoveryInsight.basis}</p>
+            <div className="mt-3 border-t border-line pt-2 -mb-2">
+              <AssessmentLine assessment={currentAssessment(professional)} returnTo="/" />
+            </div>
           </div>
 
           <Button

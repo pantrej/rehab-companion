@@ -38,4 +38,6 @@ export const tomorrow = {
   durationMinutes: planDetails.durationMinutes,
   // Calm, attributed wording: the professional changed the plan after review; the app did not.
   updateNote: 'Resistance was reduced based on your recent check-ins and rehabilitation review.',
+  // Inline form, e.g. "Tomorrow's plan has lighter resistance for the seated calf raise".
+  changeInBrief: 'lighter resistance for the seated calf raise',
 }

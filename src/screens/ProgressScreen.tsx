@@ -1,5 +1,6 @@
-import { ArrowRight, FileText } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
+import { AssessmentLine } from '../components/AssessmentLine'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { DaySummarySheet } from '../components/DaySummarySheet'
@@ -9,6 +10,7 @@ import { RecoverySignalsCard } from '../components/RecoverySignalsCard'
 import { SegmentedControl } from '../components/SegmentedControl'
 import { Section } from '../components/Section'
 import { TomorrowPlanCard } from '../components/TomorrowPlanCard'
+import { currentAssessment } from '../data/assessment'
 import { buildMonth } from '../data/calendar'
 import type { CalendarDay } from '../data/calendar'
 import { progressPeriods, progressSummary, recentCheckIns, whatChangedRecently } from '../data/progress'
@@ -65,15 +67,9 @@ export function ProgressScreen() {
       <Section id="what-changed" title="What changed recently">
         <Card className="p-6">
           <p className="text-[17px] leading-relaxed text-ink">{whatChangedRecently}</p>
-          <Button
-            to="/insight"
-            state={{ returnTo: '/progress' }}
-            variant="ghost"
-            icon={<ArrowRight className="size-4" aria-hidden />}
-            className="mt-3 -mb-2"
-          >
-            View recovery insight
-          </Button>
+          <div className="mt-4 border-t border-line pt-3 -mb-2">
+            <AssessmentLine assessment={currentAssessment(professional)} returnTo="/progress" linkLabel="View recovery insight" />
+          </div>
         </Card>
       </Section>
 
