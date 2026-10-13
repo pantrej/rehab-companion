@@ -4,28 +4,51 @@ import { TODAY, formatDay } from '../data/calendar'
 import type { DayView } from '../data/days'
 import { ModalSheet } from './ModalSheet'
 
-// One mark per day, in the colours the rest of the app already uses for these meanings: orange for a
-// rehabilitation session, blue for a recovery day, a green tick for a session that ran. Recovery sits
-// a size below a session, so the rhythm of the plan reads before its rest days do.
-function Mark({ day }: { day: DayView }) {
-  const shape =
-    day.state === 'open'
-      ? ''
-      : day.state === 'completed'
-      ? 'tick'
-      : day.outcome === 'partial'
-        ? 'size-1.5 rounded-full ring-[1.5px] ring-positive'
-        : day.state === 'missed'
-          ? 'h-0.5 w-2 rounded-full bg-ink-faint'
-          : day.state === 'rest'
-            ? 'size-1 rounded-full bg-rest'
-            : day.state === 'attention'
-              ? 'size-1.5 rounded-full bg-concern'
-              : 'size-1.5 rounded-full bg-planned'
+// What the plan says about a day, as a dot under its number: orange for a rehabilitation session, blue
+// for a recovery day, coral when the reading needs attention, a neutral dash for a session that never
+// happened. A day the plan says nothing about, and a day already completed, carry no dot: completion is
+// told by the number's own green circle, so no day ever wears two marks.
+const dots: Partial<Record<DayView['state'], string>> = {
+  active: 'size-1.5 rounded-full bg-planned',
+  upcoming: 'size-1.5 rounded-full bg-planned',
+  rest: 'size-1.5 rounded-full bg-rest',
+  attention: 'size-1.5 rounded-full bg-concern',
+  missed: 'h-0.5 w-2 rounded-full bg-ink-faint',
+}
+
+// How the number itself is dressed. Selected wins over today, which wins over a completed day, so a
+// single circle always carries the day's most important state.
+function circleClass(day: DayView, isToday: boolean, isSelected: boolean) {
+  if (isSelected) return 'bg-accent font-semibold text-white'
+  if (isToday) return 'font-semibold text-accent ring-[1.5px] ring-accent'
+  if (day.state === 'completed') return day.outcome === 'partial' ? 'text-positive ring-[1.5px] ring-positive' : 'bg-positive-soft font-semibold text-positive'
+  if (day.state === 'open') return 'text-ink-faint'
+  if (day.state === 'rest' || day.state === 'upcoming') return 'text-ink-soft'
+  return 'text-ink'
+}
+
+// One cell: the number, and directly under it the slot its status lives in. The slot is always there,
+// so every date in the month sits on the same baseline whether or not it has anything to say.
+function DayCell({ day, isToday, isSelected, onSelect }: { day: DayView; isToday: boolean; isSelected: boolean; onSelect: () => void }) {
+  const dot = isSelected && day.state === 'completed' ? undefined : dots[day.state]
   return (
-    <span className="flex h-3 w-3 items-center justify-center" aria-hidden>
-      {shape === 'tick' ? <Check className="size-3 text-positive" strokeWidth={3} /> : shape && <span className={shape} />}
-    </span>
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-label={`${formatDay(day.date)}: ${day.activity.label}${isToday ? ', today' : ''}`}
+      aria-current={isToday ? 'date' : undefined}
+      aria-pressed={isSelected}
+      className="flex h-13 flex-col items-center gap-1 rounded-2xl pt-1.5 transition-colors hover:bg-canvas focus-visible:outline-2 focus-visible:outline-accent"
+    >
+      <span
+        className={`flex size-9 items-center justify-center rounded-full text-[15px] tabular-nums ${circleClass(day, isToday, isSelected)}`}
+      >
+        {day.date.getDate()}
+      </span>
+      <span className="flex h-1.5 w-2 items-center justify-center" aria-hidden>
+        {dot && <span className={dot} />}
+      </span>
+    </button>
   )
 }
 
@@ -62,63 +85,44 @@ export function DayCalendarSheet({ days, selected, onSelect, onClose }: Props) {
               {Array.from({ length: leading }, (_, i) => (
                 <span key={`blank-${i}`} aria-hidden />
               ))}
-              {days.map((day) => {
-                const isToday = day.offset === 0
-                const isSelected = day.date.getTime() === (picked ?? selected).getTime()
-                return (
-                  <button
-                    key={day.date.getDate()}
-                    type="button"
-                    onClick={() => {
-                      setPicked(day.date)
-                      dismiss(() => onSelect(day.date))
-                    }}
-                    aria-label={`${formatDay(day.date)}: ${day.activity.label}${isToday ? ', today' : ''}`}
-                    aria-current={isToday ? 'date' : undefined}
-                    aria-pressed={isSelected}
-                    className="flex h-12 flex-col items-center justify-center gap-0.5 rounded-xl transition-colors hover:bg-canvas focus-visible:outline-2 focus-visible:outline-accent"
-                  >
-                    {/* Today is outlined; the day being viewed is filled. When they are the same day, the
-                        filled circle keeps its outline, a ring out, so both still read. */}
-                    <span
-                      className={`flex size-8 items-center justify-center rounded-full text-[15px] tabular-nums ${
-                        isSelected
-                          ? `bg-accent font-semibold text-white${isToday ? ' ring-[1.5px] ring-accent ring-offset-2 ring-offset-surface' : ''}`
-                          : isToday
-                            ? 'font-semibold text-accent ring-[1.5px] ring-accent'
-                            : day.state === 'open'
-                              ? 'text-ink-faint'
-                              : day.state === 'rest' || day.state === 'upcoming'
-                                ? 'text-ink-soft'
-                                : 'text-ink'
-                      }`}
-                    >
-                      {day.date.getDate()}
-                    </span>
-                    <Mark day={day} />
-                  </button>
-                )
-              })}
+              {days.map((day) => (
+                <DayCell
+                  key={day.date.getDate()}
+                  day={day}
+                  isToday={day.offset === 0}
+                  isSelected={day.date.getTime() === (picked ?? selected).getTime()}
+                  onSelect={() => {
+                    setPicked(day.date)
+                    dismiss(() => onSelect(day.date))
+                  }}
+                />
+              ))}
             </div>
           </div>
 
-          <div className="flex shrink-0 justify-center gap-5 px-6 pt-3 text-caption text-ink-soft">
-            {legend.map((item) => (
-              <span key={item.label} className="flex items-center gap-1.5">
-                <Mark day={item.day} />
-                {item.label}
+          {/* The legend shows the same marks the grid does, at the same size. */}
+          <div className="flex shrink-0 items-center justify-center gap-5 px-6 pt-3 text-caption text-ink-soft">
+            <span className="flex items-center gap-1.5">
+              <span className="flex h-1.5 w-2 items-center justify-center" aria-hidden>
+                <span className={dots.upcoming} />
               </span>
-            ))}
+              Session
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="flex h-1.5 w-2 items-center justify-center" aria-hidden>
+                <span className={dots.rest} />
+              </span>
+              Recovery
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="flex size-5 items-center justify-center rounded-full bg-positive-soft" aria-hidden>
+                <Check className="size-3 text-positive" strokeWidth={3} />
+              </span>
+              Completed
+            </span>
           </div>
         </>
       )}
     </ModalSheet>
   )
 }
-
-// The legend reads from the same marks as the grid, so the two can never drift apart.
-const legend = [
-  { label: 'Session', day: { state: 'upcoming' } as DayView },
-  { label: 'Recovery', day: { state: 'rest' } as DayView },
-  { label: 'Completed', day: { state: 'completed' } as DayView },
-]

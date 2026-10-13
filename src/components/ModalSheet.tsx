@@ -1,11 +1,12 @@
 import { X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
-import type { PointerEvent as ReactPointerEvent, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { appFrameId } from '../layouts/MobileLayout'
 
-// Far enough that a flick closes the sheet, short enough that a nudge doesn't.
-const dismissAfter = 96
+// Long enough to be seen, short enough to stay out of the way. The sheet is unmounted only once it has
+// finished leaving, so the same value paces both.
+const travel = 300
 
 type Props = {
   title: string
@@ -19,49 +20,42 @@ type Props = {
 }
 
 // A modal bottom sheet over the screen, which stays visible behind it. It portals into the phone frame
-// rather than the screen, so one backdrop covers the content and the tab bar together. It rises from the
-// bottom edge and leaves the same way, by the close button, the backdrop, Escape or a drag downwards.
+// rather than the screen, so one backdrop covers the content and the tab bar together.
+//
+// The motion is deliberately plain: the sheet is painted once below the bottom edge, then a single
+// transform transition carries it up, and the reverse carries it back down before anything unmounts.
+// Nothing else animates — no height, no radius, no per-element transitions to compete with it.
 export function ModalSheet({ title, onClose, closeLabel, heightClass = 'max-h-[78%]', children }: Props) {
-  const close = closeLabel ?? `Close ${title}`
   const sheetRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
+  const close = closeLabel ?? `Close ${title}`
 
+  const [arrived, setArrived] = useState(false)
   const [leaving, setLeaving] = useState(false)
-  const dismiss = (then: () => void) => {
-    if (leaving) return
-    setLeaving(true)
-    setDrag(sheetRef.current?.offsetHeight ?? 600)
-    window.setTimeout(then, 280)
-  }
+  const closing = useRef(false)
+  const open = arrived && !leaving
 
-  // Dragging the sheet down dismisses it; anything short of that springs back.
-  const [drag, setDrag] = useState(0)
-  const [dragging, setDragging] = useState(false)
-  const from = useRef<number | undefined>(undefined)
-  const onPointerDown = (e: ReactPointerEvent) => {
-    from.current = e.clientY
-    setDragging(true)
-    e.currentTarget.setPointerCapture(e.pointerId)
-  }
-  const onPointerMove = (e: ReactPointerEvent) => {
-    if (from.current !== undefined) setDrag(Math.max(0, e.clientY - from.current))
-  }
-  const endDrag = () => {
-    if (from.current === undefined) return
-    from.current = undefined
-    setDragging(false)
-    if (drag > dismissAfter) dismiss(onClose)
-    else setDrag(0)
+  const dismiss = (then: () => void) => {
+    if (closing.current) return
+    closing.current = true
+    setLeaving(true)
+    window.setTimeout(then, travel)
   }
 
   useEffect(() => {
     sheetRef.current?.focus()
+    // One painted frame at the bottom edge, then the transition has something to move from.
+    const frame = requestAnimationFrame(() => requestAnimationFrame(() => setArrived(true)))
+    return () => cancelAnimationFrame(frame)
+  }, [])
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') dismiss(onClose)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-    // The handlers close over state that only ever moves one way: opened, then leaving.
+    // `dismiss` guards itself against running twice, so it never needs to re-bind.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onClose])
 
@@ -72,8 +66,8 @@ export function ModalSheet({ title, onClose, closeLabel, heightClass = 'max-h-[7
         type="button"
         aria-label={close}
         onClick={() => dismiss(onClose)}
-        className={`animate-fade-in absolute inset-0 cursor-default bg-ink/35 backdrop-blur-[2px] transition-opacity duration-[260ms] ${
-          leaving ? 'opacity-0' : ''
+        className={`absolute inset-0 cursor-default bg-ink/35 backdrop-blur-[2px] transition-opacity duration-300 ease-out ${
+          open ? 'opacity-100' : 'opacity-0'
         }`}
       />
 
@@ -83,20 +77,10 @@ export function ModalSheet({ title, onClose, closeLabel, heightClass = 'max-h-[7
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        style={{ transform: drag ? `translateY(${drag}px)` : undefined, transition: dragging ? 'none' : undefined }}
-        className={`relative flex ${heightClass} flex-col rounded-t-[2rem] bg-surface pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-raised outline-none transition-transform duration-[260ms] ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none ${
-          leaving ? '' : 'animate-sheet-rise'
-        }`}
+        style={{ transform: open ? 'translateY(0)' : 'translateY(100%)' }}
+        className={`relative flex ${heightClass} flex-col rounded-t-[2rem] bg-surface pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-raised outline-none transition-transform duration-300 ease-out motion-reduce:transition-none`}
       >
-        {/* The handle and the title are the grab area: dragging either one pulls the sheet down. The close
-            button sits outside it, so a tap on it is a tap, not the start of a drag. */}
-        <div
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={endDrag}
-          onPointerCancel={endDrag}
-          className="shrink-0 touch-none pt-3"
-        >
+        <div className="shrink-0 pt-3">
           <span className="mx-auto block h-1 w-9 rounded-full bg-line" aria-hidden />
           <h2
             id={titleId}
