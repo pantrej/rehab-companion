@@ -12,6 +12,8 @@ type Props = {
   // A photo; without one, a soft branded gradient.
   image?: string
   imagePosition?: string
+  // Starts the photo lower, fading its top edge into the canvas, for photos with little headroom.
+  imageTop?: number
   size?: keyof typeof heights
   // Composed visuals over the image, e.g. a branded card or soft shapes.
   children?: ReactNode
@@ -21,12 +23,17 @@ type Props = {
 
 // The visual anchor of every onboarding step: an image or branded composition with the progress laid over
 // it, easing into the canvas through a soft curve.
-export function OnboardingHero({ header, image, imagePosition = '50% 40%', size = 'lg', children, badge }: Props) {
+export function OnboardingHero({ header, image, imagePosition = '50% 40%', imageTop = 0, size = 'lg', children, badge }: Props) {
   return (
     <div className={`relative shrink-0 ${heights[size]}`}>
       <div className="absolute inset-0 overflow-hidden" aria-hidden>
         {image ? (
-          <img src={image} alt="" className="size-full object-cover" style={{ objectPosition: imagePosition }} />
+          <img
+            src={image}
+            alt=""
+            className={`absolute inset-x-0 bottom-0 w-full object-cover ${imageTop ? '[mask-image:linear-gradient(to_bottom,transparent,black_64px)]' : ''}`}
+            style={{ objectPosition: imagePosition, height: `calc(100% - ${imageTop}px)` }}
+          />
         ) : (
           <div className="absolute inset-0 bg-linear-to-br from-[#f7f2ea] via-[#f1eafb] to-[#e2d7fa]">
             <span className="absolute -top-16 -left-10 size-56 rounded-full bg-white/70 blur-2xl" />
@@ -38,15 +45,18 @@ export function OnboardingHero({ header, image, imagePosition = '50% 40%', size 
       </div>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-linear-to-b from-canvas/85 to-canvas/0" aria-hidden />
       <div className="relative px-5 pt-[max(env(safe-area-inset-top),1.25rem)]">{header}</div>
+      {/* The Rehab Companion wave: a translucent violet ribbon rises ahead of the canvas on the right, so the
+          image settles into the page through an asymmetric, layered curve. */}
       <svg
-        className="absolute inset-x-0 -bottom-px h-10 w-full fill-canvas"
-        viewBox="0 0 390 40"
+        className="absolute inset-x-0 -bottom-px h-[72px] w-full"
+        viewBox="0 0 390 72"
         preserveAspectRatio="none"
         aria-hidden
       >
-        <path d="M0 14 C 90 34, 210 36, 300 22 S 380 4, 390 2 L 390 40 L 0 40 Z" />
+        <path className="fill-accent-soft/85" d="M0 52 C 90 70, 190 70, 268 46 C 318 31, 356 12, 390 2 L 390 72 L 0 72 Z" />
+        <path className="fill-canvas" d="M0 40 C 92 72, 204 74, 292 52 C 334 41, 366 30, 390 24 L 390 72 L 0 72 Z" />
       </svg>
-      {badge && <div className="absolute bottom-0 left-5 translate-y-1/3">{badge}</div>}
+      {badge && <div className="absolute bottom-0 left-5 translate-y-1/4">{badge}</div>}
     </div>
   )
 }

@@ -17,7 +17,7 @@ type Props = {
   tone?: keyof typeof tones
 }
 
-// A neutral initials avatar, standing in for a profile image. The prototype never uses a real person's photo.
+// A neutral initials avatar, standing in for a profile image across the app.
 export function Avatar({ initials, size = 'md', tone = 'patient' }: Props) {
   return (
     <span

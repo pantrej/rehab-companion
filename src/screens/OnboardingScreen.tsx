@@ -20,7 +20,10 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-// Photos from Pexels (free to use): Miriam Alonso, Tran Nhu Tuan, Roman Odintsov. Swap the files to replace them.
+// Photos from Pexels (free to use): MART PRODUCTION, Yan Krukau (care team, therapist), Dajana Reçi.
+// Swap the files to replace them.
+import annaPhoto from '../assets/anna-novak.webp'
+import careTeamImage from '../assets/onboarding-care-team.webp'
 import planImage from '../assets/onboarding-plan.webp'
 import startImage from '../assets/onboarding-start.webp'
 import therapistImage from '../assets/onboarding-therapist.webp'
@@ -30,7 +33,6 @@ import { Card } from '../components/Card'
 import { ChoiceOption } from '../components/ChoiceOption'
 import { DetailList } from '../components/DetailList'
 import { OnboardingHero, ThemeCard } from '../components/OnboardingHero'
-import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
 import { ProfessionalCard } from '../components/ProfessionalCard'
 import { Section } from '../components/Section'
 import { SegmentedControl } from '../components/SegmentedControl'
@@ -162,17 +164,15 @@ export function OnboardingScreen() {
 
   return (
     <div className="flex flex-1 flex-col">
-      {phase === 'entry' && <OnboardingHero header={header} image={startImage} imagePosition="18% 50%" />}
+      {phase === 'entry' && <OnboardingHero header={header} image={startImage} imagePosition="30% 45%" />}
       {phase === 'connect' && (
-        <OnboardingHero header={header} size="md">
-                    <ThemeCard icon={<UsersRound className="size-6" strokeWidth={1.75} />} label="Connect with your care team" />
-        </OnboardingHero>
+        <OnboardingHero header={header} image={careTeamImage} imagePosition="50% 0%" imageTop={28} size="md" />
       )}
       {phase === 'connected' && (
         <OnboardingHero
           header={header}
           image={therapistImage}
-          imagePosition="50% 18%"
+          imagePosition="50% 30%"
           badge={
             <span className="flex size-16 items-center justify-center rounded-full bg-surface shadow-card">
               <span className="flex size-11 items-center justify-center rounded-full bg-positive-soft text-positive">
@@ -181,11 +181,9 @@ export function OnboardingScreen() {
             </span>
           }
         >
-          <span className="absolute top-20 -left-24 h-64 w-40 -rotate-12 rounded-full bg-[#d8cdf6] opacity-70 mix-blend-multiply" />
-          <span className="absolute -right-20 bottom-4 h-56 w-36 rotate-12 rounded-full bg-[#d8cdf6] opacity-70 mix-blend-multiply" />
         </OnboardingHero>
       )}
-      {phase === 'plan' && <OnboardingHero header={header} image={planImage} imagePosition="50% 62%" size="md" />}
+      {phase === 'plan' && <OnboardingHero header={header} image={planImage} imagePosition="50% 70%" size="md" />}
       {step && (
         <OnboardingHero header={header} size="sm">
           <ThemeCard compact icon={<StepIcon id={step.id} />} label={stepThemes[step.id].label} />
@@ -308,11 +306,18 @@ export function OnboardingScreen() {
               You’re now connected with your rehabilitation professional. You’ll see the plan they prepared for you in
               the app.
             </p>
-            <Card className="mt-6 flex items-center gap-4 p-5">
-              <ProfessionalAvatar professional={professional} size="lg" />
-              <div>
-                <p className="text-[17px] font-semibold text-ink">{professional.name}</p>
-                <p className="text-[15px] text-ink-soft">{professional.role}</p>
+            {/* The same person as in the photo above, so the connection reads as one real professional. */}
+            <Card className="mt-6 flex items-center gap-4 p-4">
+              <img
+                src={annaPhoto}
+                alt={`${professional.name}, ${professional.role}`}
+                className="size-[76px] shrink-0 rounded-[22px] object-cover"
+              />
+              <div className="min-w-0">
+                <p className="text-[18px] font-semibold text-ink">{professional.name}</p>
+                <p className="text-[15px] text-ink-soft">
+                  {professional.role} · {professional.credential}
+                </p>
                 <p className="text-[15px] text-ink-soft">{professional.clinic}</p>
               </div>
             </Card>
