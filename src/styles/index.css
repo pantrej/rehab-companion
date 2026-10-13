@@ -9,7 +9,7 @@
   /* Surfaces: canvas behind everything, raised cards, one featured card per screen, quiet blocks. */
   --color-canvas: #f6f4ef;
   --color-surface: #ffffff;
-  --color-featured: #efedf7;
+  --color-featured: #f1ecfc;
   --color-subtle: #efebe4;
   --color-line: #e9e5dd;
   /* Inset surface for media placeholders. */
@@ -19,9 +19,9 @@
   --color-ink-soft: #5d5a64;
   --color-ink-faint: #8f8c96;
 
-  --color-accent: #4f4a8c;
-  --color-accent-strong: #403b78;
-  --color-accent-soft: #e6e3f4;
+  --color-accent: #4b2aad;
+  --color-accent-strong: #3c2193;
+  --color-accent-soft: #ebe5fb;
 
   --color-positive: #36704f;
   --color-positive-soft: #e5efe8;

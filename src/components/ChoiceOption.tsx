@@ -24,7 +24,7 @@ export function ChoiceOption({ label, description, selected, onSelect, multiple 
         onClick={onSelect}
         className={`flex w-full items-center gap-4 rounded-[22px] border-[1.5px] px-4 py-3.5 pr-5 text-left transition-[background-color,border-color,box-shadow] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
           selected
-            ? 'border-accent bg-[#f1effa] shadow-[0_10px_28px_-16px_rgb(79_74_140/0.45)]'
+            ? 'border-accent bg-[#f4f0fd] shadow-[0_12px_28px_-16px_rgb(75_42_173/0.5)]'
             : 'border-transparent bg-surface shadow-card hover:border-line'
         }`}
       >

@@ -1,13 +1,35 @@
-import { ArrowRight, Check, House, ShieldAlert, UsersRound } from 'lucide-react'
-import heroImage from '../assets/onboarding-hero.webp'
+import {
+  ArrowRight,
+  CalendarCheck,
+  CalendarDays,
+  ChartLine,
+  Check,
+  ClipboardList,
+  ClipboardPlus,
+  Clock,
+  Dumbbell,
+  HeartPulse,
+  House,
+  Info,
+  MessageCircle,
+  ShieldAlert,
+  Target,
+  Timer,
+  TrendingUp,
+  UsersRound,
+} from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
+// Photos from Pexels (free to use): Miriam Alonso, Tran Nhu Tuan, Roman Odintsov. Swap the files to replace them.
+import planImage from '../assets/onboarding-plan.webp'
+import startImage from '../assets/onboarding-start.webp'
+import therapistImage from '../assets/onboarding-therapist.webp'
 import { Avatar } from '../components/Avatar'
-import { BackButton } from '../components/BackButton'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { ChoiceOption } from '../components/ChoiceOption'
 import { DetailList } from '../components/DetailList'
+import { OnboardingHero, ThemeCard } from '../components/OnboardingHero'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
 import { ProfessionalCard } from '../components/ProfessionalCard'
 import { Section } from '../components/Section'
@@ -19,7 +41,7 @@ import { patientRecord } from '../data/patient'
 import { planDetails } from '../data/plan'
 import { careModeOptions, connection, professional } from '../data/professional'
 import type { CareMode } from '../types/care'
-import type { OnboardingAnswers } from '../types/onboarding'
+import type { OnboardingAnswers, OnboardingStepId } from '../types/onboarding'
 import { demoAccount, initialsOf, useAccount } from '../utils/auth'
 import { readCare, saveCare } from '../utils/care'
 
@@ -28,10 +50,20 @@ type Phase = 'entry' | 'connect' | 'connected' | 'plan' | 'summary' | number
 type ConnectMethod = 'code' | 'link'
 
 const total = onboardingSteps.length
-// The care question is step 1; the independent setup questions follow as steps 2 to total + 1.
-const setupSteps = total + 1
+// Progress counts the care question as step 1 on both paths.
+const independentSteps = total + 1
+const connectedSteps = 4
 const careIcons: Record<CareMode, typeof House> = { connected: UsersRound, independent: House }
-const headingClass = 'text-title font-semibold text-ink outline-none'
+const stepThemes: Record<OnboardingStepId, { icon: typeof House; label: string }> = {
+  context: { icon: HeartPulse, label: 'Your recovery' },
+  stage: { icon: CalendarDays, label: 'Where you are now' },
+  support: { icon: UsersRound, label: 'Your support' },
+  plan: { icon: ClipboardList, label: 'Your plan' },
+}
+const titleClass = 'text-[30px] leading-[1.12] font-bold tracking-[-0.025em] text-ink outline-none'
+const bodyClass = 'mt-3 text-[16px] leading-relaxed text-ink-soft'
+const rowIcon = { className: 'size-5', strokeWidth: 1.75 }
+const arrow = <ArrowRight className="size-4" aria-hidden />
 
 // ?edit reopens the independent questions from Profile; ?change reopens the first question.
 export function OnboardingScreen() {
@@ -49,6 +81,7 @@ export function OnboardingScreen() {
   const [code, setCode] = useState('')
   const [link, setLink] = useState('')
   const [connectError, setConnectError] = useState<string>()
+  const [showHelp, setShowHelp] = useState(false)
   const headingRef = useRef<HTMLHeadingElement>(null)
   const hasMounted = useRef(false)
 
@@ -98,40 +131,80 @@ export function OnboardingScreen() {
   // Before an account exists, the clinic record names the (mock) patient.
   const name = account?.fullName ?? demoAccount.fullName
 
+  // Connected care: care question, connect, connected, plan. Independent: care question, then the questions.
+  const progressTotal = mode === 'connected' ? connectedSteps : independentSteps
+  const progressCurrent =
+    phase === 'entry'
+      ? 0
+      : phase === 'connect'
+        ? 1
+        : phase === 'connected'
+          ? 2
+          : phase === 'plan'
+            ? 3
+            : phase === 'summary'
+              ? independentSteps
+              : phase + 1
+  const header = (
+    <StepHeader
+      current={progressCurrent}
+      total={progressTotal}
+      onBack={canGoBack ? back : undefined}
+      backLabel={
+        (phase === 'entry' && fromProfile) || (phase === 0 && isEdit)
+          ? 'Back to Profile'
+          : typeof phase === 'number' || phase === 'summary'
+            ? 'Previous question'
+            : 'Back'
+      }
+    />
+  )
+
   return (
     <div className="flex flex-1 flex-col">
-      <div
-        className={`flex flex-1 flex-col ${phase === 'entry' ? 'pb-2' : 'px-5 pt-[max(env(safe-area-inset-top),2.5rem)] pb-10'}`}
-      >
-        {phase === 'entry' ? (
-          <EntryHero onBack={canGoBack ? back : undefined} />
-        ) : typeof phase === 'number' || phase === 'summary' ? (
-          <StepHeader
-            current={phase === 'summary' ? setupSteps : phase + 1}
-            total={setupSteps}
-            onBack={back}
-            backLabel={phase === 0 && isEdit ? 'Back to Profile' : 'Previous question'}
-          />
-        ) : canGoBack ? (
-          <BackButton label="Back" onClick={back} />
-        ) : (
-          <span className="size-11" aria-hidden />
-        )}
+      {phase === 'entry' && <OnboardingHero header={header} image={startImage} imagePosition="18% 50%" />}
+      {phase === 'connect' && (
+        <OnboardingHero header={header} size="md">
+                    <ThemeCard icon={<UsersRound className="size-6" strokeWidth={1.75} />} label="Connect with your care team" />
+        </OnboardingHero>
+      )}
+      {phase === 'connected' && (
+        <OnboardingHero
+          header={header}
+          image={therapistImage}
+          imagePosition="50% 18%"
+          badge={
+            <span className="flex size-16 items-center justify-center rounded-full bg-surface shadow-card">
+              <span className="flex size-11 items-center justify-center rounded-full bg-positive-soft text-positive">
+                <Check className="size-6" strokeWidth={2.25} aria-hidden />
+              </span>
+            </span>
+          }
+        >
+          <span className="absolute top-20 -left-24 h-64 w-40 -rotate-12 rounded-full bg-[#d8cdf6] opacity-70 mix-blend-multiply" />
+          <span className="absolute -right-20 bottom-4 h-56 w-36 rotate-12 rounded-full bg-[#d8cdf6] opacity-70 mix-blend-multiply" />
+        </OnboardingHero>
+      )}
+      {phase === 'plan' && <OnboardingHero header={header} image={planImage} imagePosition="50% 62%" size="md" />}
+      {step && (
+        <OnboardingHero header={header} size="sm">
+          <ThemeCard compact icon={<StepIcon id={step.id} />} label={stepThemes[step.id].label} />
+        </OnboardingHero>
+      )}
+      {phase === 'summary' && (
+        <OnboardingHero header={header} size="sm">
+          <ThemeCard compact icon={<Check className="size-5" strokeWidth={2} />} label="Your setup" />
+        </OnboardingHero>
+      )}
 
+      <div className={`relative flex flex-1 flex-col px-5 pb-6 ${phase === 'connected' ? 'pt-10' : 'pt-2'}`}>
         {phase === 'entry' && (
-          <div className="relative px-5 pt-1">
+          <>
             <p className="text-[12px] font-semibold tracking-[0.16em] text-ink-faint uppercase">Rehab Companion</p>
-            <h1
-              ref={headingRef}
-              id="question"
-              tabIndex={-1}
-              className="mt-3 text-[30px] leading-[1.12] font-semibold tracking-[-0.025em] text-ink outline-none"
-            >
+            <h1 ref={headingRef} id="question" tabIndex={-1} className={`mt-3 ${titleClass}`}>
               How are you currently managing your rehabilitation?
             </h1>
-            <p className="mt-2.5 text-[17px] leading-snug text-ink-soft">
-              We’ll tailor the app and its support to how you recover today.
-            </p>
+            <p className={bodyClass}>We’ll tailor the app and its support to how you recover today.</p>
             <div role="radiogroup" aria-labelledby="question" className="mt-6 flex flex-col gap-3">
               {careModeOptions.map((option) => {
                 const Icon = careIcons[option.id]
@@ -147,20 +220,21 @@ export function OnboardingScreen() {
                 )
               })}
             </div>
-          </div>
+          </>
         )}
 
         {phase === 'connect' && (
           <>
-            <h1 ref={headingRef} tabIndex={-1} className={`mt-5 ${headingClass}`}>
+            <h1 ref={headingRef} tabIndex={-1} className={titleClass}>
               Connect with your rehabilitation professional
             </h1>
-            <p className="mt-3 text-[17px] leading-relaxed text-ink-soft">
+            <p className={bodyClass}>
               Your clinic gives you a connection code or an invite link. Once connected, you’ll see the plan they
               prepared for you.
             </p>
-            <div className="mt-8">
+            <div className="mt-5">
               <SegmentedControl
+                variant="accent"
                 label="Connection method"
                 options={[
                   { id: 'code', label: 'Enter connection code' },
@@ -175,40 +249,66 @@ export function OnboardingScreen() {
             </div>
             {method === 'code' ? (
               <TextField
-                className="mt-6"
+                className="mt-5"
                 label="Connection code"
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 maxLength={6}
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                onClear={() => setCode('')}
                 error={connectError}
-                hint={`Prototype code: ${connection.code}`}
               />
             ) : (
               <TextField
-                className="mt-6"
+                className="mt-5"
                 label="Invite link"
                 inputMode="url"
                 autoComplete="off"
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
+                onClear={() => setLink('')}
                 error={connectError}
-                hint={`Prototype link: ${connection.inviteLinkHint}`}
               />
+            )}
+            <div className="mt-4 flex gap-3 rounded-2xl bg-accent-soft/60 p-4">
+              <Info className="mt-0.5 size-5 shrink-0 text-accent" strokeWidth={1.75} aria-hidden />
+              <p className="text-[15px] leading-snug text-ink-soft">
+                {method === 'code'
+                  ? 'You can find the code in your clinic email or ask your physiotherapist.'
+                  : 'Paste the invite link from your clinic email or message.'}
+                <span className="mt-1.5 block font-medium text-ink">
+                  Prototype {method === 'code' ? `code: ${connection.code}` : `link: ${connection.inviteLinkHint}`}
+                </span>
+              </p>
+            </div>
+            <button
+              type="button"
+              aria-expanded={showHelp}
+              onClick={() => setShowHelp(!showHelp)}
+              className="-mx-2 mt-3 min-h-11 self-start rounded-full px-2 text-[15px] font-semibold text-accent hover:bg-accent-soft/60"
+            >
+              Need help connecting?
+            </button>
+            {showHelp && (
+              <p className="text-[15px] leading-relaxed text-ink-soft">
+                Ask your clinic to resend the invitation. You can also continue on your own for now and connect later
+                from Profile.
+              </p>
             )}
           </>
         )}
 
         {phase === 'connected' && (
           <>
-            <span className="mt-6 flex size-12 items-center justify-center rounded-full bg-positive-soft text-positive">
-              <Check className="size-6" strokeWidth={2.25} aria-hidden />
-            </span>
-            <h1 ref={headingRef} tabIndex={-1} className={`mt-5 ${headingClass}`}>
+            <h1 ref={headingRef} tabIndex={-1} className={titleClass}>
               Connected to {professional.name}
             </h1>
-            <Card className="mt-8 flex items-center gap-4 p-6">
+            <p className={bodyClass}>
+              You’re now connected with your rehabilitation professional. You’ll see the plan they prepared for you in
+              the app.
+            </p>
+            <Card className="mt-6 flex items-center gap-4 p-5">
               <ProfessionalAvatar professional={professional} size="lg" />
               <div>
                 <p className="text-[17px] font-semibold text-ink">{professional.name}</p>
@@ -216,21 +316,36 @@ export function OnboardingScreen() {
                 <p className="text-[15px] text-ink-soft">{professional.clinic}</p>
               </div>
             </Card>
+            <div className="mt-3 flex items-center gap-4 rounded-card bg-accent-soft/50 p-5">
+              <span className="flex shrink-0 -space-x-2.5" aria-hidden>
+                {[Dumbbell, MessageCircle, ChartLine].map((Icon, i) => (
+                  <span
+                    key={i}
+                    className="flex size-10 items-center justify-center rounded-full bg-surface text-accent ring-2 ring-[#f1ecfc]"
+                  >
+                    <Icon className="size-[18px]" strokeWidth={1.75} />
+                  </span>
+                ))}
+              </span>
+              <p className="text-[15px] leading-snug text-ink-soft">
+                Your care team can now support you with updated exercises, feedback and progress tracking.
+              </p>
+            </div>
           </>
         )}
 
         {phase === 'plan' && (
           <>
-            <h1 ref={headingRef} tabIndex={-1} className={`mt-5 ${headingClass}`}>
+            <h1 ref={headingRef} tabIndex={-1} className={titleClass}>
               Your rehabilitation plan is ready
             </h1>
-            <p className="mt-3 text-[17px] leading-relaxed text-ink-soft">
+            <p className={bodyClass}>
               Your rehabilitation professional prepared this plan based on your current recovery stage.
             </p>
 
-            <div className="mt-8 flex flex-col gap-10">
+            <div className="mt-7 flex flex-col gap-8">
               <Section id="patient" title="Patient">
-                <Card className="flex items-center gap-4 p-6">
+                <Card className="flex items-center gap-4 p-5">
                   <Avatar initials={initialsOf(name)} size="lg" />
                   <div>
                     <p className="text-[17px] font-semibold text-ink">{name}</p>
@@ -242,10 +357,10 @@ export function OnboardingScreen() {
               <Section id="context" title="Recovery context">
                 <DetailList
                   items={[
-                    { label: 'Diagnosis', value: patientRecord.diagnosis },
-                    { label: 'Injury date', value: patientRecord.injuryDate },
-                    { label: 'Time since injury', value: patientRecord.timeSinceInjury },
-                    { label: 'Recovery stage', value: patientRecord.recoveryStage },
+                    { label: 'Diagnosis', value: patientRecord.diagnosis, icon: <ClipboardPlus {...rowIcon} /> },
+                    { label: 'Injury date', value: patientRecord.injuryDate, icon: <CalendarDays {...rowIcon} /> },
+                    { label: 'Time since injury', value: patientRecord.timeSinceInjury, icon: <Timer {...rowIcon} /> },
+                    { label: 'Recovery stage', value: patientRecord.recoveryStage, icon: <TrendingUp {...rowIcon} /> },
                   ]}
                 />
               </Section>
@@ -253,21 +368,22 @@ export function OnboardingScreen() {
               <Section id="current-plan" title="Current plan">
                 <DetailList
                   items={[
-                    { label: 'Focus', value: planDetails.focus },
+                    { label: 'Focus', value: planDetails.focus, icon: <Target {...rowIcon} /> },
                     {
                       label: 'Each session',
                       value: `${planDetails.exerciseCount} exercises · about ${planDetails.durationMinutes} minutes`,
+                      icon: <Clock {...rowIcon} />,
                     },
-                    { label: 'Frequency', value: `${planDetails.daysPerWeek} days per week` },
+                    { label: 'Frequency', value: `${planDetails.daysPerWeek} days per week`, icon: <CalendarCheck {...rowIcon} /> },
                   ]}
                 />
-                <Card className="flex items-start gap-3 p-5">
+                <div className="flex items-start gap-3 rounded-card bg-subtle p-5">
                   <ShieldAlert className="mt-0.5 size-5 shrink-0 text-ink-soft" strokeWidth={1.75} aria-hidden />
                   <div>
                     <p className="text-sm text-ink-soft">Restrictions</p>
                     <p className="mt-0.5 text-base font-medium text-ink">{patientRecord.restrictions}</p>
                   </div>
-                </Card>
+                </div>
               </Section>
 
               <Section id="prepared-by" title="Prepared by">
@@ -281,15 +397,15 @@ export function OnboardingScreen() {
 
         {step && (
           <>
-            <h1 ref={headingRef} id="question" tabIndex={-1} className={`mt-10 ${headingClass}`}>
+            <h1 ref={headingRef} id="question" tabIndex={-1} className={titleClass}>
               {step.question}
             </h1>
             {phase === 0 && (
-              <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
+              <p className={bodyClass}>
                 This app helps you follow a plan you already have. It doesn’t create or change treatment.
               </p>
             )}
-            <div role="radiogroup" aria-labelledby="question" className="mt-8 flex flex-col gap-3">
+            <div role="radiogroup" aria-labelledby="question" className="mt-6 flex flex-col gap-3">
               {step.options.map((option) => (
                 <ChoiceOption
                   key={option}
@@ -304,13 +420,17 @@ export function OnboardingScreen() {
 
         {phase === 'summary' && (
           <>
-            <h1 ref={headingRef} tabIndex={-1} className={`mt-10 ${headingClass}`}>
+            <h1 ref={headingRef} tabIndex={-1} className={titleClass}>
               {onboardingSummary.title}
             </h1>
-            <p className="mt-3 text-[17px] leading-relaxed text-ink-soft">{onboardingSummary.text}</p>
+            <p className={bodyClass}>{onboardingSummary.text}</p>
             <DetailList
-              className="mt-8"
-              items={onboardingSteps.map((s) => ({ label: s.summaryLabel, value: answers[s.id] ?? '—' }))}
+              className="mt-7"
+              items={onboardingSteps.map((s) => ({
+                label: s.summaryLabel,
+                value: answers[s.id] ?? '—',
+                icon: <StepIcon id={s.id} />,
+              }))}
             />
           </>
         )}
@@ -318,32 +438,32 @@ export function OnboardingScreen() {
 
       <div className="sticky bottom-0 bg-linear-to-t from-canvas from-70% to-canvas/0 px-5 pt-8 pb-[max(env(safe-area-inset-bottom),1rem)]">
         {phase === 'entry' && (
-          <Button
-            disabled={!mode}
-            onClick={() => setPhase(mode === 'connected' ? 'connect' : 0)}
-            icon={<ArrowRight className="size-4" aria-hidden />}
-          >
+          <Button disabled={!mode} onClick={() => setPhase(mode === 'connected' ? 'connect' : 0)} icon={arrow}>
             Continue
           </Button>
         )}
         {phase === 'connect' && (
-          <Button disabled={!connectValue} onClick={connect}>
+          <Button disabled={!connectValue} onClick={connect} icon={arrow}>
             Connect
           </Button>
         )}
-        {phase === 'connected' && <Button onClick={() => setPhase('plan')}>Continue</Button>}
+        {phase === 'connected' && (
+          <Button onClick={() => setPhase('plan')} icon={arrow}>
+            Continue
+          </Button>
+        )}
         {phase === 'plan' && (
-          <Button onClick={finishConnected} icon={<ArrowRight className="size-4" aria-hidden />}>
+          <Button onClick={finishConnected} icon={arrow}>
             Start my plan
           </Button>
         )}
         {typeof phase === 'number' && (
-          <Button disabled={!selected} onClick={() => setPhase(phase === total - 1 ? 'summary' : phase + 1)}>
+          <Button disabled={!selected} onClick={() => setPhase(phase === total - 1 ? 'summary' : phase + 1)} icon={arrow}>
             Continue
           </Button>
         )}
         {phase === 'summary' && (
-          <Button onClick={finishIndependent} icon={<ArrowRight className="size-4" aria-hidden />}>
+          <Button onClick={finishIndependent} icon={arrow}>
             {isEdit ? 'Save and return to Profile' : 'Continue to today’s plan'}
           </Button>
         )}
@@ -352,24 +472,7 @@ export function OnboardingScreen() {
   )
 }
 
-// The first screen of the app: a warm, human photo with the setup progress laid over it, easing into the
-// canvas through a soft curve. Photo: Yan Krukau, Pexels (free to use); swap the asset to replace it.
-function EntryHero({ onBack }: { onBack?: () => void }) {
-  return (
-    <div className="relative h-[clamp(200px,32dvh,270px)] shrink-0">
-      <img src={heroImage} alt="" className="absolute inset-0 size-full object-cover object-[50%_35%]" />
-      <div className="absolute inset-x-0 top-0 h-28 bg-linear-to-b from-canvas/85 to-canvas/0" aria-hidden />
-      <div className="relative px-5 pt-[max(env(safe-area-inset-top),1.25rem)]">
-        <StepHeader current={0} total={setupSteps} onBack={onBack} backLabel="Back to Profile" />
-      </div>
-      <svg
-        className="absolute inset-x-0 -bottom-px h-10 w-full fill-canvas"
-        viewBox="0 0 390 40"
-        preserveAspectRatio="none"
-        aria-hidden
-      >
-        <path d="M0 14 C 90 34, 210 36, 300 22 S 380 4, 390 2 L 390 40 L 0 40 Z" />
-      </svg>
-    </div>
-  )
+function StepIcon({ id }: { id: OnboardingStepId }) {
+  const Icon = stepThemes[id].icon
+  return <Icon className="size-5" strokeWidth={1.75} />
 }

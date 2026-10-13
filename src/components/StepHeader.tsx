@@ -21,13 +21,15 @@ export function StepHeader({ current, total, onBack, backLabel = 'Previous quest
         {Array.from({ length: total }, (_, i) => (
           <span
             key={i}
-            className={`h-1 flex-1 rounded-full transition-colors ${i <= current ? 'bg-accent' : 'bg-line'}`}
+            className={`h-[5px] flex-1 rounded-full transition-colors ${
+              i < current ? 'bg-accent' : i === current ? 'bg-linear-to-r from-accent to-[#a08af0]' : 'bg-ink/10'
+            }`}
           />
         ))}
       </div>
 
       {showCount ? (
-        <p className="w-11 shrink-0 text-right text-caption text-ink-faint">
+        <p className="w-11 shrink-0 text-right text-caption font-medium text-ink-soft tabular-nums">
           {current < total ? `${current + 1} of ${total}` : ''}
         </p>
       ) : (
