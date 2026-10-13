@@ -15,4 +15,6 @@ export const dayTheme: Record<DayState, { tint: string; label: string; line: str
   attention: { tint: '#fbebe8', label: 'text-concern', line: 'stroke-concern' },
   // A session that didn't happen: plain neutral, so a missed day is stated, never scolded.
   missed: { tint: '#f1eee8', label: 'text-ink-soft', line: 'stroke-ink-faint' },
+  // A day the plan says nothing about: the same plain neutral, with nothing asked of it.
+  open: { tint: '#f1eee8', label: 'text-ink-soft', line: 'stroke-ink-faint' },
 }

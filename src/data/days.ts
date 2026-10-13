@@ -13,7 +13,7 @@ import { recentCheckIns } from './progress'
 import { todayPlan } from './today'
 
 // What a day on Home is about. The state drives the photo, the plan card, its action and its colour.
-export type DayState = 'active' | 'completed' | 'missed' | 'upcoming' | 'rest' | 'attention'
+export type DayState = 'active' | 'completed' | 'missed' | 'upcoming' | 'rest' | 'attention' | 'open'
 
 // How a past session day actually went, as recorded in the plan calendar.
 export type DayOutcome = 'completed' | 'partial' | 'skipped'
@@ -46,6 +46,8 @@ export const dayImages: Record<DayState, string> = {
   attention: attentionImage,
   // A day whose session never happened: the same warm neutral scene as an unworked day ahead.
   missed: upcomingImage,
+  // A day the plan says nothing about: the quiet scene of a day at home.
+  open: restImage,
 }
 
 const weekday = (d: Date) => d.toLocaleDateString('en-GB', { weekday: 'long' })
@@ -80,11 +82,13 @@ function buildDay(date: Date, month: CalendarDay[], { firstName, onTrack, doneTo
         : 'attention'
     : status === 'rest'
       ? 'rest'
-      : offset > 0
-        ? 'upcoming'
-        : outcome === 'skipped'
-          ? 'missed'
-          : 'completed'
+      : status === 'open'
+        ? 'open'
+        : offset > 0
+          ? 'upcoming'
+          : outcome === 'skipped'
+            ? 'missed'
+            : 'completed'
 
   // TIME: one label per day, never a mix of relative dates, weekdays and activities.
   const time = isToday ? 'Today' : offset === -1 ? 'Yesterday' : offset === 1 ? 'Tomorrow' : weekday(date)
@@ -92,33 +96,46 @@ function buildDay(date: Date, month: CalendarDay[], { firstName, onTrack, doneTo
 
   // Tomorrow carries the professional's latest change; earlier days ran today's plan.
   const sessionDay = offset > 0 ? tomorrow : { ...todayPlan, focus: todayPlan.focus.join(' + ') }
+  // On a day without a session, the useful thing to say is when the next one is.
+  const next = month.find((d) => d.date > date && (d.status === 'upcoming' || d.status === 'today'))
   // ACTIVITY: what kind of day this is, then its focus. The state's colour carries the rest.
+  const sessionLabel =
+    state === 'missed'
+      ? 'Missed session'
+      : state === 'upcoming'
+        ? 'Planned session'
+        : state === 'completed'
+          ? outcome === 'partial'
+            ? 'Partly completed session'
+            : 'Completed session'
+          : 'Rehabilitation session'
   const activity =
-    state === 'rest'
+    state === 'open'
       ? {
-          label: 'Recovery day',
-          focus: 'Recovery & Check-in',
-          meta: offset < 0 ? 'No exercises were planned.' : 'No exercises planned.',
-        }
-      : {
-          label:
-            state === 'missed'
-              ? 'Missed session'
-              : state === 'completed'
-                ? outcome === 'partial'
-                  ? 'Partly completed session'
-                  : 'Completed session'
-                : state === 'upcoming'
-                  ? 'Planned session'
-                  : 'Rehabilitation session',
-          focus: sessionDay.focus,
+          label: 'No session planned',
+          // An empty day's useful answer is when the next session is.
+          focus: offset < 0 || !next ? 'Nothing was planned' : `Next session ${weekday(next.date)}`,
           meta:
-            state === 'missed'
-              ? 'No exercises recorded'
-              : offset < 0 && calendar?.exercisesDone !== undefined
-                ? `${calendar.exercisesDone} exercises · ${sessionDay.durationMinutes} min`
-                : `${sessionDay.exerciseCount} exercises · About ${sessionDay.durationMinutes} min`,
+            offset < 0 || !next
+              ? 'Your plan runs one session a week.'
+              : `${shortDate(next.date)} · ${sessionDay.focus}`,
         }
+      : state === 'rest'
+        ? {
+            label: 'Recovery day',
+            focus: 'Recovery & Check-in',
+            meta: offset < 0 ? 'No exercises were planned.' : 'No exercises planned.',
+          }
+        : {
+            label: sessionLabel,
+            focus: sessionDay.focus,
+            meta:
+              state === 'missed'
+                ? 'No exercises recorded'
+                : offset < 0 && calendar?.exercisesDone !== undefined
+                  ? `${calendar.exercisesDone} exercises · ${sessionDay.durationMinutes} min`
+                  : `${sessionDay.exerciseCount} exercises · About ${sessionDay.durationMinutes} min`,
+          }
 
   return {
     offset,

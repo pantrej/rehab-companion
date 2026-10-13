@@ -7,7 +7,7 @@ export const planDetails = {
   focus: 'Mobility + Strength',
   exerciseCount: 4,
   durationMinutes: 25,
-  daysPerWeek: 4,
+  frequency: 'One session a week',
   lastUpdated: '8 October',
 }
 
@@ -19,12 +19,12 @@ export const planChanges: PlanChange[] = [
     change: 'Resistance for seated calf raise reduced from medium to light.',
     reason: 'Recent pain increase during loading.',
     updatedBy: by,
-    appliesFrom: '10 October',
+    appliesFrom: '9 October',
   },
   {
     date: '3 October',
     title: 'Plan reviewed at your appointment',
-    change: 'Sessions continue 4 days per week with a Mobility + Strength focus.',
+    change: 'Sessions continue once a week with a Mobility + Strength focus.',
     reason: 'Steady progress since your previous review.',
     updatedBy: by,
   },

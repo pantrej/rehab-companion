@@ -9,6 +9,7 @@ const focus: Record<DayState, string> = {
   rest: '62% 30%',
   attention: '68% 28%',
   missed: '50% 55%',
+  open: '62% 30%',
 }
 
 type Props = {

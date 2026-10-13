@@ -107,7 +107,7 @@ export function ProfileScreen() {
               items={[
                 { label: 'Plan', value: `Managed by ${professional.name}` },
                 { label: 'Focus', value: planDetails.focus },
-                { label: 'Frequency', value: `${planDetails.daysPerWeek} days per week` },
+                { label: 'Frequency', value: planDetails.frequency },
                 { label: 'Restrictions', value: patientRecord.restrictions },
                 { label: 'Last updated', value: planDetails.lastUpdated },
               ]}

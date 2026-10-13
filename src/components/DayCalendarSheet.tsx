@@ -11,7 +11,9 @@ import { appFrameId } from '../layouts/MobileLayout'
 // a size below a session, so the rhythm of the plan reads before its rest days do.
 function Mark({ day }: { day: DayView }) {
   const shape =
-    day.state === 'completed'
+    day.state === 'open'
+      ? ''
+      : day.state === 'completed'
       ? 'tick'
       : day.outcome === 'partial'
         ? 'size-1.5 rounded-full ring-[1.5px] ring-positive'
@@ -24,7 +26,7 @@ function Mark({ day }: { day: DayView }) {
               : 'size-1.5 rounded-full bg-planned'
   return (
     <span className="flex h-3 w-3 items-center justify-center" aria-hidden>
-      {shape === 'tick' ? <Check className="size-3 text-positive" strokeWidth={3} /> : <span className={shape} />}
+      {shape === 'tick' ? <Check className="size-3 text-positive" strokeWidth={3} /> : shape && <span className={shape} />}
     </span>
   )
 }
@@ -49,6 +51,17 @@ export function DayCalendarSheet({ days, selected, onSelect, onClose }: Props) {
   const month = TODAY.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
   const leading = (days[0].date.getDay() + 6) % 7 // Monday-first grid
 
+  // Leaving: the sheet slides back down to the bottom edge it came from, and the backdrop fades with it,
+  // before the day it was opened over (or the day just picked) takes over.
+  const [leaving, setLeaving] = useState(false)
+  const [picked, setPicked] = useState<Date>()
+  const dismiss = (then: () => void) => {
+    if (leaving) return
+    setLeaving(true)
+    setDrag(sheetRef.current?.offsetHeight ?? 600)
+    window.setTimeout(then, 220)
+  }
+
   // Dragging the sheet down dismisses it; anything short of that springs back.
   const [drag, setDrag] = useState(0)
   const [dragging, setDragging] = useState(false)
@@ -65,15 +78,19 @@ export function DayCalendarSheet({ days, selected, onSelect, onClose }: Props) {
     if (from.current === undefined) return
     from.current = undefined
     setDragging(false)
-    if (drag > dismissAfter) onClose()
+    if (drag > dismissAfter) dismiss(onClose)
     else setDrag(0)
   }
 
   useEffect(() => {
     sheetRef.current?.focus()
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') dismiss(onClose)
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
+    // The handlers close over state that only ever moves one way: opened, then leaving.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onClose])
 
   return createPortal(
@@ -82,8 +99,10 @@ export function DayCalendarSheet({ days, selected, onSelect, onClose }: Props) {
       <button
         type="button"
         aria-label="Close calendar"
-        onClick={onClose}
-        className="animate-fade-in absolute inset-0 cursor-default bg-ink/35 backdrop-blur-[2px]"
+        onClick={() => dismiss(onClose)}
+        className={`animate-fade-in absolute inset-0 cursor-default bg-ink/35 backdrop-blur-[2px] transition-opacity duration-200 ${
+          leaving ? 'opacity-0' : ''
+        }`}
       />
 
       <div
@@ -93,7 +112,9 @@ export function DayCalendarSheet({ days, selected, onSelect, onClose }: Props) {
         aria-labelledby={titleId}
         tabIndex={-1}
         style={{ transform: drag ? `translateY(${drag}px)` : undefined, transition: dragging ? 'none' : undefined }}
-        className="animate-sheet-rise relative flex h-[55%] max-h-[65%] min-h-[400px] flex-col rounded-t-[2rem] bg-surface pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-raised outline-none transition-transform duration-200"
+        className={`relative flex h-[55%] max-h-[65%] min-h-[400px] flex-col rounded-t-[2rem] bg-surface pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-raised outline-none transition-transform duration-200 motion-reduce:transition-none ${
+          leaving ? '' : 'animate-sheet-rise'
+        }`}
       >
         {/* The handle and the title are the grab area: dragging either one pulls the sheet down. The close
             button sits outside it, so a tap on it is a tap, not the start of a drag. */}
@@ -115,7 +136,7 @@ export function DayCalendarSheet({ days, selected, onSelect, onClose }: Props) {
 
         <button
           type="button"
-          onClick={onClose}
+          onClick={() => dismiss(onClose)}
           aria-label="Close calendar"
           className="absolute top-5 right-3 flex size-11 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-canvas focus-visible:outline-2 focus-visible:outline-accent"
         >
@@ -135,12 +156,15 @@ export function DayCalendarSheet({ days, selected, onSelect, onClose }: Props) {
             ))}
             {days.map((day) => {
               const isToday = day.offset === 0
-              const isSelected = day.date.getTime() === selected.getTime()
+              const isSelected = day.date.getTime() === (picked ?? selected).getTime()
               return (
                 <button
                   key={day.date.getDate()}
                   type="button"
-                  onClick={() => onSelect(day.date)}
+                  onClick={() => {
+                    setPicked(day.date)
+                    dismiss(() => onSelect(day.date))
+                  }}
                   aria-label={`${formatDay(day.date)}: ${day.activity.label}${isToday ? ', today' : ''}`}
                   aria-current={isToday ? 'date' : undefined}
                   aria-pressed={isSelected}

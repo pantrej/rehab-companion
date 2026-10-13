@@ -103,6 +103,7 @@ function dayLine(assessment: Assessment, day: DayView) {
   if (!assessment.onTrack) return 'Pain is higher than usual.'
   if (day.state === 'rest') return 'Recovery day. Focus on rest and mobility.'
   if (day.state === 'missed') return 'No session was recorded that day.'
+  if (day.state === 'open') return 'No session planned for this day.'
   if (day.state === 'upcoming') return 'Keep up the good progress.'
   if (day.state === 'completed' && day.offset < 0) {
     const checkIn = day.calendar?.checkIn

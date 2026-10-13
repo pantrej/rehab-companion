@@ -383,7 +383,7 @@ export function OnboardingScreen() {
                       value: `${planDetails.exerciseCount} exercises · about ${planDetails.durationMinutes} minutes`,
                       icon: <Clock {...rowIcon} />,
                     },
-                    { label: 'Frequency', value: `${planDetails.daysPerWeek} days per week`, icon: <CalendarCheck {...rowIcon} /> },
+                    { label: 'Frequency', value: planDetails.frequency, icon: <CalendarCheck {...rowIcon} /> },
                   ]}
                 />
                 <div className="flex items-start gap-3 rounded-card bg-subtle p-5">

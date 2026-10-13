@@ -9,6 +9,7 @@ export const statusLabels: Record<DayStatus, string> = {
   rest: 'Rest day',
   today: 'Today',
   upcoming: 'Upcoming',
+  open: 'No session planned',
 }
 
 // Subtle marks, told apart by shape as well as colour: dot, ring, dash, diamond.
@@ -64,7 +65,7 @@ export function MonthCalendar({ days, onSelect, showAppointments }: Props) {
         ))}
         {days.map((day) => {
           const isToday = day.status === 'today'
-          const muted = day.status === 'rest' || day.status === 'upcoming'
+          const muted = day.status === 'rest' || day.status === 'upcoming' || day.status === 'open'
           const label = `${formatDay(day.date)}: ${statusLabels[day.status]}${day.appointment ? ', appointment' : ''}`
           return (
             <button

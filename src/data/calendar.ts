@@ -18,7 +18,8 @@ export const formatDay = (date: Date) =>
 
 export const formatShortDate = (date: Date) => date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })
 
-export type DayStatus = 'completed' | 'partial' | 'skipped' | 'rest' | 'today' | 'upcoming'
+// 'open' is a day the plan says nothing about: not a session, not a prescribed recovery day.
+export type DayStatus = 'completed' | 'partial' | 'skipped' | 'rest' | 'today' | 'upcoming' | 'open'
 
 export type CalendarDay = {
   date: Date
@@ -32,25 +33,22 @@ export type CalendarDay = {
 
 export const exercisesPerSession = 4
 
-// Past October days, as the user's rehabilitation actually went. Check-ins attach by date.
+// Past October days, as the user's rehabilitation actually went: the week's session, and the recovery
+// day after it. Days the plan said nothing about are left out, so they stay open. Check-ins attach by date.
 const past: Record<number, Pick<CalendarDay, 'status' | 'exercisesDone'> & { therapistNote?: string }> = {
-  1: { status: 'completed', exercisesDone: 4 },
-  2: { status: 'completed', exercisesDone: 4 },
-  3: { status: 'rest' },
-  4: { status: 'completed', exercisesDone: 4 },
-  5: { status: 'skipped', exercisesDone: 0 },
-  6: {
-    status: 'partial',
-    exercisesDone: 3,
-    therapistNote: 'Thanks for noting the calf tightness. I’ve reduced the resistance from 10 October.',
+  2: {
+    status: 'completed',
+    exercisesDone: 4,
+    therapistNote: 'Thanks for noting the calf tightness. I’ve reduced the resistance from your next session.',
   },
-  7: { status: 'completed', exercisesDone: 4 },
   8: { status: 'rest' },
 }
 
-// Recovery days in the plan: two session days, a recovery day, and never three sessions in a row.
-// Sessions fall on Mon, Tue, Thu and Sat; the days between them are for recovery.
-const isPlannedRest = (date: Date) => [3, 5, 0].includes(date.getDay()) // Wednesday, Friday, Sunday
+// A home programme between appointments: one planned session a week, on the same weekday as today so
+// the prototype always opens on a session day, plus the occasional recovery and check-in day the
+// professional asks for. Every other day is the patient's own, and the plan says nothing about it.
+const isPlannedSession = (date: Date) => date.getDay() === TODAY.getDay()
+const checkInDays = [11, 20, 28]
 
 const appointmentDays = [3, 20]
 
@@ -64,7 +62,15 @@ export function buildMonth(checkIns: CheckInRecord[], connected: boolean): Calen
     const offset = daysBetween(date, TODAY)
     const record = past[day]
     const status: DayStatus =
-      offset > 0 ? (record?.status ?? 'completed') : offset === 0 ? 'today' : isPlannedRest(date) ? 'rest' : 'upcoming'
+      offset > 0
+        ? (record?.status ?? 'open')
+        : offset === 0
+          ? 'today'
+          : isPlannedSession(date)
+            ? 'upcoming'
+            : checkInDays.includes(day)
+              ? 'rest'
+              : 'open'
     return {
       date,
       status,

@@ -65,7 +65,8 @@ export function DaySummarySheet({ day, professional, onClose }: Props) {
           </div>
         )}
 
-        {status === 'rest' && <p className="px-1 text-[15px] text-ink-soft">A rest day in your plan.</p>}
+        {status === 'rest' && <p className="px-1 text-[15px] text-ink-soft">A recovery and check-in day in your plan.</p>}
+        {status === 'open' && <p className="px-1 text-[15px] text-ink-soft">No session was planned for this day.</p>}
         {status === 'today' && <p className="px-1 text-[15px] text-ink">Today’s session: {session}</p>}
         {status === 'upcoming' && <p className="px-1 text-[15px] text-ink">Planned: {session}</p>}
         {isTomorrow && professional && (

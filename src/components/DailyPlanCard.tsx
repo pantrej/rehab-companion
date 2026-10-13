@@ -119,6 +119,24 @@ export function DailyPlanCard({ day, professional, onViewSummary, onLogRest, res
         </>
       )}
 
+      {day.state === 'open' && (
+        <>
+          <p className="mt-2 text-[15px] leading-snug text-ink-soft">
+            {professional
+              ? `${professional.name} plans one session a week. The days in between are yours.`
+              : 'Your plan runs one session a week. The days in between are yours.'}
+          </p>
+          <Actions>
+            <Link
+              to="/progress"
+              className={`${softAction} border-[1.5px] border-line bg-white/70 text-ink-soft hover:bg-white`}
+            >
+              See your week
+            </Link>
+          </Actions>
+        </>
+      )}
+
       {day.state === 'upcoming' && (
         <>
           {professional && (
