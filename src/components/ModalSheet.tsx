@@ -43,7 +43,8 @@ export function ModalSheet({ title, onClose, closeLabel, heightClass = 'max-h-[7
   }
 
   useEffect(() => {
-    sheetRef.current?.focus()
+    // preventScroll: moving focus into the sheet must not scroll the screen underneath it.
+    sheetRef.current?.focus({ preventScroll: true })
     // One painted frame at the bottom edge, then the transition has something to move from.
     const frame = requestAnimationFrame(() => requestAnimationFrame(() => setArrived(true)))
     return () => cancelAnimationFrame(frame)
@@ -78,7 +79,7 @@ export function ModalSheet({ title, onClose, closeLabel, heightClass = 'max-h-[7
         aria-labelledby={titleId}
         tabIndex={-1}
         style={{ transform: open ? 'translateY(0)' : 'translateY(100%)' }}
-        className={`relative flex ${heightClass} flex-col rounded-t-[2rem] bg-surface pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-raised outline-none transition-transform duration-300 ease-out motion-reduce:transition-none`}
+        className={`relative flex ${heightClass} flex-col rounded-t-[2rem] bg-surface pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-raised outline-none transition-transform duration-300 ease-out will-change-transform motion-reduce:transition-none`}
       >
         <div className="shrink-0 pt-3">
           <span className="mx-auto block h-1 w-9 rounded-full bg-line" aria-hidden />

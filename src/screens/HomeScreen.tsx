@@ -37,8 +37,9 @@ export function HomeScreen() {
   const { care, connected, professional } = useCare()
   const account = useAccount()
   const [params] = useSearchParams()
-  // The carousel holds five days around `center`; the calendar is what moves the window.
-  const [center, setCenter] = useState(TODAY)
+  // The carousel holds five days around `center`; the calendar is what moves the window. The count makes
+  // every pick its own, so choosing the day the window is already built around still lands on it.
+  const [center, setCenter] = useState({ date: TODAY, pick: 0 })
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [swiped, setSwiped] = useState<{ center: string; index: number }>()
   const [summaryDay, setSummaryDay] = useState<DayView>()
@@ -56,8 +57,8 @@ export function HomeScreen() {
   const records = preview ? worseningCheckIns : recentCheckIns
   const assessment = preview ? assess(worseningCheckIns, 'in the last 7 days') : currentAssessment(professional)
   const context = { firstName: firstName(name), connected, onTrack: assessment.onTrack, doneToday }
-  const { days, index } = buildDayWindow({ ...context, center })
-  const centerKey = dateKey(center)
+  const { days, index } = buildDayWindow({ ...context, center: center.date })
+  const centerKey = `${dateKey(center.date)}-${center.pick}`
   // Swiping moves within the window; picking a date in the calendar rebuilds it around that day.
   const activeIndex = swiped?.center === centerKey ? swiped.index : index
   const dayName = (i: number) => `${days[i].time}, ${days[i].dateLabel}`
@@ -66,10 +67,7 @@ export function HomeScreen() {
   const todayIndex = days.findIndex((day) => day.offset === 0)
   const backToToday = (goTo: (index: number) => void) => () => {
     if (todayIndex >= 0) goTo(todayIndex)
-    else {
-      setCenter(TODAY)
-      setSwiped(undefined)
-    }
+    else setCenter((previous) => ({ date: TODAY, pick: previous.pick + 1 }))
   }
 
   return (
@@ -106,18 +104,20 @@ export function HomeScreen() {
               ))}
             </div>
 
-            {/* Away from today, the way back. It sits beside the dots without moving them: they say where
-                in the week you are, this says how to get home. */}
-            {days[active].offset !== 0 && (
-              <button
-                type="button"
-                onClick={backToToday(goTo)}
-                className="pointer-events-auto absolute right-4 inline-flex h-8 items-center gap-1 rounded-full bg-surface/80 px-2.5 text-[13px] font-semibold text-accent ring-1 ring-accent/15 backdrop-blur-sm transition-colors hover:bg-surface"
-              >
-                Today
-                <Undo2 className="size-3.5" strokeWidth={2.25} aria-hidden />
-              </button>
-            )}
+            {/* Away from today, the way back: plain text, positioned on its own so the dots stay centred
+                whether it is there or not. They say where in the week you are; this says how to get home. */}
+            <button
+              type="button"
+              onClick={backToToday(goTo)}
+              aria-hidden={days[active].offset === 0}
+              tabIndex={days[active].offset === 0 ? -1 : 0}
+              className={`absolute right-3 inline-flex h-8 items-center gap-1 px-2 text-[13px] font-medium text-accent transition-opacity duration-200 ${
+                days[active].offset === 0 ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100'
+              }`}
+            >
+              Today
+              <Undo2 className="size-3.5" strokeWidth={2} aria-hidden />
+            </button>
           </div>
         )}
       >
@@ -169,7 +169,7 @@ export function HomeScreen() {
           selected={days[activeIndex].date}
           onClose={() => setCalendarOpen(false)}
           onSelect={(date) => {
-            setCenter(date)
+            setCenter((previous) => ({ date, pick: previous.pick + 1 }))
             setCalendarOpen(false)
           }}
         />
