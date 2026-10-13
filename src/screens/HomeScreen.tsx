@@ -62,7 +62,7 @@ export function HomeScreen() {
   const dayName = (i: number) => `${days[i].time}, ${days[i].dateLabel}`
 
   return (
-    <div className="relative flex flex-col pb-8">
+    <div className="relative flex flex-col pb-8 [--hero-h:clamp(270px,38dvh,320px)]">
       <h1 className="sr-only">Today's rehabilitation</h1>
 
       <DayCarousel
@@ -72,10 +72,31 @@ export function HomeScreen() {
         label="Your rehabilitation, day by day"
         slideLabel={(i) => `${days[i].time}, ${days[i].date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}`}
         onChange={(i) => setSwiped({ center: centerKey, index: i })}
+        indicator={(active, goTo) => (
+          // Below the wave, on the day's own surface, and in the same place whichever day is in view.
+          <div className="pointer-events-none absolute inset-x-0 top-[calc(var(--hero-h)-1.625rem)] flex justify-center">
+            <div className="pointer-events-auto flex items-center">
+              {days.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => goTo(i)}
+                  aria-label={`Show ${dayName(i)}`}
+                  aria-current={i === active ? 'true' : undefined}
+                  className="flex h-9 items-center justify-center px-2"
+                >
+                  <span
+                    className={`h-1.5 rounded-full transition-all ${i === active ? 'w-5 bg-accent' : 'w-1.5 bg-accent/30'}`}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       >
-        {(i, goTo) => (
+        {(i) => (
           <>
-            <DailyHero day={days[i]} index={i} count={days.length} onSelect={goTo} dayName={dayName} />
+            <DailyHero day={days[i]} />
             <DailyPlanCard
               day={days[i]}
               professional={professional}

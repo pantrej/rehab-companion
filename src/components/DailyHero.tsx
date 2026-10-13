@@ -14,18 +14,15 @@ const focus: Record<DayState, string> = {
 
 type Props = {
   day: DayView
-  index: number
-  count: number
-  onSelect: (index: number) => void
-  dayName: (index: number) => string
 }
 
-// The top of one day: its photo, when it is, and the pagination, easing into the plan card through the wave.
-// The hero carries only time — which day this is — and the plan card below says what happens on it.
-export function DailyHero({ day, index, count, onSelect, dayName }: Props) {
+// The top of one day: its photo and when it is, easing into the plan card through the wave. The hero
+// carries only time — which day this is — and the plan card below says what happens on it. The pagination
+// is not part of the photograph: it belongs to the carousel, below the wave.
+export function DailyHero({ day }: Props) {
   const tint = dayTheme[day.state].tint
   return (
-    <div className="relative h-[clamp(270px,38dvh,320px)] shrink-0">
+    <div className="relative h-[var(--hero-h,clamp(270px,38dvh,320px))] shrink-0">
       <img
         src={day.image}
         alt=""
@@ -42,27 +39,10 @@ export function DailyHero({ day, index, count, onSelect, dayName }: Props) {
         <p className="mt-1 text-[32px] leading-tight font-bold tracking-[-0.025em] [text-shadow:0_1px_12px_rgb(0_0_0/0.25)]">
           {day.time}
         </p>
-        <p className="mt-0.5 text-[15px] font-medium text-white/85 [text-shadow:0_1px_8px_rgb(0_0_0/0.3)]">
+        {/* The date is metadata: a quiet translucent pill, never competing with the day itself. */}
+        <p className="mt-2 w-fit rounded-full bg-white/25 px-3.5 py-1.5 text-[14px] font-medium text-white ring-1 ring-white/25 backdrop-blur-md [text-shadow:0_1px_6px_rgb(0_0_0/0.3)]">
           {day.dateLabel}
         </p>
-      </div>
-
-      {/* Dots: each hit area is a full 44 px, overlapping so the dots themselves sit close together. */}
-      <div className="absolute inset-x-0 bottom-[46px] flex justify-center">
-        {Array.from({ length: count }, (_, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => onSelect(i)}
-            aria-label={`Show ${dayName(i)}`}
-            aria-current={i === index ? 'true' : undefined}
-            className="-mx-4 flex size-11 items-center justify-center"
-          >
-            <span
-              className={`h-1.5 rounded-full bg-white transition-all ${i === index ? 'w-4 opacity-100' : 'w-1.5 opacity-55'}`}
-            />
-          </button>
-        ))}
       </div>
 
       <svg

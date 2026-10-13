@@ -27,7 +27,7 @@ export function DailyPlanCard({ day, professional, onViewSummary, onLogRest, res
   const past = day.offset < 0
 
   return (
-    <div className="-mt-px flex flex-1 flex-col rounded-b-[32px] px-5 pt-1 pb-6" style={{ background: theme.tint }}>
+    <div className="-mt-px flex flex-1 flex-col rounded-b-[32px] px-5 pt-3 pb-6" style={{ background: theme.tint }}>
       <p className={`text-caption font-semibold ${theme.label}`}>{day.activity.label}</p>
       <h2 className="mt-1.5 text-[26px] leading-tight font-bold tracking-[-0.02em] text-ink">{day.activity.focus}</h2>
       <p className="mt-1 text-body text-ink-soft">{day.activity.meta}</p>

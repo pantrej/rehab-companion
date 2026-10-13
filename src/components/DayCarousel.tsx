@@ -7,12 +7,15 @@ type Props = {
   label: string
   slideLabel: (index: number) => string
   onChange?: (index: number) => void
+  // A control that belongs to the carousel but not to any slide, e.g. the pagination. It sits outside
+  // the scrolling track, so it stays where it is while the days move past.
+  indicator?: (active: number, goTo: (index: number) => void) => ReactNode
   children: (index: number, goTo: (index: number) => void) => ReactNode
 }
 
 // A horizontal, swipeable row of full-width slides that snap into place. The active slide follows the
 // scroll position, so swipe, trackpad, keyboard focus and the pagination dots all stay in step.
-export function DayCarousel({ count, initial, label, slideLabel, onChange, children }: Props) {
+export function DayCarousel({ count, initial, label, slideLabel, onChange, indicator, children }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(initial)
 
@@ -42,25 +45,28 @@ export function DayCarousel({ count, initial, label, slideLabel, onChange, child
   }
 
   return (
-    <section
-      ref={ref}
-      aria-roledescription="carousel"
-      aria-label={label}
-      onScroll={onScroll}
-      className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain"
-    >
-      {Array.from({ length: count }, (_, i) => (
-        <div
-          key={i}
-          role="group"
-          aria-roledescription="slide"
-          aria-label={slideLabel(i)}
-          aria-current={i === active ? 'true' : undefined}
-          className="flex w-full shrink-0 snap-center snap-always flex-col"
-        >
-          {children(i, goTo)}
-        </div>
-      ))}
-    </section>
+    <div className="relative flex flex-col">
+      <section
+        ref={ref}
+        aria-roledescription="carousel"
+        aria-label={label}
+        onScroll={onScroll}
+        className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain"
+      >
+        {Array.from({ length: count }, (_, i) => (
+          <div
+            key={i}
+            role="group"
+            aria-roledescription="slide"
+            aria-label={slideLabel(i)}
+            aria-current={i === active ? 'true' : undefined}
+            className="flex w-full shrink-0 snap-center snap-always flex-col"
+          >
+            {children(i, goTo)}
+          </div>
+        ))}
+      </section>
+      {indicator?.(active, goTo)}
+    </div>
   )
 }
