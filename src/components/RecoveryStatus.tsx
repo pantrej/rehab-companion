@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react'
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import type { Assessment } from '../data/assessment'
 import type { DayView } from '../data/days'
@@ -32,16 +32,33 @@ type Props = {
 export function RecoveryStatus({ assessment, day, records }: Props) {
   const [open, setOpen] = useState(false)
   const panelId = useId()
+  const ref = useRef<HTMLElement>(null)
+
+  // Opening the reading scrolls it clear of the tab bar, so the answer is never behind the navigation.
+  const toggle = () => {
+    const next = !open
+    setOpen(next)
+    if (!next) return
+    requestAnimationFrame(() => {
+      const section = ref.current
+      const scroller = section?.closest('main')
+      if (!section || !scroller) return
+      const bar = document.querySelector('nav[aria-label="Main"]')
+      const limit = (bar?.getBoundingClientRect().top ?? scroller.getBoundingClientRect().bottom) - 12
+      const below = section.getBoundingClientRect().bottom - limit
+      if (below > 0) scroller.scrollBy({ top: below, behavior: 'smooth' })
+    })
+  }
   const tone: Tone = !assessment.onTrack ? 'concern' : day.state === 'rest' ? 'rest' : 'positive'
   const pain = painChange(records)
 
   return (
-    <section aria-label="Recovery status" className="rounded-card bg-surface shadow-card">
+    <section ref={ref} aria-label="Recovery status" className="rounded-card bg-surface shadow-card">
       <button
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
-        onClick={() => setOpen(!open)}
+        onClick={toggle}
         className="flex w-full items-start gap-3 rounded-card px-5 py-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
         <span className="min-w-0 flex-1">

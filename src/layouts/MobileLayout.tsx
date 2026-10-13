@@ -19,7 +19,7 @@ export function MobileLayout({ nav = true }: Props) {
         {/* The tab bar floats over the page, so the scroll area ends clear of it rather than behind it. */}
         <main
           className={`no-scrollbar flex flex-1 flex-col overflow-y-auto ${
-            nav ? 'pb-[calc(env(safe-area-inset-bottom)+6rem)]' : ''
+            nav ? 'pb-[calc(env(safe-area-inset-bottom)+5rem)]' : ''
           }`}
         >
           <Outlet />

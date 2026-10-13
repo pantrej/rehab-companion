@@ -36,7 +36,7 @@ export function DailyPlanCard({ day, professional, onViewSummary, onLogRest, res
           : undefined
 
   return (
-    <div className="-mt-px flex flex-1 flex-col rounded-b-[32px] px-5 pt-3 pb-5" style={{ background: theme.tint }}>
+    <div className="-mt-px flex flex-1 flex-col rounded-b-[32px] px-5 pt-3 pb-4" style={{ background: theme.tint }}>
       {/* The day's kind, and beside it the quiet way to look further, so no action needs a row of its own. */}
       <div className="flex items-baseline justify-between gap-3">
         <p className={`text-caption font-semibold ${theme.label}`}>{day.activity.label}</p>

@@ -73,7 +73,7 @@ export function HomeScreen() {
   }
 
   return (
-    <div className="relative flex flex-col pb-8 [--hero-h:clamp(270px,38dvh,320px)]">
+    <div className="relative flex flex-col pb-8 [--hero-h:clamp(238px,38dvh,320px)]">
       <h1 className="sr-only">Today's rehabilitation</h1>
 
       <DayCarousel
@@ -159,7 +159,7 @@ export function HomeScreen() {
         </span>
       </Link>
 
-      <div className="px-5 pt-5">
+      <div className="px-5 pt-4">
         <RecoveryStatus assessment={assessment} day={days[activeIndex]} records={records} />
       </div>
 

@@ -14,7 +14,7 @@ export const navItems = [
 export function TabBarSurface({ className = '', ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`relative flex h-[68px] items-center rounded-[26px] bg-surface/95 px-1.5 shadow-[0_12px_30px_-14px_rgb(29_28_33/0.3)] ring-1 ring-line/80 backdrop-blur-sm ${className}`}
+      className={`relative flex h-[60px] items-center rounded-[22px] bg-surface/95 px-1.5 shadow-[0_12px_30px_-14px_rgb(29_28_33/0.3)] ring-1 ring-line/80 backdrop-blur-sm ${className}`}
       {...props}
     />
   )
@@ -26,7 +26,7 @@ export function ActivePill({ index, count = navItems.length }: { index: number; 
   return (
     <span
       aria-hidden
-      className={`absolute inset-y-2 left-1.5 rounded-[20px] bg-accent-soft transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.22,0.61,0.36,1)] motion-reduce:transition-none ${
+      className={`absolute inset-y-1.5 left-1.5 rounded-[18px] bg-accent-soft transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.22,0.61,0.36,1)] motion-reduce:transition-none ${
         index < 0 ? 'opacity-0' : ''
       }`}
       style={{ width: `calc((100% - 0.75rem) / ${count})`, transform: `translateX(${Math.max(index, 0) * 100}%)` }}
@@ -43,7 +43,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="pointer-events-none absolute inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-[1]"
+      className="pointer-events-none absolute inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[1]"
     >
       <TabBarSurface className="pointer-events-auto">
         <ActivePill index={index} />

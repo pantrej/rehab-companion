@@ -22,7 +22,7 @@ type Props = {
 export function DailyHero({ day }: Props) {
   const tint = dayTheme[day.state].tint
   return (
-    <div className="relative h-[var(--hero-h,clamp(270px,38dvh,320px))] shrink-0">
+    <div className="relative h-[var(--hero-h,clamp(238px,38dvh,320px))] shrink-0">
       <img
         src={day.image}
         alt=""
