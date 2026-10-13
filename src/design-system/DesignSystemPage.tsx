@@ -17,7 +17,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { AssessmentLine } from '../components/AssessmentLine'
 import { BackButton } from '../components/BackButton'
-import { navItems } from '../components/BottomNav'
+import { ActivePill, TabBarSurface, navItems } from '../components/BottomNav'
 import { TabItemView, tabItemClass } from '../components/BottomNavItem'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
@@ -137,14 +137,16 @@ function InsightFeature({ a }: { a: Assessment }) {
 }
 
 function TabBarPreview({ active }: { active: string }) {
+  const index = navItems.findIndex((item) => item.label === active)
   return (
-    <div className="flex overflow-hidden rounded-card bg-surface px-2 shadow-raised" role="img" aria-label="Tab bar">
-      {navItems.map((item) => (
-        <span key={item.to} className={tabItemClass(item.label === active)}>
-          <TabItemView label={item.label} icon={item.icon} active={item.label === active} />
+    <TabBarSurface role="img" aria-label="Tab bar">
+      <ActivePill index={index} />
+      {navItems.map((item, i) => (
+        <span key={item.to} className={tabItemClass(i === index)}>
+          <TabItemView label={item.label} icon={item.icon} active={i === index} />
         </span>
       ))}
-    </div>
+    </TabBarSurface>
   )
 }
 

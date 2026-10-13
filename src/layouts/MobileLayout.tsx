@@ -16,7 +16,12 @@ export function MobileLayout({ nav = true }: Props) {
       <div
         id={appFrameId}
         className="relative mx-auto flex h-dvh w-full max-w-[390px] flex-col overflow-hidden bg-canvas sm:h-[844px] sm:max-h-[calc(100dvh-4rem)] sm:rounded-[2.75rem] sm:shadow-[0_24px_60px_-24px_rgb(29_28_33/0.25)]">
-        <main className="no-scrollbar flex flex-1 flex-col overflow-y-auto">
+        {/* The tab bar floats over the page, so the scroll area ends clear of it rather than behind it. */}
+        <main
+          className={`no-scrollbar flex flex-1 flex-col overflow-y-auto ${
+            nav ? 'pb-[calc(env(safe-area-inset-bottom)+6rem)]' : ''
+          }`}
+        >
           <Outlet />
         </main>
         {nav && <BottomNav />}
