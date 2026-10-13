@@ -29,7 +29,7 @@ export function Sheet({ title, onClose, children }: Props) {
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="relative max-h-[85%] overflow-y-auto rounded-t-[2rem] bg-surface px-6 pt-7 pb-[max(env(safe-area-inset-bottom),1.25rem)] outline-none"
+        className="no-scrollbar relative max-h-[85%] overflow-y-auto rounded-t-[2rem] bg-surface px-6 pt-7 pb-[max(env(safe-area-inset-bottom),1.25rem)] outline-none"
       >
         <h2 id={titleId} className="text-[22px] leading-tight font-semibold tracking-[-0.015em] text-ink">
           {title}
