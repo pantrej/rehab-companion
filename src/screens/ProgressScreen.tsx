@@ -2,12 +2,14 @@ import { ArrowRight, Check, ChevronDown, FileText, Minus } from 'lucide-react'
 import { useId, useRef, useState } from 'react'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { DayCalendarSheet } from '../components/DayCalendarSheet'
 import { MiniTrend } from '../components/MiniTrend'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
 import { SegmentedControl } from '../components/SegmentedControl'
 import { Section } from '../components/Section'
 import { currentAssessment } from '../data/assessment'
 import type { Assessment } from '../data/assessment'
+import { buildDayMonth } from '../data/days'
 import { progressPeriods, progressTrends } from '../data/progress'
 import type { TrendSignal } from '../data/progress'
 import { sessionHistory } from '../data/sessions'
@@ -16,9 +18,8 @@ import { sinceLastAppointment } from '../data/summary'
 import type { ProgressRangeId } from '../types/progress'
 import { useCare } from '../utils/care'
 import type { SignalTone } from '../types/recovery'
+import { checkedInToday } from '../utils/storage'
 import { toneDot, toneStatusText } from '../utils/tone'
-
-const shownAtFirst = 2
 
 // The reading's scope, short enough to sit in a line of metadata.
 const shortScope = (scope: string) => scope.replace('since your last appointment on', 'Since').replace('in the last', 'Last')
@@ -27,9 +28,9 @@ const shortScope = (scope: string) => scope.replace('since your last appointment
 // then the three signals behind it, then what has actually happened, then the next professional review.
 // What to do next lives on Home; this screen only looks back.
 export function ProgressScreen() {
-  const { professional } = useCare()
+  const { connected, professional } = useCare()
   const [range, setRange] = useState<ProgressRangeId>('7d')
-  const [allSessions, setAllSessions] = useState(false)
+  const [calendarOpen, setCalendarOpen] = useState(false)
   const [basisOpen, setBasisOpen] = useState(false)
   const basisId = useId()
   const headerRef = useRef<HTMLElement>(null)
@@ -45,7 +46,6 @@ export function ProgressScreen() {
     }
   }
   const assessment = currentAssessment(professional)
-  const sessions = allSessions ? sessionHistory : sessionHistory.slice(0, shownAtFirst)
   const completed = sessionHistory.filter((session) => session.outcome === 'Completed').length
   const difficulty = assessment.series.difficulty
 
@@ -158,20 +158,21 @@ export function ProgressScreen() {
       {/* What actually happened: one session a week, newest first. */}
       <Section id="activity" title="Recent activity">
         <ul className="divide-y divide-line">
-          {sessions.map((session) => (
+          {sessionHistory.map((session) => (
             <Activity key={session.date.toISOString()} session={session} />
           ))}
         </ul>
-        {sessionHistory.length > shownAtFirst && (
-          <button
-            type="button"
-            onClick={() => setAllSessions(!allSessions)}
-            className="-ml-1 inline-flex min-h-11 items-center gap-1.5 self-start rounded-full px-1 text-[15px] font-semibold text-accent"
-          >
-            {allSessions ? 'Show fewer' : 'View all'}
-            <ArrowRight className={`size-4 transition-transform ${allSessions ? '-rotate-90' : ''}`} aria-hidden />
-          </button>
-        )}
+        {/* The list says what happened; the calendar is where any one date is looked up. It is the same
+            sheet Home opens, so the schedule reads the same from either screen. */}
+        <button
+          type="button"
+          onClick={() => setCalendarOpen(true)}
+          aria-expanded={calendarOpen}
+          className="-ml-1 inline-flex min-h-11 items-center gap-1.5 self-start rounded-full px-1 text-[15px] font-semibold text-accent"
+        >
+          View calendar
+          <ArrowRight className="size-4" aria-hidden />
+        </button>
       </Section>
 
       {professional ? (
@@ -220,6 +221,13 @@ export function ProgressScreen() {
         </Section>
       )}
 
+      {calendarOpen && (
+        <DayCalendarSheet
+          days={buildDayMonth({ firstName: '', connected, onTrack: assessment.onTrack, doneToday: checkedInToday() })}
+          mode="inspect"
+          onClose={() => setCalendarOpen(false)}
+        />
+      )}
     </div>
   )
 }

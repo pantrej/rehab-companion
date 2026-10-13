@@ -31,3 +31,10 @@ export const storageKeys = {
   // How rest days felt, by date.
   restFeelings: 'rehab.restFeelings',
 }
+
+// A check-in saved today (on this device) means today's session is complete. Every screen that builds
+// day data reads it the same way, so Home, the calendar and Progress never disagree about today.
+export function checkedInToday() {
+  const at = readStored<{ at?: string } | null>(storageKeys.lastCheckIn, null)?.at
+  return !!at && new Date(at).toDateString() === new Date().toDateString()
+}

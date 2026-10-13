@@ -19,7 +19,7 @@ import type { CheckInRecord } from '../types/progress'
 import { firstName, initialsOf, useAccount } from '../utils/auth'
 import { useCare } from '../utils/care'
 import { dayTheme } from '../utils/dayTheme'
-import { readStored, storageKeys, writeStored } from '../utils/storage'
+import { checkedInToday, readStored, storageKeys, writeStored } from '../utils/storage'
 
 // Prototype preview of worsening signals (/?state=attention), read by the same rules as real check-ins.
 const worseningCheckIns: CheckInRecord[] = [
@@ -49,9 +49,7 @@ export function HomeScreen() {
   if (!care) return <Navigate to="/onboarding" replace />
 
   const name = account?.fullName ?? ''
-  // A check-in saved today (on this device) means today's session is complete.
-  const lastCheckInAt = readStored<{ at?: string } | null>(storageKeys.lastCheckIn, null)?.at
-  const doneToday = !!lastCheckInAt && new Date(lastCheckInAt).toDateString() === new Date().toDateString()
+  const doneToday = checkedInToday()
 
   const preview = params.get('state') === 'attention'
   const records = preview ? worseningCheckIns : recentCheckIns

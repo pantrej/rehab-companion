@@ -11,7 +11,7 @@ import { tomorrow } from '../data/plan'
 import { recoveryInsight, recoverySignals, todayPlan } from '../data/today'
 import { firstName, initialsOf, useAccount } from '../utils/auth'
 import { useCare } from '../utils/care'
-import { readStored, storageKeys } from '../utils/storage'
+import { checkedInToday } from '../utils/storage'
 
 // The Home screen before the daily carousel, kept at /home-classic for the case study before/after.
 export function HomeScreenClassic() {
@@ -22,8 +22,7 @@ export function HomeScreenClassic() {
 
   const name = account?.fullName ?? ''
   // A check-in saved today (on this device) means today's session is complete.
-  const lastCheckInAt = readStored<{ at?: string } | null>(storageKeys.lastCheckIn, null)?.at
-  const doneToday = !!lastCheckInAt && new Date(lastCheckInAt).toDateString() === new Date().toDateString()
+  const doneToday = checkedInToday()
 
   return (
     <div className="flex flex-col gap-8 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">

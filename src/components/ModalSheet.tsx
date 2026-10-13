@@ -13,7 +13,8 @@ type Props = {
   onClose: () => void
   // What the close control is called, for anyone who can't see the sheet. Defaults to the title.
   closeLabel?: string
-  // How tall the sheet stands. Content-sized by default, always capped so the screen stays visible behind it.
+  // How tall the sheet stands. Content-sized by default, always capped so the screen stays visible behind
+  // it. A sheet that changes this while open grows to the new height rather than snapping to it.
   heightClass?: string
   // `dismiss` runs the leaving animation and only then does what follows, e.g. applying a choice.
   children: (dismiss: (then: () => void) => void) => ReactNode
@@ -79,7 +80,7 @@ export function ModalSheet({ title, onClose, closeLabel, heightClass = 'max-h-[7
         aria-labelledby={titleId}
         tabIndex={-1}
         style={{ transform: open ? 'translateY(0)' : 'translateY(100%)' }}
-        className={`relative flex ${heightClass} flex-col rounded-t-[2rem] bg-surface pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-raised outline-none transition-transform duration-300 ease-out will-change-transform motion-reduce:transition-none`}
+        className={`relative flex ${heightClass} flex-col rounded-t-[2rem] bg-surface pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-raised outline-none transition-[transform,height,min-height,max-height] duration-300 ease-out will-change-transform motion-reduce:transition-none`}
       >
         <div className="shrink-0 pt-3">
           <span className="mx-auto block h-1 w-9 rounded-full bg-line" aria-hidden />
