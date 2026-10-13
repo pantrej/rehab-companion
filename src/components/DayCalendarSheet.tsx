@@ -4,15 +4,19 @@ import { TODAY, exercisesPerSession, formatDay } from '../data/calendar'
 import type { DayView } from '../data/days'
 import { ModalSheet } from './ModalSheet'
 
-// What the plan says about a day, as a dot under its number: orange for a rehabilitation session, blue
-// for a recovery day, coral when the reading needs attention, a neutral dash for a session that never
-// happened. A day the plan says nothing about, and a day already completed, carry no dot: completion is
-// told by the number's own green circle, so no day ever wears two marks.
+// What the *plan* says about a day, as a dot under its number: orange for a rehabilitation session,
+// blue for a recovery day, a neutral dash for a session that never happened. A day the plan says
+// nothing about, and a day already completed, carry no dot: completion is told by the number's own
+// green circle, so no day ever wears two marks.
+//
+// Only the schedule is marked here. How recovery is reading — on track, or worth checking — belongs to
+// the recovery status and to Progress, so a session day stays a session day whatever the reading says.
+const session = 'size-1.5 rounded-full bg-planned'
 const dots: Partial<Record<DayView['state'], string>> = {
-  active: 'size-1.5 rounded-full bg-planned',
-  upcoming: 'size-1.5 rounded-full bg-planned',
+  active: session,
+  attention: session,
+  upcoming: session,
   rest: 'size-1.5 rounded-full bg-rest',
-  attention: 'size-1.5 rounded-full bg-concern',
   missed: 'h-0.5 w-2 rounded-full bg-ink-faint',
 }
 
