@@ -1,59 +1,60 @@
-import { ArrowRight, FileText } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { ArrowRight, Check, FileText, Minus } from 'lucide-react'
+import { useState } from 'react'
+import { Link } from 'react-router'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
-import { DaySummarySheet } from '../components/DaySummarySheet'
-import { MonthCalendar } from '../components/MonthCalendar'
+import { MiniTrend } from '../components/MiniTrend'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
-import { RecoverySignalsCard } from '../components/RecoverySignalsCard'
 import { SegmentedControl } from '../components/SegmentedControl'
 import { Section } from '../components/Section'
-import { TomorrowPlanCard } from '../components/TomorrowPlanCard'
 import { currentAssessment } from '../data/assessment'
-import { buildMonth } from '../data/calendar'
-import type { CalendarDay } from '../data/calendar'
-import { progressPeriods, progressSummary, recentCheckIns } from '../data/progress'
+import { progressPeriods, progressTrends } from '../data/progress'
+import type { TrendSignal } from '../data/progress'
+import { sessionHistory } from '../data/sessions'
+import type { SessionRecord } from '../data/sessions'
 import { sinceLastAppointment } from '../data/summary'
 import type { ProgressRangeId } from '../types/progress'
 import { useCare } from '../utils/care'
-import { toneDot } from '../utils/tone'
+import { toneDot, toneStatusText } from '../utils/tone'
 
-// Progress means recovery change: the reading and trends come first, then session history (one tap per day),
-// what's next, and continuity with professional care.
+const shownAtFirst = 2
+
+// Progress answers one question: is my recovery actually improving? The reading comes first in words,
+// then the three signals behind it, then what has actually happened, then the next professional review.
+// What to do next lives on Home; this screen only looks back.
 export function ProgressScreen() {
-  const { professional, connected } = useCare()
+  const { professional } = useCare()
   const [range, setRange] = useState<ProgressRangeId>('7d')
-  const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null)
-  const closeDay = useCallback(() => setSelectedDay(null), [])
-  const days = useMemo(() => buildMonth(recentCheckIns, connected), [connected])
+  const [allSessions, setAllSessions] = useState(false)
   const period = progressPeriods.find((p) => p.id === range) ?? progressPeriods[0]
   const assessment = currentAssessment(professional)
+  const sessions = allSessions ? sessionHistory : sessionHistory.slice(0, shownAtFirst)
 
   return (
-    <div className="flex flex-col gap-8 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
-      <h1 className="text-title font-semibold text-ink">Progress</h1>
-
-      {/* Recovery first: how pain, movement and effort are changing. Sessions are context, not the measure. */}
-      <Section id="recovery" title="How your recovery is changing">
-        {/* The one featured surface on Progress: the recovery reading, before any activity. */}
-        <Card tone="featured" className="p-6">
-          <p className="flex items-center gap-3 text-title font-semibold text-ink">
-            <span className={`size-2.5 rounded-full ring-4 ${toneDot[assessment.tone]}`} aria-hidden />
-            {assessment.verdict}
-          </p>
-          <p className="mt-3 text-[17px] leading-relaxed text-ink">{assessment.headline}</p>
-          <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{progressSummary}</p>
-          <Button
-            to="/insight"
-            state={{ returnTo: '/progress' }}
-            variant="text"
-            icon={<ArrowRight className="size-4" aria-hidden />}
-            className="mt-3 -mb-2"
-          >
-            View recovery insight
-          </Button>
-        </Card>
-      </Section>
+    <div className="flex flex-col gap-9 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
+      {/* The reading, in words, before any chart. */}
+      <header>
+        <p className="text-[12px] font-semibold tracking-[0.16em] text-ink-faint uppercase">Progress</p>
+        <h1 className="mt-3 text-[30px] leading-[1.12] font-bold tracking-[-0.025em] text-ink">
+          {assessment.onTrack ? 'Your recovery is progressing' : 'Some signals are worth checking'}
+        </h1>
+        <p className="mt-3 flex items-center gap-2.5 text-[17px] font-semibold text-ink">
+          <span className={`size-2.5 rounded-full ring-4 ${toneDot[assessment.tone]}`} aria-hidden />
+          {assessment.verdict}
+        </p>
+        <p className="mt-3 text-[17px] leading-relaxed text-ink">{assessment.headline}</p>
+        <p className="mt-1.5 text-[15px] leading-relaxed text-ink-soft">
+          Based on your {assessment.checkInCount} check-ins {assessment.scope}.
+        </p>
+        <Link
+          to="/insight"
+          state={{ returnTo: '/progress' }}
+          className="-ml-1 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-[15px] font-semibold text-accent"
+        >
+          How this is read
+          <ArrowRight className="size-4" aria-hidden />
+        </Link>
+      </header>
 
       <Section id="signals" title="Recovery trends" aside={`Last ${period.label}`}>
         <SegmentedControl
@@ -62,22 +63,32 @@ export function ProgressScreen() {
           value={range}
           onChange={setRange}
         />
-        <RecoverySignalsCard
-          signals={period.signals}
-          pain={{
-            points: period.painPoints,
-            reading: period.painReading,
-            band: { low: assessment.series.painLow, high: assessment.series.painHigh },
-          }}
-        />
+        <Card className="px-5 py-1">
+          <ul className="divide-y divide-line">
+            {progressTrends[range].map((signal) => (
+              <Trend key={signal.id} signal={signal} />
+            ))}
+          </ul>
+        </Card>
       </Section>
 
-      <Section id="calendar" title="Session history" aside="Tap a day">
-        <MonthCalendar days={days} onSelect={setSelectedDay} showAppointments={connected} />
-      </Section>
-
-      <Section id="tomorrow" title="Tomorrow’s plan">
-        <TomorrowPlanCard updated={!!professional} />
+      {/* What actually happened: one session a week, newest first. */}
+      <Section id="activity" title="Recent activity">
+        <ul className="divide-y divide-line">
+          {sessions.map((session) => (
+            <Activity key={session.date.toISOString()} session={session} />
+          ))}
+        </ul>
+        {sessionHistory.length > shownAtFirst && (
+          <button
+            type="button"
+            onClick={() => setAllSessions(!allSessions)}
+            className="-ml-1 inline-flex min-h-11 items-center gap-1.5 self-start rounded-full px-1 text-[15px] font-semibold text-accent"
+          >
+            {allSessions ? 'Show fewer' : 'View all'}
+            <ArrowRight className={`size-4 transition-transform ${allSessions ? '-rotate-90' : ''}`} aria-hidden />
+          </button>
+        )}
       </Section>
 
       {professional ? (
@@ -107,6 +118,7 @@ export function ProgressScreen() {
           </Card>
         </Section>
       ) : (
+        // Independent: no professional is invented, only the summary the user can take to one.
         <Section id="share" title="Recovery summary">
           <Card className="p-6">
             <p className="text-[15px] leading-relaxed text-ink-soft">
@@ -124,8 +136,56 @@ export function ProgressScreen() {
           </Card>
         </Section>
       )}
-
-      {selectedDay && <DaySummarySheet day={selectedDay} professional={professional} onClose={closeDay} />}
     </div>
+  )
+}
+
+// One signal: where it stands, which way it is going, and what that means. The line is small on purpose.
+function Trend({ signal }: { signal: TrendSignal }) {
+  return (
+    <li className="py-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="text-[17px] font-semibold text-ink">{signal.label}</h3>
+        <span className={`text-[15px] font-medium ${toneStatusText[signal.tone]}`}>{signal.status}</span>
+      </div>
+      <div className="mt-2 flex items-center justify-between gap-4">
+        <p className="text-[19px] leading-none font-semibold tracking-[-0.01em] text-ink tabular-nums">
+          {signal.value}
+        </p>
+        <MiniTrend
+          values={signal.series}
+          max={signal.max}
+          label={signal.seriesLabel}
+          showRange={false}
+          tone={signal.tone === 'attention' ? 'concern' : 'accent'}
+          width={110}
+        />
+      </div>
+      <p className="mt-2 text-[15px] leading-snug text-ink-soft">{signal.reading}</p>
+    </li>
+  )
+}
+
+const outcomeStyle = {
+  Completed: { mark: Check, className: 'text-positive' },
+  'Partly completed': { mark: Check, className: 'text-ink-soft' },
+  Missed: { mark: Minus, className: 'text-ink-soft' },
+}
+
+function Activity({ session }: { session: SessionRecord }) {
+  const { mark: Mark, className } = outcomeStyle[session.outcome]
+  return (
+    <li className="flex items-baseline justify-between gap-4 py-3.5">
+      <div className="min-w-0">
+        <p className="text-caption text-ink-soft tabular-nums">
+          {session.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+        </p>
+        <p className="mt-0.5 text-[17px] font-medium text-ink">{session.focus}</p>
+      </div>
+      <p className={`flex shrink-0 items-center gap-1.5 text-[15px] ${className}`}>
+        <Mark className="size-4" strokeWidth={2.5} aria-hidden />
+        {session.outcome}
+      </p>
+    </li>
   )
 }

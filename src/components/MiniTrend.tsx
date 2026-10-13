@@ -6,6 +6,8 @@ type Props = {
   showRange?: boolean
   // The line follows the meaning around it, e.g. coral when something needs attention.
   tone?: keyof typeof tones
+  // Wider where there is room for it, e.g. a trend module on Progress.
+  width?: number
 }
 
 const tones = {
@@ -16,9 +18,9 @@ const tones = {
 }
 
 // A small inline line on a fixed 0–max scale, with the latest point marked and the first → latest values.
-export function MiniTrend({ values, max = 10, label, showRange = true, tone = 'accent' }: Props) {
+export function MiniTrend({ values, max = 10, label, showRange = true, tone = 'accent', width = 96 }: Props) {
   const [line, dot] = tones[tone]
-  const W = 96
+  const W = width
   const H = 28
   const x = (i: number) => 4 + (i / Math.max(values.length - 1, 1)) * (W - 8)
   const y = (v: number) => 4 + (1 - v / max) * (H - 8)

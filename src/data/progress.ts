@@ -1,4 +1,4 @@
-import type { CheckInRecord, Movement, ProgressPeriod, TrendPoint } from '../types/progress'
+import type { CheckInRecord, Movement, ProgressPeriod, ProgressRangeId, TrendPoint } from '../types/progress'
 import type { InsightSignal, SignalTone } from '../types/recovery'
 
 // One consistent recent history behind Home, Progress, Insight and the calendar (today is 9 October):
@@ -86,7 +86,101 @@ export const progressPeriods: ProgressPeriod[] = [
   },
 ]
 
-export const progressSummary =
-  'Your recent recovery signals are mostly stable, with gradual improvement in mobility and exercise tolerance.'
+// One compact module per recovery signal on Progress: where it stands now, which way it is going, and one
+// plain sentence saying what that means. Small series, oldest first, on their own scale.
+export type TrendSignal = {
+  id: InsightSignal['id']
+  label: string
+  status: string
+  tone: SignalTone
+  // The headline reading: a range, a direction, or a first → latest pair.
+  value: string
+  series: number[]
+  max: number
+  // What the series is, for anyone who can't see it.
+  seriesLabel: string
+  reading: string
+}
+
+// Self-reported movement, drawn on its own three-step scale.
+const movementScale: Record<Movement, number> = { Worse: 1, 'About the same': 2, Better: 3 }
+const recentMovement = [...recentCheckIns].reverse().map((c) => movementScale[c.movement])
+const recentDifficulty = [...recentCheckIns].reverse().map((c) => c.difficulty)
+// The month before the recent check-ins, oldest first.
+const earlierDifficulty = [8, 8, 7, 7, 7, 6, 7, 6]
+const earlierMovement = [2, 2, 1, 2, 3, 2, 3, 3]
+
+export const progressTrends: Record<ProgressRangeId, TrendSignal[]> = {
+  '7d': [
+    {
+      id: 'pain',
+      label: 'Pain',
+      status: 'Stable',
+      tone: 'positive',
+      value: '2–⁠3 / 10',
+      series: [...recentCheckIns].reverse().map((c) => c.pain),
+      max: 10,
+      seriesLabel: 'Pain at each check-in, out of 10',
+      reading: 'Stayed within your usual range over the last 7 days.',
+    },
+    {
+      id: 'mobility',
+      label: 'Mobility',
+      status: 'Improving',
+      tone: 'positive',
+      value: '↑ across 3 check-ins',
+      series: recentMovement,
+      max: 3,
+      seriesLabel: 'How movement felt at each check-in, from worse to better',
+      reading: 'Movement has gradually improved across recent check-ins.',
+    },
+    {
+      id: 'difficulty',
+      label: 'Session difficulty',
+      status: 'Getting easier',
+      tone: 'positive',
+      value: '7/10 → 5/10',
+      series: recentDifficulty,
+      max: 10,
+      seriesLabel: 'Session difficulty at each check-in, out of 10',
+      reading: 'Exercises have felt easier across recent sessions.',
+    },
+  ],
+  '30d': [
+    {
+      id: 'pain',
+      label: 'Pain',
+      status: 'Stable',
+      tone: 'positive',
+      value: '2–⁠4 / 10',
+      series: [...earlierPain.map(([, value]) => value), ...[...recentCheckIns].reverse().map((c) => c.pain)],
+      max: 10,
+      seriesLabel: 'Pain at each check-in this month, out of 10',
+      reading: 'Stayed between 2 and 4 out of 10 this month, and between 2 and 3 recently.',
+    },
+    {
+      id: 'mobility',
+      label: 'Mobility',
+      status: 'Improving',
+      tone: 'positive',
+      value: '↑ over the month',
+      series: [...earlierMovement, ...recentMovement],
+      max: 3,
+      seriesLabel: 'How movement felt at each check-in this month, from worse to better',
+      reading: 'Movement has improved overall, after steadier weeks earlier in the month.',
+    },
+    {
+      id: 'difficulty',
+      label: 'Session difficulty',
+      status: 'Getting easier',
+      tone: 'positive',
+      value: '8/10 → 5/10',
+      series: [...earlierDifficulty, ...recentDifficulty],
+      max: 10,
+      seriesLabel: 'Session difficulty at each check-in this month, out of 10',
+      reading: 'Sessions have felt steadily easier since the start of the month.',
+    },
+  ],
+}
 
 export const whatChangedRecently = 'Your sessions are becoming easier while pain remains stable.'
