@@ -51,7 +51,7 @@ export function ExerciseScreen() {
           )}
         </header>
 
-        <ExerciseDemo name={exercise.name} instruction={exercise.instruction} />
+        <ExerciseDemo name={exercise.name} instruction={exercise.instruction} clip={exercise.demo} />
 
         <div className="flex flex-col gap-3">
           <Card className="p-6">
