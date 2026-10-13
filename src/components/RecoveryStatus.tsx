@@ -115,10 +115,11 @@ export function RecoveryStatus({ assessment, day, records }: Props) {
   )
 }
 
-// One plain line per day, without diagnosing anything.
+// One plain line per day, without diagnosing anything. Each is kept short enough to sit on a single
+// line beside the chevron at phone widths, so the card stays one word and one line.
 function dayLine(assessment: Assessment, day: DayView) {
   if (!assessment.onTrack) return 'Pain is higher than usual.'
-  if (day.state === 'rest') return 'Recovery day. Focus on rest and mobility.'
+  if (day.state === 'rest') return 'Recovery day. Rest and mobility.'
   if (day.state === 'missed') return 'No session was recorded that day.'
   if (day.state === 'open') return 'No session planned for this day.'
   if (day.state === 'upcoming') return 'Keep up the good progress.'
@@ -127,9 +128,9 @@ function dayLine(assessment: Assessment, day: DayView) {
     const before = checkIn && recentCheckIns.find((c) => c.daysAgo > checkIn.daysAgo)
     if (checkIn && before) {
       return checkIn.pain < before.pain
-        ? 'Pain improved compared with the session before.'
+        ? 'Less pain than the session before.'
         : checkIn.pain > before.pain
-          ? 'Pain was a little higher than the session before.'
+          ? 'Slightly more pain than before.'
           : `Pain held steady at ${checkIn.pain}/10.`
     }
   }
