@@ -4,6 +4,7 @@ import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { MiniTrend } from '../components/MiniTrend'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
+import { RecoveryTrajectory } from '../components/RecoveryTrajectory'
 import { RecoveryBasisSheet } from '../components/RecoveryBasisSheet'
 import { SegmentedControl } from '../components/SegmentedControl'
 import { Section } from '../components/Section'
@@ -19,6 +20,9 @@ import { toneDot, toneStatusText } from '../utils/tone'
 
 const shownAtFirst = 2
 
+// The reading's scope, short enough to sit in a line of metadata.
+const shortScope = (scope: string) => scope.replace('since your last appointment on', 'Since').replace('in the last', 'Last')
+
 // Progress answers one question: is my recovery actually improving? The reading comes first in words,
 // then the three signals behind it, then what has actually happened, then the next professional review.
 // What to do next lives on Home; this screen only looks back.
@@ -29,10 +33,11 @@ export function ProgressScreen() {
   const [basisOpen, setBasisOpen] = useState(false)
   const assessment = currentAssessment(professional)
   const sessions = allSessions ? sessionHistory : sessionHistory.slice(0, shownAtFirst)
+  const completed = sessionHistory.filter((session) => session.outcome === 'Completed').length
 
   return (
-    <div className="flex flex-col gap-7 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
-      {/* The outcome, in words, before any chart; the interpretation behind it sits in its own quiet surface. */}
+    <div className="flex flex-col gap-6 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
+      {/* The outcome in words, then the check-ins it was read from, in one quiet surface. */}
       <header>
         <p className="text-[12px] font-semibold tracking-[0.16em] text-ink-faint uppercase">Progress</p>
         <h1 className="mt-2.5 text-[30px] leading-[1.12] font-bold tracking-[-0.025em] text-ink">
@@ -43,18 +48,25 @@ export function ProgressScreen() {
           {assessment.verdict}
         </p>
 
-        <Card tone="featured" className="mt-4 px-5 py-4">
-          <p className="text-[12px] font-semibold tracking-[0.14em] text-accent uppercase">What changed</p>
-          <p className="mt-2 text-[17px] leading-relaxed text-ink">{assessment.headline}</p>
-          <p className="mt-1.5 text-[15px] leading-relaxed text-ink-soft">
-            Based on {assessment.checkInCount} check-ins {assessment.scope}.
+        <Card tone="featured" className="mt-4 px-4 pt-4 pb-2">
+          <RecoveryTrajectory
+            values={assessment.series.pain}
+            low={assessment.series.painLow}
+            high={assessment.series.painHigh}
+            tone={assessment.onTrack ? 'accent' : 'concern'}
+            label={`Pain at your last ${assessment.checkInCount} check-ins: ${assessment.series.pain.join(', ')} out of 10, against your usual range of ${assessment.series.painLow} to ${assessment.series.painHigh}.`}
+          />
+          <p className="mt-3 text-[12px] font-semibold tracking-[0.14em] text-accent uppercase">What changed</p>
+          <p className="mt-1.5 text-[17px] leading-snug text-ink">{assessment.headline}</p>
+          <p className="mt-1.5 text-caption leading-snug text-ink-soft">
+            {assessment.checkInCount} check-ins · {completed} sessions completed · {shortScope(assessment.scope)}
           </p>
           <button
             type="button"
             onClick={() => setBasisOpen(true)}
             aria-haspopup="dialog"
             aria-expanded={basisOpen}
-            className="-ml-1 -mb-1 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-[15px] font-semibold text-accent"
+            className="-ml-1 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-[15px] font-semibold text-accent"
           >
             More details
             <ArrowRight className="size-4" aria-hidden />
