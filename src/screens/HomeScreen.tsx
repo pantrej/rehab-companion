@@ -1,4 +1,4 @@
-import { CalendarDays, Undo2 } from 'lucide-react'
+import { CalendarDays } from 'lucide-react'
 import { useState } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router'
 import { Button } from '../components/Button'
@@ -62,13 +62,6 @@ export function HomeScreen() {
   // Swiping moves within the window; picking a date in the calendar rebuilds it around that day.
   const activeIndex = swiped?.center === centerKey ? swiped.index : index
   const dayName = (i: number) => `${days[i].time}, ${days[i].dateLabel}`
-  // Today is one tap away wherever the person has got to: a slide away, it scrolls back; a month away,
-  // the window is rebuilt around today. Either way it is the same selected day the calendar sets.
-  const todayIndex = days.findIndex((day) => day.offset === 0)
-  const backToToday = (goTo: (index: number) => void) => () => {
-    if (todayIndex >= 0) goTo(todayIndex)
-    else setCenter((previous) => ({ date: TODAY, pick: previous.pick + 1 }))
-  }
 
   return (
     <div className="relative flex flex-col pb-8 [--hero-h:clamp(238px,38dvh,320px)]">
@@ -86,7 +79,7 @@ export function HomeScreen() {
           // The marks take that surface's own colour, so they read as part of it rather than on top of it.
           <div className="pointer-events-none absolute inset-x-0 top-[calc(var(--hero-h)-1.625rem)] flex items-center justify-center">
             <div className="pointer-events-auto flex items-center">
-              {days.map((_, i) => (
+              {days.map((day, i) => (
                 <button
                   key={i}
                   type="button"
@@ -95,29 +88,17 @@ export function HomeScreen() {
                   aria-current={i === active ? 'true' : undefined}
                   className="flex h-9 items-center justify-center px-2"
                 >
+                  {/* The day in view is a pill. Today is the one other mark worth finding at a glance,
+                      so it stands larger and clearer than the days around it — and tapping it goes there. */}
                   <span
-                    className={`h-1.5 rounded-full transition-all ${dayTheme[days[active].state].dot} ${
-                      i === active ? 'w-5' : 'w-1.5 opacity-30'
+                    className={`rounded-full transition-all ${dayTheme[days[active].state].dot} ${
+                      i === active ? 'h-1.5 w-5' : day.offset === 0 ? 'size-2.5 opacity-60' : 'size-1.5 opacity-30'
                     }`}
                   />
                 </button>
               ))}
             </div>
 
-            {/* Away from today, the way back: plain text, positioned on its own so the dots stay centred
-                whether it is there or not. They say where in the week you are; this says how to get home. */}
-            <button
-              type="button"
-              onClick={backToToday(goTo)}
-              aria-hidden={days[active].offset === 0}
-              tabIndex={days[active].offset === 0 ? -1 : 0}
-              className={`absolute right-3 inline-flex h-8 items-center gap-1 px-2 text-[13px] font-medium text-accent transition-opacity duration-200 ${
-                days[active].offset === 0 ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100'
-              }`}
-            >
-              Today
-              <Undo2 className="size-3.5" strokeWidth={2} aria-hidden />
-            </button>
           </div>
         )}
       >

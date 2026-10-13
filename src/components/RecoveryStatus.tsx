@@ -59,23 +59,23 @@ export function RecoveryStatus({ assessment, day, records }: Props) {
         aria-expanded={open}
         aria-controls={panelId}
         onClick={toggle}
-        className="flex w-full items-start gap-3 rounded-card px-5 py-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        className="block w-full rounded-card px-5 py-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
-        <span className="min-w-0 flex-1">
-          <span className="block text-caption font-semibold text-ink-soft">Recovery status</span>
-          <span className="mt-2 flex items-center gap-3">
-            <StatusIndicator tone={tone} />
-            <span className={`text-[17px] font-semibold ${tone === 'concern' ? 'text-concern' : 'text-ink'}`}>
-              {assessment.onTrack ? 'On track' : 'Not on track'}
-            </span>
+        <span className="block text-caption font-semibold text-ink-soft">Recovery status</span>
+        {/* The chevron rides the verdict's own row, so the line below it has the card's full width and
+            says what the day is for in one line. */}
+        <span className="mt-2 flex items-center gap-3">
+          <StatusIndicator tone={tone} />
+          <span className={`min-w-0 flex-1 text-[17px] font-semibold ${tone === 'concern' ? 'text-concern' : 'text-ink'}`}>
+            {assessment.onTrack ? 'On track' : 'Not on track'}
           </span>
-          <span className="mt-1 block pl-6 text-[15px] leading-snug text-ink-soft">{dayLine(assessment, day)}</span>
+          <ChevronDown
+            className={`size-5 shrink-0 text-ink-soft transition-transform ${open ? 'rotate-180' : ''}`}
+            strokeWidth={1.75}
+            aria-hidden
+          />
         </span>
-        <ChevronDown
-          className={`mt-7 size-5 shrink-0 text-ink-soft transition-transform ${open ? 'rotate-180' : ''}`}
-          strokeWidth={1.75}
-          aria-hidden
-        />
+        <span className="mt-1 block text-[15px] leading-snug text-ink-soft">{dayLine(assessment, day)}</span>
       </button>
 
       {open && (
@@ -116,10 +116,10 @@ export function RecoveryStatus({ assessment, day, records }: Props) {
 }
 
 // One plain line per day, without diagnosing anything. Each is kept short enough to sit on a single
-// line beside the chevron at phone widths, so the card stays one word and one line.
+// line across the card at phone widths, so the reading stays one word and one line.
 function dayLine(assessment: Assessment, day: DayView) {
   if (!assessment.onTrack) return 'Pain is higher than usual.'
-  if (day.state === 'rest') return 'Recovery day. Rest and mobility.'
+  if (day.state === 'rest') return 'Recovery day. Focus on rest and mobility.'
   if (day.state === 'missed') return 'No session was recorded that day.'
   if (day.state === 'open') return 'No session planned for this day.'
   if (day.state === 'upcoming') return 'Keep up the good progress.'
