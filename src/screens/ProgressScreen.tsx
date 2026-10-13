@@ -1,10 +1,9 @@
-import { ArrowRight, Check, FileText, Minus } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowRight, Check, ChevronDown, FileText, Minus } from 'lucide-react'
+import { useId, useRef, useState } from 'react'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { MiniTrend } from '../components/MiniTrend'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
-import { RecoveryBasisSheet } from '../components/RecoveryBasisSheet'
 import { SegmentedControl } from '../components/SegmentedControl'
 import { Section } from '../components/Section'
 import { currentAssessment } from '../data/assessment'
@@ -32,14 +31,28 @@ export function ProgressScreen() {
   const [range, setRange] = useState<ProgressRangeId>('7d')
   const [allSessions, setAllSessions] = useState(false)
   const [basisOpen, setBasisOpen] = useState(false)
+  const basisId = useId()
+  const headerRef = useRef<HTMLElement>(null)
+  // Closing from deep inside the evidence shouldn't leave the person looking at the space it left.
+  const toggleBasis = () => {
+    const next = !basisOpen
+    setBasisOpen(next)
+    if (!next) {
+      requestAnimationFrame(() => {
+        const header = headerRef.current
+        if (header && header.getBoundingClientRect().top < 0) header.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    }
+  }
   const assessment = currentAssessment(professional)
   const sessions = allSessions ? sessionHistory : sessionHistory.slice(0, shownAtFirst)
   const completed = sessionHistory.filter((session) => session.outcome === 'Completed').length
+  const difficulty = assessment.series.difficulty
 
   return (
     <div className="flex flex-col gap-6 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
       {/* The outcome in words, then the check-ins it was read from, in one quiet surface. */}
-      <header>
+      <header ref={headerRef}>
         <p className="text-[12px] font-semibold tracking-[0.16em] text-ink-faint uppercase">Progress</p>
         <h1 className="mt-2.5 text-[30px] leading-[1.12] font-bold tracking-[-0.025em] text-ink">
           {assessment.onTrack ? 'Your recovery is progressing' : 'Some signals are worth checking'}
@@ -64,15 +77,63 @@ export function ProgressScreen() {
           <p className="mt-1.5 text-caption leading-snug text-ink-soft">
             {assessment.checkInCount} check-ins · {completed} sessions completed · {shortScope(assessment.scope)}
           </p>
+          {/* The evidence opens in place: the card grows, the screen below it moves down, and nothing
+              takes the reading away from the person reading it. */}
+          <div
+            id={basisId}
+            className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+              basisOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+            }`}
+          >
+            <div
+              aria-hidden={!basisOpen}
+              className={`overflow-hidden transition-opacity duration-300 ease-out ${basisOpen ? 'opacity-100' : 'opacity-0'}`}
+            >
+              <div className="mt-2 border-t border-accent/15 pt-4 pb-2">
+                <p className="text-[12px] font-semibold tracking-[0.14em] text-accent uppercase">
+                  {assessment.onTrack ? 'Why this appears on track' : 'Why this is worth checking'}
+                </p>
+                <dl className="mt-3 flex flex-col gap-3.5">
+                  {assessment.changes.map((change) => (
+                    <div key={change.id}>
+                      <dt className="text-[15px] font-semibold text-ink">{change.label}</dt>
+                      <dd className="mt-0.5 text-[15px] leading-snug text-ink-soft">
+                        {change.id === 'difficulty'
+                          ? `Session difficulty changed from ${difficulty[0]}/10 to ${difficulty[difficulty.length - 1]}/10.`
+                          : `${change.detail}.`}
+                      </dd>
+                    </div>
+                  ))}
+                  <div>
+                    <dt className="text-[15px] font-semibold text-ink">
+                      {professional ? 'Since your last review' : 'Recent check-ins'}
+                    </dt>
+                    <dd className="mt-0.5 text-[15px] leading-snug text-ink-soft">
+                      {professional
+                        ? `${assessment.checkInCount} check-ins have been recorded since the appointment on ${professional.lastAppointment}.`
+                        : `${assessment.checkInCount} check-ins have been recorded ${assessment.scope}.`}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="mt-4 text-caption leading-relaxed text-ink-faint">
+                  This summary reflects your recent check-ins and rehabilitation activity. It isn’t a medical
+                  assessment.
+                </p>
+              </div>
+            </div>
+          </div>
           <button
             type="button"
-            onClick={() => setBasisOpen(true)}
-            aria-haspopup="dialog"
+            onClick={toggleBasis}
             aria-expanded={basisOpen}
+            aria-controls={basisId}
             className="-ml-1 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-[15px] font-semibold text-accent"
           >
-            More details
-            <ArrowRight className="size-4" aria-hidden />
+            {basisOpen ? 'Show less' : 'More details'}
+            <ChevronDown
+              className={`size-4 transition-transform duration-300 ease-out ${basisOpen ? 'rotate-180' : ''}`}
+              aria-hidden
+            />
           </button>
         </Card>
       </header>
@@ -158,9 +219,6 @@ export function ProgressScreen() {
         </Section>
       )}
 
-      {basisOpen && (
-        <RecoveryBasisSheet assessment={assessment} professional={professional} onClose={() => setBasisOpen(false)} />
-      )}
     </div>
   )
 }
