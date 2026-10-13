@@ -1,4 +1,4 @@
-import { CalendarDays } from 'lucide-react'
+import { CalendarDays, Undo2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router'
 import { Button } from '../components/Button'
@@ -61,6 +61,16 @@ export function HomeScreen() {
   // Swiping moves within the window; picking a date in the calendar rebuilds it around that day.
   const activeIndex = swiped?.center === centerKey ? swiped.index : index
   const dayName = (i: number) => `${days[i].time}, ${days[i].dateLabel}`
+  // Today is one tap away wherever the person has got to: a slide away, it scrolls back; a month away,
+  // the window is rebuilt around today. Either way it is the same selected day the calendar sets.
+  const todayIndex = days.findIndex((day) => day.offset === 0)
+  const backToToday = (goTo: (index: number) => void) => () => {
+    if (todayIndex >= 0) goTo(todayIndex)
+    else {
+      setCenter(TODAY)
+      setSwiped(undefined)
+    }
+  }
 
   return (
     <div className="relative flex flex-col pb-8 [--hero-h:clamp(270px,38dvh,320px)]">
@@ -76,7 +86,7 @@ export function HomeScreen() {
         indicator={(active, goTo) => (
           // Below the wave, on the day's own surface, and in the same place whichever day is in view.
           // The marks take that surface's own colour, so they read as part of it rather than on top of it.
-          <div className="pointer-events-none absolute inset-x-0 top-[calc(var(--hero-h)-1.625rem)] flex justify-center">
+          <div className="pointer-events-none absolute inset-x-0 top-[calc(var(--hero-h)-1.625rem)] flex items-center justify-center">
             <div className="pointer-events-auto flex items-center">
               {days.map((_, i) => (
                 <button
@@ -95,6 +105,19 @@ export function HomeScreen() {
                 </button>
               ))}
             </div>
+
+            {/* Away from today, the way back. It sits beside the dots without moving them: they say where
+                in the week you are, this says how to get home. */}
+            {days[active].offset !== 0 && (
+              <button
+                type="button"
+                onClick={backToToday(goTo)}
+                className="pointer-events-auto absolute right-4 inline-flex h-8 items-center gap-1 rounded-full bg-surface/80 px-2.5 text-[13px] font-semibold text-accent ring-1 ring-accent/15 backdrop-blur-sm transition-colors hover:bg-surface"
+              >
+                Today
+                <Undo2 className="size-3.5" strokeWidth={2.25} aria-hidden />
+              </button>
+            )}
           </div>
         )}
       >
