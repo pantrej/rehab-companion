@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronRight, Play, RefreshCw } from 'lucide-react'
+import { ArrowRight, Check, ChevronRight, Play, RefreshCw } from 'lucide-react'
 import { Link, Navigate } from 'react-router'
 import { AssessmentLine } from '../components/AssessmentLine'
 import { Button } from '../components/Button'
@@ -6,9 +6,11 @@ import { Card } from '../components/Card'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
 import { StatusItem } from '../components/StatusItem'
 import { currentAssessment } from '../data/assessment'
+import { tomorrow } from '../data/plan'
 import { recoveryInsight, recoveryOverall, recoverySignals, todayPlan } from '../data/today'
 import { firstName, initialsOf, useAccount } from '../utils/auth'
 import { useCare } from '../utils/care'
+import { readStored, storageKeys } from '../utils/storage'
 import { toneDot } from '../utils/tone'
 
 export function HomeScreen() {
@@ -18,6 +20,9 @@ export function HomeScreen() {
   if (!care) return <Navigate to="/onboarding" replace />
 
   const name = account?.fullName ?? ''
+  // A check-in saved today (on this device) means today's session is complete.
+  const lastCheckInAt = readStored<{ at?: string } | null>(storageKeys.lastCheckIn, null)?.at
+  const doneToday = !!lastCheckInAt && new Date(lastCheckInAt).toDateString() === new Date().toDateString()
 
   return (
     <div className="flex flex-col gap-10 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
@@ -53,9 +58,26 @@ export function HomeScreen() {
           <p className="mt-1 text-[13px] text-ink-faint">From your existing rehabilitation plan</p>
         )}
 
-        <Button to="/session" icon={<Play className="size-4 fill-current" aria-hidden />} className="mt-7">
-          Start session
-        </Button>
+        {/* Once today's check-in is in, the next action moves on: review the insight, then tomorrow. */}
+        {doneToday ? (
+          <>
+            <p className="mt-6 flex items-center gap-2 text-[15px] font-medium text-positive">
+              <Check className="size-[18px]" strokeWidth={2.25} aria-hidden />
+              Today’s session is done
+            </p>
+            <p className="mt-1 text-[15px] text-ink-soft">Next session: tomorrow · {tomorrow.focus}</p>
+            <Button to="/insight" state={{ returnTo: '/' }} className="mt-5">
+              View today’s insight
+            </Button>
+            <Button to="/session" variant="quiet" className="mt-1">
+              Repeat today’s session
+            </Button>
+          </>
+        ) : (
+          <Button to="/session" icon={<Play className="size-4 fill-current" aria-hidden />} className="mt-7">
+            Start session
+          </Button>
+        )}
 
         {/* A recent professional change, stated calmly and attributed; the app never changes the plan itself. */}
         {professional && (

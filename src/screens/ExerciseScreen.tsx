@@ -1,11 +1,14 @@
-import { ArrowLeft, Check, ChevronRight, LifeBuoy, Play } from 'lucide-react'
+import { ArrowLeft, Check, ChevronDown, ChevronRight, LifeBuoy, Play } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { ContactSheet } from '../components/ContactSheet'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
+import { SafetyGuide } from '../components/SafetyGuide'
 import { StatusItem } from '../components/StatusItem'
 import { SupportSheet } from '../components/SupportSheet'
+import { techniqueTip } from '../data/safety'
 import { currentExercise as exercise } from '../data/session'
 import { useCare } from '../utils/care'
 
@@ -13,6 +16,9 @@ export function ExerciseScreen() {
   const navigate = useNavigate()
   const [supportOpen, setSupportOpen] = useState(false)
   const closeSupport = useCallback(() => setSupportOpen(false), [])
+  const [contactOpen, setContactOpen] = useState(false)
+  const closeContact = useCallback(() => setContactOpen(false), [])
+  const [guideOpen, setGuideOpen] = useState(false)
   const { professional } = useCare()
   const { lastSession } = exercise
 
@@ -93,11 +99,32 @@ export function ExerciseScreen() {
           </h2>
           <p className="mt-2 text-[17px] leading-relaxed text-ink">{exercise.instruction}</p>
 
+          {/* Progressive disclosure: the safety guide stays one tap away instead of adding a block of text. */}
+          <button
+            type="button"
+            aria-expanded={guideOpen}
+            aria-controls="feel-guide"
+            onClick={() => setGuideOpen(!guideOpen)}
+            className="-ml-1 mt-4 flex h-11 w-full items-center justify-between gap-2 rounded-xl px-1 text-[15px] font-medium text-ink transition-colors hover:bg-line/40"
+          >
+            How should this feel?
+            <ChevronDown
+              className={`size-4 text-ink-faint transition-transform ${guideOpen ? 'rotate-180' : ''}`}
+              aria-hidden
+            />
+          </button>
+          {guideOpen && (
+            <div id="feel-guide" className="mt-2 rounded-2xl bg-surface p-5 ring-1 ring-line">
+              <SafetyGuide professionalName={professional?.name} />
+              <p className="mt-3 border-t border-line pt-3 text-[15px] leading-relaxed text-ink-soft">{techniqueTip}</p>
+            </div>
+          )}
+
           <button
             type="button"
             aria-haspopup="dialog"
             onClick={() => setSupportOpen(true)}
-            className="-ml-1 mt-4 inline-flex h-11 items-center gap-2 rounded-xl px-1 text-[15px] text-ink-soft transition-colors hover:text-ink"
+            className="-ml-1 mt-2 inline-flex h-11 items-center gap-2 rounded-xl px-1 text-[15px] text-ink-soft transition-colors hover:text-ink"
           >
             <LifeBuoy className="size-[18px]" strokeWidth={1.75} aria-hidden />
             Something doesn't feel right
@@ -122,7 +149,21 @@ export function ExerciseScreen() {
         )}
       </div>
 
-      {supportOpen && <SupportSheet professionalName={professional?.name} onClose={closeSupport} />}
+      {supportOpen && (
+        <SupportSheet
+          professionalName={professional?.name}
+          onClose={closeSupport}
+          onContact={
+            professional
+              ? () => {
+                  setSupportOpen(false)
+                  setContactOpen(true)
+                }
+              : undefined
+          }
+        />
+      )}
+      {contactOpen && professional && <ContactSheet professional={professional} onClose={closeContact} />}
     </div>
   )
 }

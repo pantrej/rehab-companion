@@ -1,6 +1,5 @@
-import { FileText } from 'lucide-react'
+import { ArrowRight, FileText } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
-import { AssessmentLine } from '../components/AssessmentLine'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { DaySummarySheet } from '../components/DaySummarySheet'
@@ -13,15 +12,14 @@ import { TomorrowPlanCard } from '../components/TomorrowPlanCard'
 import { currentAssessment } from '../data/assessment'
 import { buildMonth } from '../data/calendar'
 import type { CalendarDay } from '../data/calendar'
-import { progressPeriods, progressSummary, recentCheckIns, whatChangedRecently } from '../data/progress'
+import { progressPeriods, progressSummary, recentCheckIns } from '../data/progress'
 import { sinceLastAppointment } from '../data/summary'
-import { recoveryOverall } from '../data/today'
 import type { ProgressRangeId } from '../types/progress'
 import { useCare } from '../utils/care'
 import { toneDot } from '../utils/tone'
 
-// The calendar is the long view: each day's rehabilitation at a glance, with the detail one tap away.
-// Below it: what's next, how signals are trending, and continuity with professional care.
+// Progress means recovery change: the reading and trends come first, then session history (one tap per day),
+// what's next, and continuity with professional care.
 export function ProgressScreen() {
   const { professional, connected } = useCare()
   const [range, setRange] = useState<ProgressRangeId>('7d')
@@ -29,27 +27,32 @@ export function ProgressScreen() {
   const closeDay = useCallback(() => setSelectedDay(null), [])
   const days = useMemo(() => buildMonth(recentCheckIns, connected), [connected])
   const period = progressPeriods.find((p) => p.id === range) ?? progressPeriods[0]
+  const assessment = currentAssessment(professional)
 
   return (
     <div className="flex flex-col gap-10 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
       <h1 className="text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">Progress</h1>
 
-      <Section id="calendar" title="Your rehabilitation days" aside="Tap a day">
-        <MonthCalendar days={days} onSelect={setSelectedDay} showAppointments={connected} />
+      {/* Recovery first: how pain, movement and effort are changing. Sessions are context, not the measure. */}
+      <Section id="recovery" title="How your recovery is changing">
+        <Card className="p-6">
+          <p className="flex items-center gap-3 text-[26px] leading-tight font-semibold tracking-[-0.02em] text-ink">
+            <span className={`size-2.5 rounded-full ring-4 ${toneDot[assessment.tone]}`} aria-hidden />
+            {assessment.verdict}
+          </p>
+          <p className="mt-3 text-[17px] leading-relaxed text-ink">{assessment.headline}</p>
+          <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{progressSummary}</p>
+          <Button
+            to="/insight"
+            state={{ returnTo: '/progress' }}
+            variant="ghost"
+            icon={<ArrowRight className="size-4" aria-hidden />}
+            className="mt-3 -mb-2"
+          >
+            View recovery insight
+          </Button>
+        </Card>
       </Section>
-
-      <Section id="tomorrow" title="Tomorrow’s plan">
-        <TomorrowPlanCard updated={!!professional} />
-      </Section>
-
-      <Card className="p-6">
-        <p className="text-sm text-ink-soft">{recoveryOverall.label}</p>
-        <p className="mt-2 flex items-center gap-3 text-[26px] leading-tight font-semibold tracking-[-0.02em] text-ink">
-          <span className={`size-2.5 rounded-full ring-4 ${toneDot[recoveryOverall.tone]}`} aria-hidden />
-          {recoveryOverall.status}
-        </p>
-        <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{progressSummary}</p>
-      </Card>
 
       <Section id="signals" title="Recovery trends" aside={`Last ${period.label}`}>
         <SegmentedControl
@@ -64,13 +67,12 @@ export function ProgressScreen() {
         />
       </Section>
 
-      <Section id="what-changed" title="What changed recently">
-        <Card className="p-6">
-          <p className="text-[17px] leading-relaxed text-ink">{whatChangedRecently}</p>
-          <div className="mt-4 border-t border-line pt-3 -mb-2">
-            <AssessmentLine assessment={currentAssessment(professional)} returnTo="/progress" linkLabel="View recovery insight" />
-          </div>
-        </Card>
+      <Section id="calendar" title="Session history" aside="Tap a day">
+        <MonthCalendar days={days} onSelect={setSelectedDay} showAppointments={connected} />
+      </Section>
+
+      <Section id="tomorrow" title="Tomorrow’s plan">
+        <TomorrowPlanCard updated={!!professional} />
       </Section>
 
       {professional ? (

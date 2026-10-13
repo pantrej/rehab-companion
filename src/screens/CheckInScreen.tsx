@@ -1,8 +1,9 @@
-import { Plus } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { Check, Plus } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Button } from '../components/Button'
 import { ChoiceOption } from '../components/ChoiceOption'
+import { ContactSheet } from '../components/ContactSheet'
 import { PainScale } from '../components/PainScale'
 import { StepHeader } from '../components/StepHeader'
 import {
@@ -14,8 +15,9 @@ import {
   painScale,
   unsureOptions,
 } from '../data/checkin'
+import { recentCheckIns } from '../data/progress'
 import type { CheckIn } from '../types/checkin'
-import { useCare } from '../utils/care'
+import { professionalPhrase, useCare } from '../utils/care'
 import { storageKeys, writeStored } from '../utils/storage'
 
 const total = checkInSteps.length
@@ -27,7 +29,14 @@ export function CheckInScreen() {
   const [stepIndex, setStepIndex] = useState(0)
   const [checkIn, setCheckIn] = useState<CheckIn>({ unsure: [], note: '' })
   const [noteOpen, setNoteOpen] = useState(false)
-  const { connected } = useCare()
+  const { connected, professional } = useCare()
+  const [contactOpen, setContactOpen] = useState(false)
+  const closeContact = useCallback(() => setContactOpen(false), [])
+  const pro = professionalPhrase(professional?.name)
+  // Pain clearly above the user's own recent range gets a calm safety note.
+  const recentLow = Math.min(...recentCheckIns.map((c) => c.pain))
+  const recentHigh = Math.max(...recentCheckIns.map((c) => c.pain))
+  const painIsHigh = checkIn.pain !== undefined && checkIn.pain >= recentHigh + 2
   const headingRef = useRef<HTMLHeadingElement>(null)
   const hasMounted = useRef(false)
 
@@ -60,7 +69,7 @@ export function CheckInScreen() {
   const finish = () => {
     writeStored(storageKeys.lastCheckIn, { ...checkIn, at: new Date().toISOString() })
     // Replace, so going back from the insight doesn't reopen a finished check-in.
-    navigate('/insight', { replace: true })
+    navigate('/insight', { replace: true, state: { from: 'check-in' } })
   }
 
   return (
@@ -73,7 +82,13 @@ export function CheckInScreen() {
           backLabel={stepIndex > 0 ? 'Previous question' : 'Back to exercise'}
         />
 
-        <p className="mt-10 text-[15px] text-ink-soft">{checkInTitle}</p>
+        {stepIndex === 0 && (
+          <p className="mt-8 flex items-center gap-2 text-[15px] font-medium text-positive">
+            <Check className="size-[18px]" strokeWidth={2.25} aria-hidden />
+            Session complete · a short check-in, about a minute
+          </p>
+        )}
+        <p className={`${stepIndex === 0 ? 'mt-4' : 'mt-10'} text-[15px] text-ink-soft`}>{checkInTitle}</p>
         <h1
           ref={headingRef}
           id="question"
@@ -97,6 +112,19 @@ export function CheckInScreen() {
               onChange={(pain) => update({ pain })}
               labelledBy="question"
             />
+          )}
+          {step.id === 'pain' && painIsHigh && (
+            <div className="mt-6 rounded-2xl bg-attention-soft/60 p-4" role="note">
+              <p className="text-[15px] leading-relaxed text-ink">
+                That’s higher than your recent check-ins ({recentLow}–{'\u2060'}{recentHigh}/10). If the pain is sharp,
+                spreading, or comes with numbness, tingling or weakness, stop and contact {pro}.
+              </p>
+              {professional && (
+                <Button variant="ghost" className="mt-1 -mb-2" aria-haspopup="dialog" onClick={() => setContactOpen(true)}>
+                  Contact {professional.name}
+                </Button>
+              )}
+            </div>
           )}
 
           {step.id === 'difficulty' && (
@@ -139,6 +167,27 @@ export function CheckInScreen() {
                 ))}
               </div>
 
+              {checkIn.unsure.length > 0 && (
+                <p className="mt-4 text-[15px] leading-relaxed text-ink-soft" role="note">
+                  {professional ? (
+                    <>
+                      {professional.name} will see this in your recovery summary before {professional.nextAppointment}.
+                      Need an answer sooner?{' '}
+                      <button
+                        type="button"
+                        aria-haspopup="dialog"
+                        onClick={() => setContactOpen(true)}
+                        className="inline min-h-11 font-medium text-accent underline-offset-2 hover:underline"
+                      >
+                        Contact {professional.name}
+                      </button>
+                    </>
+                  ) : (
+                    'After you finish, you’ll see guidance on what you’re unsure about.'
+                  )}
+                </p>
+              )}
+
               {noteOpen ? (
                 <div className="mt-6">
                   <label htmlFor="note" className="text-sm text-ink-soft">
@@ -178,6 +227,8 @@ export function CheckInScreen() {
           </Button>
         )}
       </div>
+
+      {contactOpen && professional && <ContactSheet professional={professional} onClose={closeContact} />}
     </div>
   )
 }

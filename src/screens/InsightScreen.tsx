@@ -7,7 +7,10 @@ import { SignalDetail } from '../components/SignalDetail'
 import { currentAssessment, onTrackRule, watchFor } from '../data/assessment'
 import { recoveryInsightScreen as insight } from '../data/insight'
 import { tomorrow } from '../data/plan'
+import { supportTopics } from '../data/support'
+import type { CheckIn } from '../types/checkin'
 import { professionalPhrase, useCare } from '../utils/care'
+import { readStored, storageKeys } from '../utils/storage'
 import { toneDot, toneText } from '../utils/tone'
 
 function Question({ id, number, title, children }: { id: string; number: number; title: string; children: ReactNode }) {
@@ -24,20 +27,37 @@ function Question({ id, number, title, children }: { id: string; number: number;
   )
 }
 
-type Step = { title: string; detail: string; link?: { to: string; label: string } }
+type Step = { title: string; detail: string; links?: { to: string; label: string }[] }
 
 // Answers three questions in order: what changed, whether that appears expected, and what to do next.
 // Every judgement shows its basis, and the screen says plainly that it isn't a clinical assessment.
 export function InsightScreen() {
   const navigate = useNavigate()
   // Opened from Progress it goes back there; after a check-in or from Today it closes to Today.
-  const returnTo: string = useLocation().state?.returnTo ?? '/'
+  const { state } = useLocation()
+  const returnTo: string = state?.returnTo ?? '/'
   const fromProgress = returnTo === '/progress'
+  const afterCheckIn = state?.from === 'check-in'
+  // What the latest check-in flagged as unsure, matched to its support topic.
+  const flagged = (readStored<CheckIn | null>(storageKeys.lastCheckIn, null)?.unsure ?? [])
+    .map((label) => supportTopics.find((t) => t.label === label))
+    .filter((t) => t !== undefined)
   const { professional } = useCare()
   const a = currentAssessment(professional)
   const pro = professionalPhrase(professional?.name)
 
   const steps: Step[] = [
+    ...(flagged.length
+      ? [
+          {
+            title: `You were unsure about ${flagged.map((t) => t.label.toLowerCase()).join(' and ')}`,
+            detail: professional
+              ? `${professional.name} will see this before your appointment. For an answer now, start with the guidance.`
+              : 'Start with the guidance; it also says when to involve a rehabilitation professional.',
+            links: flagged.map((t) => ({ to: `/support/${t.id}`, label: `Guidance: ${t.label}` })),
+          },
+        ]
+      : []),
     ...(a.onTrack
       ? []
       : [{ title: `Consider contacting ${pro}`, detail: 'Mention which signals changed and when, before your next session.' }]),
@@ -61,7 +81,7 @@ export function InsightScreen() {
       : {
           title: 'Get another view if you want one',
           detail: 'You can share your recovery summary with a rehabilitation professional you choose.',
-          link: { to: '/summary', label: 'Share recovery summary' },
+          links: [{ to: '/summary', label: 'Share recovery summary' }],
         },
   ]
 
@@ -149,15 +169,16 @@ export function InsightScreen() {
                 <li key={step.title} className="py-4">
                   <p className="text-base font-medium text-ink">{step.title}</p>
                   <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">{step.detail}</p>
-                  {step.link && (
+                  {step.links?.map((link) => (
                     <Link
-                      to={step.link.to}
-                      className="-mx-2 mt-1 -mb-2 inline-flex min-h-11 items-center gap-1.5 rounded-xl px-2 text-[15px] font-medium text-accent hover:bg-accent-soft"
+                      key={link.to}
+                      to={link.to}
+                      className="-mx-2 mt-1 -mb-2 flex min-h-11 w-fit items-center gap-1.5 rounded-xl px-2 text-[15px] font-medium text-accent hover:bg-accent-soft"
                     >
-                      {step.link.label}
+                      {link.label}
                       <ArrowRight className="size-4" aria-hidden />
                     </Link>
-                  )}
+                  ))}
                 </li>
               ))}
             </ol>
@@ -166,7 +187,13 @@ export function InsightScreen() {
       </div>
 
       <div className="sticky bottom-0 border-t border-line bg-surface px-5 pt-4 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
-        <Button onClick={() => navigate('/')}>Continue plan</Button>
+        {/* The next step is named, never implied: done for the day, or back to where the user came from. */}
+        <Button onClick={() => navigate(fromProgress ? '/progress' : '/')}>
+          {afterCheckIn ? 'Done for today' : fromProgress ? 'Back to Progress' : 'Back to Today'}
+        </Button>
+        {afterCheckIn && (
+          <p className="mt-2 text-center text-[13px] text-ink-soft">Next session: tomorrow · {tomorrow.focus}</p>
+        )}
         <Button to="/support" variant="quiet" className="mt-1">
           I’m unsure about something
         </Button>
