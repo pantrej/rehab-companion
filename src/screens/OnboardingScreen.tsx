@@ -310,7 +310,7 @@ export function OnboardingScreen() {
               <img
                 src={professional.photo}
                 alt={`${professional.name}, ${professional.role}`}
-                className="size-[76px] shrink-0 rounded-[22px] object-cover"
+                className="size-[72px] shrink-0 rounded-full object-cover"
               />
               <div className="min-w-0">
                 <p className="text-[18px] font-semibold text-ink">{professional.name}</p>
