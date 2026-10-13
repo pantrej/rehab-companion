@@ -4,11 +4,11 @@ import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { MiniTrend } from '../components/MiniTrend'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
-import { RecoveryTrajectory } from '../components/RecoveryTrajectory'
 import { RecoveryBasisSheet } from '../components/RecoveryBasisSheet'
 import { SegmentedControl } from '../components/SegmentedControl'
 import { Section } from '../components/Section'
 import { currentAssessment } from '../data/assessment'
+import type { Assessment } from '../data/assessment'
 import { progressPeriods, progressTrends } from '../data/progress'
 import type { TrendSignal } from '../data/progress'
 import { sessionHistory } from '../data/sessions'
@@ -16,6 +16,7 @@ import type { SessionRecord } from '../data/sessions'
 import { sinceLastAppointment } from '../data/summary'
 import type { ProgressRangeId } from '../types/progress'
 import { useCare } from '../utils/care'
+import type { SignalTone } from '../types/recovery'
 import { toneDot, toneStatusText } from '../utils/tone'
 
 const shownAtFirst = 2
@@ -49,14 +50,16 @@ export function ProgressScreen() {
         </p>
 
         <Card tone="featured" className="mt-4 px-4 pt-4 pb-2">
-          <RecoveryTrajectory
-            values={assessment.series.pain}
-            low={assessment.series.painLow}
-            high={assessment.series.painHigh}
-            tone={assessment.onTrack ? 'accent' : 'concern'}
-            label={`Pain at your last ${assessment.checkInCount} check-ins: ${assessment.series.pain.join(', ')} out of 10, against your usual range of ${assessment.series.painLow} to ${assessment.series.painHigh}.`}
-          />
-          <p className="mt-3 text-[12px] font-semibold tracking-[0.14em] text-accent uppercase">What changed</p>
+          {/* The three signals the reading is made of, each on its own scale. They are not added up:
+              there is no single recovery number, and the app doesn't invent one. */}
+          <div className="grid grid-cols-3 divide-x divide-accent/15">
+            {overviewSignals(assessment).map((signal) => (
+              <Signal key={signal.id} signal={signal} />
+            ))}
+          </div>
+          <p className="mt-3 border-t border-accent/15 pt-3 text-[12px] font-semibold tracking-[0.14em] text-accent uppercase">
+            What changed
+          </p>
           <p className="mt-1.5 text-[17px] leading-snug text-ink">{assessment.headline}</p>
           <p className="mt-1.5 text-caption leading-snug text-ink-soft">
             {assessment.checkInCount} check-ins · {completed} sessions completed · {shortScope(assessment.scope)}
@@ -159,6 +162,92 @@ export function ProgressScreen() {
         <RecoveryBasisSheet assessment={assessment} professional={professional} onClose={() => setBasisOpen(false)} />
       )}
     </div>
+  )
+}
+
+// The overview's three signals, read from the same assessment as the verdict: where each one stands,
+// which way it is going, and the line it took to get there. No signal is combined with another.
+type OverviewSignal = {
+  id: string
+  label: string
+  value: string
+  status: string
+  tone: SignalTone
+  series: number[]
+  max: number
+  reading: string
+}
+
+const movementScale: Record<string, number> = { Worse: 1, 'About the same': 2, Better: 3 }
+
+function overviewSignals(assessment: Assessment): OverviewSignal[] {
+  const { pain, difficulty, movement, painLow, painHigh } = assessment.series
+  const [painChange, mobilityChange, difficultyChange] = assessment.changes
+  const first = difficulty[0]
+  const last = difficulty[difficulty.length - 1]
+  return [
+    {
+      id: 'pain',
+      label: 'Pain',
+      value: painLow === painHigh ? `${painLow}` : `${painLow}–⁠${painHigh}`,
+      status: painChange.status,
+      tone: painChange.tone,
+      series: pain,
+      max: 10,
+      reading: `Pain at each check-in: ${pain.join(', ')} out of 10.`,
+    },
+    {
+      id: 'mobility',
+      label: 'Mobility',
+      value: mobilityChange.status === 'Improving' ? '↑' : mobilityChange.status === 'Worse' ? '↓' : '→',
+      status: mobilityChange.status,
+      tone: mobilityChange.tone,
+      series: movement.map((m) => movementScale[m] ?? 2),
+      max: 3,
+      reading: `How movement felt at each check-in: ${movement.join(', ')}.`,
+    },
+    {
+      id: 'difficulty',
+      label: 'Difficulty',
+      value: `${first} → ${last}`,
+      status: difficultyChange.status.replace('Getting ', '').replace(/^\w/, (c) => c.toUpperCase()),
+      tone: difficultyChange.tone,
+      series: difficulty,
+      max: 10,
+      reading: `Session difficulty at each check-in: ${difficulty.join(', ')} out of 10.`,
+    },
+  ]
+}
+
+// One signal, in a column of its own: its name, where it stands, the line it took, and what that reads as.
+function Signal({ signal }: { signal: OverviewSignal }) {
+  return (
+    <div className="px-2.5 first:pl-0 last:pr-0">
+      <p className="text-[10px] font-semibold tracking-[0.12em] text-ink-faint uppercase">{signal.label}</p>
+      <p className="mt-1 text-[18px] leading-none font-semibold text-ink tabular-nums">{signal.value}</p>
+      <Spark values={signal.series} max={signal.max} tone={signal.tone} label={signal.reading} />
+      <p className={`mt-0.5 text-[12px] leading-snug ${toneStatusText[signal.tone]}`}>{signal.status}</p>
+    </div>
+  )
+}
+
+// The smallest honest chart: the series itself, no axis, no scale, no point markers.
+function Spark({ values, max, tone, label }: { values: number[]; max: number; tone: SignalTone; label: string }) {
+  const W = 46
+  const H = 14
+  const x = (i: number) => 1 + (i / Math.max(values.length - 1, 1)) * (W - 2)
+  const y = (v: number) => 1 + (1 - v / max) * (H - 2)
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="mt-2 h-[14px] w-[46px]" role="img" aria-label={label}>
+      <polyline
+        points={values.map((v, i) => `${x(i)},${y(v)}`).join(' ')}
+        fill="none"
+        className={tone === 'attention' ? 'stroke-concern' : 'stroke-accent'}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   )
 }
 
