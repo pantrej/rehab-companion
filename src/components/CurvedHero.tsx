@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 const heights = {
+  xl: 'h-[clamp(240px,40dvh,340px)]',
   lg: 'h-[clamp(200px,31dvh,262px)]',
   md: 'h-[clamp(180px,27dvh,228px)]',
   sm: 'h-[clamp(150px,21dvh,178px)]',
@@ -15,15 +16,29 @@ type Props = {
   // Starts the photo lower, fading its top edge into the canvas, for photos with little headroom.
   imageTop?: number
   size?: keyof typeof heights
+  // Which side the violet ribbon rises on.
+  curve?: 'right' | 'left'
+  // A soft canvas wash behind the header, for legibility over busy photos.
+  wash?: boolean
   // Composed visuals over the image, e.g. a branded card or soft shapes.
   children?: ReactNode
   // Sits on the curve at the bottom left, e.g. a success mark.
   badge?: ReactNode
 }
 
-// The visual anchor of every onboarding step: an image or branded composition with the progress laid over
-// it, easing into the canvas through a soft curve.
-export function OnboardingHero({ header, image, imagePosition = '50% 40%', imageTop = 0, size = 'lg', children, badge }: Props) {
+// The visual anchor of onboarding and sign-in: an image or branded composition with the header laid over it,
+// easing into the canvas through the layered wave.
+export function CurvedHero({
+  header,
+  image,
+  imagePosition = '50% 40%',
+  imageTop = 0,
+  size = 'lg',
+  curve = 'right',
+  wash = true,
+  children,
+  badge,
+}: Props) {
   return (
     <div className={`relative shrink-0 ${heights[size]}`}>
       <div className="absolute inset-0 overflow-hidden" aria-hidden>
@@ -43,12 +58,14 @@ export function OnboardingHero({ header, image, imagePosition = '50% 40%', image
         )}
         {children}
       </div>
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-linear-to-b from-canvas/85 to-canvas/0" aria-hidden />
+      {wash && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-linear-to-b from-canvas/85 to-canvas/0" aria-hidden />
+      )}
       <div className="relative px-5 pt-[max(env(safe-area-inset-top),1.25rem)]">{header}</div>
       {/* The Rehab Companion wave: a translucent violet ribbon rises ahead of the canvas on the right, so the
           image settles into the page through an asymmetric, layered curve. */}
       <svg
-        className="absolute inset-x-0 -bottom-px h-[72px] w-full"
+        className={`absolute inset-x-0 -bottom-px h-[72px] w-full ${curve === 'left' ? '-scale-x-100' : ''}`}
         viewBox="0 0 390 72"
         preserveAspectRatio="none"
         aria-hidden

@@ -32,7 +32,7 @@ import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { ChoiceOption } from '../components/ChoiceOption'
 import { DetailList } from '../components/DetailList'
-import { OnboardingHero, ThemeCard } from '../components/OnboardingHero'
+import { CurvedHero, ThemeCard } from '../components/CurvedHero'
 import { ProfessionalCard } from '../components/ProfessionalCard'
 import { Section } from '../components/Section'
 import { SegmentedControl } from '../components/SegmentedControl'
@@ -164,12 +164,12 @@ export function OnboardingScreen() {
 
   return (
     <div className="flex flex-1 flex-col">
-      {phase === 'entry' && <OnboardingHero header={header} image={startImage} imagePosition="30% 45%" />}
+      {phase === 'entry' && <CurvedHero header={header} image={startImage} imagePosition="30% 45%" />}
       {phase === 'connect' && (
-        <OnboardingHero header={header} image={careTeamImage} imagePosition="50% 0%" imageTop={28} size="md" />
+        <CurvedHero header={header} image={careTeamImage} imagePosition="50% 0%" imageTop={28} size="md" />
       )}
       {phase === 'connected' && (
-        <OnboardingHero
+        <CurvedHero
           header={header}
           image={therapistImage}
           imagePosition="50% 30%"
@@ -181,18 +181,18 @@ export function OnboardingScreen() {
             </span>
           }
         >
-        </OnboardingHero>
+        </CurvedHero>
       )}
-      {phase === 'plan' && <OnboardingHero header={header} image={planImage} imagePosition="50% 70%" size="md" />}
+      {phase === 'plan' && <CurvedHero header={header} image={planImage} imagePosition="50% 70%" size="md" />}
       {step && (
-        <OnboardingHero header={header} size="sm">
+        <CurvedHero header={header} size="sm">
           <ThemeCard compact icon={<StepIcon id={step.id} />} label={stepThemes[step.id].label} />
-        </OnboardingHero>
+        </CurvedHero>
       )}
       {phase === 'summary' && (
-        <OnboardingHero header={header} size="sm">
+        <CurvedHero header={header} size="sm">
           <ThemeCard compact icon={<Check className="size-5" strokeWidth={2} />} label="Your setup" />
-        </OnboardingHero>
+        </CurvedHero>
       )}
 
       <div className={`relative flex flex-1 flex-col px-5 pb-6 ${phase === 'connected' ? 'pt-10' : 'pt-2'}`}>

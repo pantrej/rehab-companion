@@ -1,13 +1,16 @@
-import { Camera } from 'lucide-react'
+import { Camera, Lock, Mail, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { Avatar } from '../components/Avatar'
 import { BackButton } from '../components/BackButton'
 import { Button } from '../components/Button'
+import { CurvedHero, ThemeCard } from '../components/CurvedHero'
 import { TextField } from '../components/TextField'
 import { initialsOf, register } from '../utils/auth'
 import { readCare } from '../utils/care'
+
+const fieldIcon = { className: 'size-5', strokeWidth: 1.75 }
 
 type Errors = Partial<Record<'fullName' | 'email' | 'password', string>>
 
@@ -33,12 +36,15 @@ export function RegisterScreen() {
 
   return (
     <form onSubmit={submit} noValidate className="flex flex-1 flex-col">
-      <div className="flex flex-1 flex-col px-5 pt-[max(env(safe-area-inset-top),2.5rem)] pb-10">
-        <BackButton to="/welcome" label="Back to welcome" />
-        <h1 className="mt-5 text-title font-semibold text-ink">Create account</h1>
+      <CurvedHero size="sm" header={<BackButton to="/welcome" label="Back to welcome" tone="frosted" />}>
+        <ThemeCard compact icon={<UserRound className="size-5" strokeWidth={1.75} />} label="Your account" />
+      </CurvedHero>
+      <div className="flex flex-1 flex-col px-5 pt-1 pb-8">
+        <h1 className="text-[32px] leading-[1.1] font-bold tracking-[-0.025em] text-ink">Create account</h1>
+        <p className="mt-2 text-body leading-relaxed text-ink-soft">Your recovery, kept in one calm place.</p>
 
         {/* Profile image placeholder: initials until photos are supported. */}
-        <div className="mt-8 flex items-center gap-4">
+        <div className="mt-6 flex items-center gap-4">
           <span className="relative">
             <Avatar initials={initialsOf(fullName) || '?'} size="lg" />
             <span className="absolute -right-1 -bottom-1 flex size-7 items-center justify-center rounded-full bg-surface text-ink-soft ring-1 ring-line">
@@ -48,10 +54,11 @@ export function RegisterScreen() {
           <p className="text-[15px] leading-snug text-ink-soft">Profile photo · you can add one later</p>
         </div>
 
-        <div className="mt-8 flex flex-col gap-5">
+        <div className="mt-6 flex flex-col gap-5">
           <TextField
             label="Full name"
             autoComplete="name"
+            icon={<UserRound {...fieldIcon} />}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             error={errors.fullName}
@@ -60,6 +67,8 @@ export function RegisterScreen() {
             label="Email"
             type="email"
             autoComplete="email"
+            placeholder="you@example.com"
+            icon={<Mail {...fieldIcon} />}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={errors.email}
@@ -68,6 +77,8 @@ export function RegisterScreen() {
             label="Password"
             type="password"
             autoComplete="new-password"
+            icon={<Lock {...fieldIcon} />}
+            revealable
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={errors.password}
