@@ -1,10 +1,10 @@
 import { ArrowRight, Check, FileText, Minus } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { MiniTrend } from '../components/MiniTrend'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
+import { RecoveryBasisSheet } from '../components/RecoveryBasisSheet'
 import { SegmentedControl } from '../components/SegmentedControl'
 import { Section } from '../components/Section'
 import { currentAssessment } from '../data/assessment'
@@ -26,37 +26,43 @@ export function ProgressScreen() {
   const { professional } = useCare()
   const [range, setRange] = useState<ProgressRangeId>('7d')
   const [allSessions, setAllSessions] = useState(false)
-  const period = progressPeriods.find((p) => p.id === range) ?? progressPeriods[0]
+  const [basisOpen, setBasisOpen] = useState(false)
   const assessment = currentAssessment(professional)
   const sessions = allSessions ? sessionHistory : sessionHistory.slice(0, shownAtFirst)
 
   return (
-    <div className="flex flex-col gap-9 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
-      {/* The reading, in words, before any chart. */}
+    <div className="flex flex-col gap-7 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
+      {/* The outcome, in words, before any chart; the interpretation behind it sits in its own quiet surface. */}
       <header>
         <p className="text-[12px] font-semibold tracking-[0.16em] text-ink-faint uppercase">Progress</p>
-        <h1 className="mt-3 text-[30px] leading-[1.12] font-bold tracking-[-0.025em] text-ink">
+        <h1 className="mt-2.5 text-[30px] leading-[1.12] font-bold tracking-[-0.025em] text-ink">
           {assessment.onTrack ? 'Your recovery is progressing' : 'Some signals are worth checking'}
         </h1>
-        <p className="mt-3 flex items-center gap-2.5 text-[17px] font-semibold text-ink">
+        <p className="mt-2.5 flex items-center gap-2.5 text-[17px] font-semibold text-ink">
           <span className={`size-2.5 rounded-full ring-4 ${toneDot[assessment.tone]}`} aria-hidden />
           {assessment.verdict}
         </p>
-        <p className="mt-3 text-[17px] leading-relaxed text-ink">{assessment.headline}</p>
-        <p className="mt-1.5 text-[15px] leading-relaxed text-ink-soft">
-          Based on your {assessment.checkInCount} check-ins {assessment.scope}.
-        </p>
-        <Link
-          to="/insight"
-          state={{ returnTo: '/progress' }}
-          className="-ml-1 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-[15px] font-semibold text-accent"
-        >
-          How this is read
-          <ArrowRight className="size-4" aria-hidden />
-        </Link>
+
+        <Card tone="featured" className="mt-4 px-5 py-4">
+          <p className="text-[12px] font-semibold tracking-[0.14em] text-accent uppercase">What changed</p>
+          <p className="mt-2 text-[17px] leading-relaxed text-ink">{assessment.headline}</p>
+          <p className="mt-1.5 text-[15px] leading-relaxed text-ink-soft">
+            Based on {assessment.checkInCount} check-ins {assessment.scope}.
+          </p>
+          <button
+            type="button"
+            onClick={() => setBasisOpen(true)}
+            aria-haspopup="dialog"
+            aria-expanded={basisOpen}
+            className="-ml-1 -mb-1 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-[15px] font-semibold text-accent"
+          >
+            More details
+            <ArrowRight className="size-4" aria-hidden />
+          </button>
+        </Card>
       </header>
 
-      <Section id="signals" title="Recovery trends" aside={`Last ${period.label}`}>
+      <Section id="signals" title="Recovery trends">
         <SegmentedControl
           label="Time range"
           options={progressPeriods.map((p) => ({ id: p.id, label: p.label }))}
@@ -135,6 +141,10 @@ export function ProgressScreen() {
             </Button>
           </Card>
         </Section>
+      )}
+
+      {basisOpen && (
+        <RecoveryBasisSheet assessment={assessment} professional={professional} onClose={() => setBasisOpen(false)} />
       )}
     </div>
   )
