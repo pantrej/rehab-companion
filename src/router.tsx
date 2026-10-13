@@ -6,6 +6,7 @@ import { AppointmentScreen } from './screens/AppointmentScreen'
 import { CheckInScreen } from './screens/CheckInScreen'
 import { ExerciseScreen } from './screens/ExerciseScreen'
 import { HomeScreen } from './screens/HomeScreen'
+import { HomeScreenClassic } from './screens/HomeScreenClassic'
 import { InsightScreen } from './screens/InsightScreen'
 import { LoginScreen } from './screens/LoginScreen'
 import { OnboardingScreen } from './screens/OnboardingScreen'
@@ -24,7 +25,7 @@ const DesignSystemPage = lazy(() => import('./design-system/DesignSystemPage').t
 
 // Every visit to the app starts with the care question. Only a fresh load of the root is redirected,
 // so in-app navigation to Today and direct links (/welcome for usability tests) keep working.
-if (window.location.pathname === '/') window.history.replaceState(null, '', '/onboarding')
+if (window.location.pathname === '/' && !window.location.search) window.history.replaceState(null, '', '/onboarding')
 
 export const router = createBrowserRouter([
   {
@@ -45,6 +46,8 @@ export const router = createBrowserRouter([
         element: <MobileLayout />,
         children: [
           { index: true, element: <HomeScreen /> },
+          // The Home before the daily carousel, for the case study before/after.
+          { path: 'home-classic', element: <HomeScreenClassic /> },
           { path: 'progress', element: <ProgressScreen /> },
           { path: 'support', element: <SupportScreen /> },
           { path: 'support/:topicId', element: <SupportTopicScreen /> },

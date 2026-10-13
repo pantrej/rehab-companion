@@ -1,21 +1,43 @@
-import { ArrowRight, Check, ChevronRight, Play, RefreshCw } from 'lucide-react'
-import { Link, Navigate } from 'react-router'
-import { AssessmentLine } from '../components/AssessmentLine'
+import { useState } from 'react'
+import { Link, Navigate, useSearchParams } from 'react-router'
 import { Button } from '../components/Button'
-import { Card } from '../components/Card'
-import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
-import { Section } from '../components/Section'
-import { StatusItem } from '../components/StatusItem'
-import { currentAssessment } from '../data/assessment'
-import { tomorrow } from '../data/plan'
-import { recoveryInsight, recoverySignals, todayPlan } from '../data/today'
+import { ChoiceOption } from '../components/ChoiceOption'
+import { DailyHero } from '../components/DailyHero'
+import { DailyPlanCard } from '../components/DailyPlanCard'
+import { DayCarousel } from '../components/DayCarousel'
+import { DaySummarySheet } from '../components/DaySummarySheet'
+import { RecoveryStatus } from '../components/RecoveryStatus'
+import { Sheet } from '../components/Sheet'
+import { assess, currentAssessment } from '../data/assessment'
+import { buildDays, dayOffsets } from '../data/days'
+import type { DayView } from '../data/days'
+import { recentCheckIns } from '../data/progress'
+import type { CheckInRecord } from '../types/progress'
 import { firstName, initialsOf, useAccount } from '../utils/auth'
 import { useCare } from '../utils/care'
-import { readStored, storageKeys } from '../utils/storage'
+import { readStored, storageKeys, writeStored } from '../utils/storage'
 
+// Prototype preview of worsening signals (/?state=attention), read by the same rules as real check-ins.
+const worseningCheckIns: CheckInRecord[] = [
+  { daysAgo: 1, pain: 6, difficulty: 8, movement: 'Worse' },
+  { daysAgo: 3, pain: 4, difficulty: 7, movement: 'About the same' },
+  { daysAgo: 5, pain: 3, difficulty: 6, movement: 'Better' },
+]
+
+const todayIndex = dayOffsets.indexOf(0)
+const feelings = ['Better', 'About the same', 'Worse']
+const dateKey = (d: Date) => d.toISOString().slice(0, 10)
+
+// Home answers "what does my rehabilitation look like today?": one day at a time, swiping back to what
+// happened and ahead to what's next. Photo, plan, action and state change together.
 export function HomeScreen() {
-  const { care, professional } = useCare()
+  const { care, connected, professional } = useCare()
   const account = useAccount()
+  const [params] = useSearchParams()
+  const [activeIndex, setActiveIndex] = useState(todayIndex)
+  const [summaryDay, setSummaryDay] = useState<DayView>()
+  const [restDay, setRestDay] = useState<DayView>()
+  const [restFeelings, setRestFeelings] = useState(() => readStored<Record<string, string>>(storageKeys.restFeelings, {}))
   // First visit: set up how rehabilitation is managed before showing today's plan.
   if (!care) return <Navigate to="/onboarding" replace />
 
@@ -24,97 +46,85 @@ export function HomeScreen() {
   const lastCheckInAt = readStored<{ at?: string } | null>(storageKeys.lastCheckIn, null)?.at
   const doneToday = !!lastCheckInAt && new Date(lastCheckInAt).toDateString() === new Date().toDateString()
 
+  const preview = params.get('state') === 'attention'
+  const records = preview ? worseningCheckIns : recentCheckIns
+  const assessment = preview ? assess(worseningCheckIns, 'in the last 7 days') : currentAssessment(professional)
+  const days = buildDays({ firstName: firstName(name), connected, onTrack: assessment.onTrack, doneToday })
+  const dayName = (i: number) => (days[i].offset === 0 ? 'Today' : days[i].title)
+
   return (
-    <div className="flex flex-col gap-8 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-body text-ink-soft">Good morning{name ? `, ${firstName(name)}` : ''}</p>
-          <h1 className="mt-1 text-title font-semibold text-ink">
-            Today's rehabilitation
-          </h1>
-        </div>
-        {/* 44px touch target around the quieter 36px avatar. */}
-        <Link to="/profile" aria-label="Profile" className="-m-1 flex size-11 shrink-0 items-center justify-center">
-          <span className="flex size-9 items-center justify-center rounded-full bg-sunken text-caption font-semibold text-ink-soft">
-            {initialsOf(name) || '?'}
-          </span>
-        </Link>
-      </header>
+    <div className="relative flex flex-col pb-8">
+      <h1 className="sr-only">Today's rehabilitation</h1>
 
-      {/* The one featured surface on Today: what to do now. */}
-      <Card tone="featured" className="p-6">
-        <p className="text-caption font-medium text-accent">Today's plan</p>
-        <h2 className="mt-2 text-title font-semibold text-ink">
-          {todayPlan.focus.join(' + ')}
-        </h2>
-        <p className="mt-1.5 text-body text-ink-soft">
-          {todayPlan.exerciseCount} exercises · About {todayPlan.durationMinutes} min
-        </p>
-        {professional ? (
-          <p className="mt-4 flex items-center gap-2.5 text-caption text-ink-soft">
-            <ProfessionalAvatar professional={professional} size="sm" />
-            Prepared by {professional.name}, {professional.credential}
-          </p>
-        ) : (
-          <p className="mt-1 text-caption text-ink-faint">From your existing rehabilitation plan</p>
-        )}
-
-        {/* Once today's check-in is in, the next action moves on: review the insight, then tomorrow. */}
-        {doneToday ? (
+      <DayCarousel
+        count={days.length}
+        initial={todayIndex}
+        label="Your rehabilitation, day by day"
+        slideLabel={(i) => `${dayName(i)}, ${days[i].date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}`}
+        onChange={setActiveIndex}
+      >
+        {(i, goTo) => (
           <>
-            <p className="mt-6 flex items-center gap-2 text-[15px] font-medium text-positive">
-              <Check className="size-[18px]" strokeWidth={2.25} aria-hidden />
-              Today’s session is done
-            </p>
-            <p className="mt-1 text-[15px] text-ink-soft">Next session: tomorrow · {tomorrow.focus}</p>
-            <Button to="/insight" state={{ returnTo: '/' }} className="mt-5">
-              View today’s insight
-            </Button>
-            <Button to="/session" variant="quiet" className="mt-1">
-              Repeat today’s session
-            </Button>
+            <DailyHero day={days[i]} index={i} count={days.length} onSelect={goTo} dayName={dayName} />
+            <DailyPlanCard
+              day={days[i]}
+              professional={professional}
+              onViewSummary={() => setSummaryDay(days[i])}
+              onLogRest={() => setRestDay(days[i])}
+              restFeeling={restFeelings[dateKey(days[i].date)]}
+            />
           </>
-        ) : (
-          <Button to="/session" icon={<Play className="size-4 fill-current" aria-hidden />} className="mt-7">
-            Start session
-          </Button>
         )}
+      </DayCarousel>
 
-        {/* A recent professional change, stated calmly and attributed; the app never changes the plan itself. */}
-        {professional && (
-          <Link
-            to="/plan-changes"
-            className="-mx-2 mt-4 -mb-2 flex min-h-11 items-center justify-between gap-3 rounded-xl px-2 py-2 text-caption text-ink-soft transition-colors hover:bg-surface/70"
-          >
-            <span className="flex items-center gap-2">
-              <RefreshCw className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
-              Plan updated yesterday · changes apply from tomorrow
-            </span>
-            <ChevronRight className="size-4 shrink-0 text-ink-faint" aria-hidden />
-          </Link>
-        )}
-      </Card>
+      {/* One avatar for every day, above the carousel. 44px target around the 36px avatar. */}
+      <Link
+        to="/profile"
+        aria-label="Profile"
+        className="absolute top-[max(env(safe-area-inset-top),2.75rem)] right-4 flex size-11 items-center justify-center"
+      >
+        <span className="flex size-9 items-center justify-center rounded-full bg-white/80 text-caption font-semibold text-ink-soft backdrop-blur-sm">
+          {initialsOf(name) || '?'}
+        </span>
+      </Link>
 
-      <Section id="recovery-status" title="Recovery status" aside="Last 7 days">
-        {/* One card, no nested boxes: the reading first, then the signals behind it. */}
-        <Card className="p-6">
-          <AssessmentLine assessment={currentAssessment(professional)} returnTo="/" />
-          <ul className="mt-4 flex flex-col gap-3 border-t border-line pt-4">
-            {recoverySignals.map((signal) => (
-              <StatusItem key={signal.id} {...signal} />
-            ))}
-          </ul>
-          <p className="mt-4 text-caption text-ink-faint">{recoveryInsight.basis}</p>
-          <Button
-            to="/progress"
-            variant="text"
-            icon={<ArrowRight className="size-4" aria-hidden />}
-            className="mt-2 -mb-2"
-          >
-            View progress
-          </Button>
-        </Card>
-      </Section>
+      <div className="px-5 pt-5">
+        <RecoveryStatus assessment={assessment} day={days[activeIndex]} records={records} />
+      </div>
+
+      {summaryDay?.calendar && (
+        <DaySummarySheet day={summaryDay.calendar} professional={professional} onClose={() => setSummaryDay(undefined)} />
+      )}
+      {restDay && (
+        <RestFeelingSheet
+          day={restDay}
+          onClose={() => setRestDay(undefined)}
+          onSave={(feeling) => {
+            const next = { ...restFeelings, [dateKey(restDay.date)]: feeling }
+            writeStored(storageKeys.restFeelings, next)
+            setRestFeelings(next)
+            setRestDay(undefined)
+          }}
+        />
+      )}
     </div>
+  )
+}
+
+// A rest day's check-in is one light question, kept on this device.
+function RestFeelingSheet({ day, onClose, onSave }: { day: DayView; onClose: () => void; onSave: (feeling: string) => void }) {
+  const [feeling, setFeeling] = useState<string>()
+  return (
+    <Sheet title={day.offset < 0 ? 'How did your rest day feel?' : 'How do you feel today?'} onClose={onClose}>
+      <p className="mt-2 text-body text-ink-soft">Compared with your last session day.</p>
+      <div role="radiogroup" aria-label="How you feel" className="mt-5 flex flex-col gap-3">
+        {feelings.map((f) => (
+          <ChoiceOption key={f} label={f} selected={feeling === f} onSelect={() => setFeeling(f)} />
+        ))}
+      </div>
+      <Button className="mt-6" disabled={!feeling} onClick={() => feeling && onSave(feeling)}>
+        Save
+      </Button>
+    </Sheet>
   )
 }

@@ -4,10 +4,20 @@ type Props = {
   label: string
   // Hide "first → latest" when the surrounding row already states it.
   showRange?: boolean
+  // The line follows the meaning around it, e.g. coral when something needs attention.
+  tone?: keyof typeof tones
+}
+
+const tones = {
+  accent: ['stroke-accent', 'fill-accent'],
+  positive: ['stroke-positive', 'fill-positive'],
+  rest: ['stroke-rest', 'fill-rest'],
+  concern: ['stroke-concern', 'fill-concern'],
 }
 
 // A small inline line on a fixed 0–max scale, with the latest point marked and the first → latest values.
-export function MiniTrend({ values, max = 10, label, showRange = true }: Props) {
+export function MiniTrend({ values, max = 10, label, showRange = true, tone = 'accent' }: Props) {
+  const [line, dot] = tones[tone]
   const W = 96
   const H = 28
   const x = (i: number) => 4 + (i / Math.max(values.length - 1, 1)) * (W - 8)
@@ -19,12 +29,12 @@ export function MiniTrend({ values, max = 10, label, showRange = true }: Props) 
         <polyline
           points={values.map((v, i) => `${x(i)},${y(v)}`).join(' ')}
           fill="none"
-          className="stroke-accent"
+          className={line}
           strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <circle cx={x(last)} cy={y(values[last])} r={3.5} className="fill-accent stroke-surface" strokeWidth={2} />
+        <circle cx={x(last)} cy={y(values[last])} r={3.5} className={`${dot} stroke-surface`} strokeWidth={2} />
       </svg>
       {showRange && (
         <span className="text-caption font-medium text-ink-soft tabular-nums" aria-hidden>

@@ -28,4 +28,6 @@ export const storageKeys = {
   setup: 'rehab.setup',
   lastCheckIn: 'rehab.lastCheckIn',
   appointmentNote: 'rehab.appointmentNote',
+  // How rest days felt, by date.
+  restFeelings: 'rehab.restFeelings',
 }
