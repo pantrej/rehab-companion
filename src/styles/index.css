@@ -78,3 +78,31 @@ body {
     display: none;
   }
 }
+
+/* A modal bottom sheet arrives from the bottom edge, with its backdrop fading in behind it. */
+@keyframes sheet-rise {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@utility animate-sheet-rise {
+  animation: sheet-rise 280ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@utility animate-fade-in {
+  animation: fade-in 200ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sheet-rise,
+  .animate-fade-in {
+    animation: none;
+  }
+}

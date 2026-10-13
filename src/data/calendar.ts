@@ -48,8 +48,9 @@ const past: Record<number, Pick<CalendarDay, 'status' | 'exercisesDone'> & { the
   8: { status: 'rest' },
 }
 
-// Rest days in the 5-days-a-week plan.
-const isPlannedRest = (date: Date) => date.getDay() === 4 || date.getDay() === 0 // Thursday, Sunday
+// Recovery days in the plan: two session days, a recovery day, and never three sessions in a row.
+// Sessions fall on Mon, Tue, Thu and Sat; the days between them are for recovery.
+const isPlannedRest = (date: Date) => [3, 5, 0].includes(date.getDay()) // Wednesday, Friday, Sunday
 
 const appointmentDays = [3, 20]
 

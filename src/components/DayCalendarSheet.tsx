@@ -1,31 +1,37 @@
+import { Check, X } from 'lucide-react'
+import { useEffect, useId, useRef, useState } from 'react'
+import type { PointerEvent as ReactPointerEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { TODAY, formatDay } from '../data/calendar'
-import type { DayState, DayView } from '../data/days'
-import { Sheet } from './Sheet'
+import type { DayView } from '../data/days'
+import { appFrameId } from '../layouts/MobileLayout'
 
-// One mark per day state, in the same shapes and colours the rest of the app uses for these meanings:
-// orange for a planned rehabilitation session, green for one that ran, blue for a recovery day.
-const marks: Record<DayState, string> = {
-  active: 'size-1.5 rounded-full bg-planned',
-  attention: 'size-1.5 rounded-full bg-concern',
-  upcoming: 'size-1.5 rounded-full bg-planned',
-  completed: 'size-1.5 rounded-full bg-positive',
-  rest: 'size-1.5 rounded-full bg-rest',
-  missed: 'h-0.5 w-2 rounded-full bg-ink-faint',
-}
-
-// Every mark sits in the same 6px slot, so the dates stay on one baseline.
-function Mark({ shape }: { shape: string }) {
+// One mark per day, in the colours the rest of the app already uses for these meanings: orange for a
+// rehabilitation session, blue for a recovery day, a green tick for a session that ran. Recovery sits
+// a size below a session, so the rhythm of the plan reads before its rest days do.
+function Mark({ day }: { day: DayView }) {
+  const shape =
+    day.state === 'completed'
+      ? 'tick'
+      : day.outcome === 'partial'
+        ? 'size-1.5 rounded-full ring-[1.5px] ring-positive'
+        : day.state === 'missed'
+          ? 'h-0.5 w-2 rounded-full bg-ink-faint'
+          : day.state === 'rest'
+            ? 'size-1 rounded-full bg-rest'
+            : day.state === 'attention'
+              ? 'size-1.5 rounded-full bg-concern'
+              : 'size-1.5 rounded-full bg-planned'
   return (
-    <span className="flex h-1.5 w-2 items-center justify-center" aria-hidden>
-      <span className={shape} />
+    <span className="flex h-3 w-3 items-center justify-center" aria-hidden>
+      {shape === 'tick' ? <Check className="size-3 text-positive" strokeWidth={3} /> : <span className={shape} />}
     </span>
   )
 }
 
-const markFor = (day: DayView) =>
-  day.outcome === 'partial' ? 'size-1.5 rounded-full ring-[1.5px] ring-positive' : marks[day.state]
-
 const weekdayInitials = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+// Far enough that a flick closes the sheet, short enough that a nudge doesn't.
+const dismissAfter = 96
 
 type Props = {
   // The whole month, built from the same day data as the carousel.
@@ -35,70 +41,150 @@ type Props = {
   onClose: () => void
 }
 
-// Navigation across the rehabilitation schedule: the month, one tap to any day. The carousel stays the
-// quick way between nearby days; this is how a day further out is reached.
+// Navigation across the rehabilitation schedule: a modal bottom sheet over Home, which stays visible
+// behind it. The carousel remains the quick way between nearby days; this reaches the rest of the plan.
 export function DayCalendarSheet({ days, selected, onSelect, onClose }: Props) {
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const titleId = useId()
   const month = TODAY.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
   const leading = (days[0].date.getDay() + 6) % 7 // Monday-first grid
 
-  return (
-    <Sheet title={month} onClose={onClose}>
-      <div className="mt-5 grid grid-cols-7 text-center text-[12px] text-ink-faint" aria-hidden>
-        {weekdayInitials.map((initial, i) => (
-          <span key={i}>{initial}</span>
-        ))}
-      </div>
+  // Dragging the sheet down dismisses it; anything short of that springs back.
+  const [drag, setDrag] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const from = useRef<number | undefined>(undefined)
+  const onPointerDown = (e: ReactPointerEvent) => {
+    from.current = e.clientY
+    setDragging(true)
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+  const onPointerMove = (e: ReactPointerEvent) => {
+    if (from.current !== undefined) setDrag(Math.max(0, e.clientY - from.current))
+  }
+  const endDrag = () => {
+    if (from.current === undefined) return
+    from.current = undefined
+    setDragging(false)
+    if (drag > dismissAfter) onClose()
+    else setDrag(0)
+  }
 
-      <div className="mt-2 grid grid-cols-7 gap-y-0.5">
-        {Array.from({ length: leading }, (_, i) => (
-          <span key={`blank-${i}`} aria-hidden />
-        ))}
-        {days.map((day) => {
-          const isToday = day.offset === 0
-          const isSelected = day.date.getTime() === selected.getTime()
-          return (
-            <button
-              key={day.date.getDate()}
-              type="button"
-              onClick={() => onSelect(day.date)}
-              aria-label={`${formatDay(day.date)}: ${day.activity.label}${isToday ? ', today' : ''}`}
-              aria-current={isToday ? 'date' : undefined}
-              aria-pressed={isSelected}
-              className="flex h-11 flex-col items-center justify-center gap-1 rounded-xl transition-colors hover:bg-canvas focus-visible:outline-2 focus-visible:outline-accent"
-            >
-              <span
-                className={`flex size-8 items-center justify-center rounded-full text-[15px] tabular-nums ${
-                  isSelected
-                    ? 'bg-accent font-semibold text-white'
-                    : isToday
-                      ? 'bg-accent-soft font-semibold text-accent ring-[1.5px] ring-accent'
-                      : day.state === 'rest' || day.state === 'upcoming'
-                        ? 'text-ink-soft'
-                        : 'text-ink'
-                }`}
-              >
-                {day.date.getDate()}
-              </span>
-              <Mark shape={markFor(day)} />
-            </button>
-          )
-        })}
-      </div>
+  useEffect(() => {
+    sheetRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
 
-      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 border-t border-line pt-4 text-caption text-ink-soft">
-        <span className="flex items-center gap-1.5">
-          <Mark shape={marks.upcoming} />
-          Planned session
-        </span>
-        <span className="flex items-center gap-1.5">
-          <Mark shape={marks.completed} />
-          Completed
-        </span>
-        <span className="flex items-center gap-1.5">
-          <Mark shape={marks.rest} />
-          Recovery day
-        </span>
+  return createPortal(
+    <div className="absolute inset-0 z-20 flex flex-col justify-end">
+      {/* Home stays visible underneath, dimmed and softened; the tab bar dims with it. */}
+      <button
+        type="button"
+        aria-label="Close calendar"
+        onClick={onClose}
+        className="animate-fade-in absolute inset-0 cursor-default bg-ink/35 backdrop-blur-[2px]"
+      />
+
+      <div
+        ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        style={{ transform: drag ? `translateY(${drag}px)` : undefined, transition: dragging ? 'none' : undefined }}
+        className="animate-sheet-rise relative flex h-[55%] max-h-[65%] min-h-[400px] flex-col rounded-t-[2rem] bg-surface pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-raised outline-none transition-transform duration-200"
+      >
+        {/* The handle and the title are the grab area: dragging either one pulls the sheet down. The close
+            button sits outside it, so a tap on it is a tap, not the start of a drag. */}
+        <div
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          className="shrink-0 touch-none pt-3"
+        >
+          <span className="mx-auto block h-1 w-9 rounded-full bg-line" aria-hidden />
+          <h2
+            id={titleId}
+            className="flex h-11 items-center pt-2 pr-16 pl-6 text-[20px] leading-tight font-semibold tracking-[-0.015em] text-ink"
+          >
+            {month}
+          </h2>
+        </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close calendar"
+          className="absolute top-5 right-3 flex size-11 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-canvas focus-visible:outline-2 focus-visible:outline-accent"
+        >
+          <X className="size-5" strokeWidth={2} aria-hidden />
+        </button>
+
+        <div className="no-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-4">
+          <div className="grid grid-cols-7 text-center text-[12px] text-ink-faint" aria-hidden>
+            {weekdayInitials.map((initial, i) => (
+              <span key={i}>{initial}</span>
+            ))}
+          </div>
+
+          <div className="mt-1.5 grid grid-cols-7">
+            {Array.from({ length: leading }, (_, i) => (
+              <span key={`blank-${i}`} aria-hidden />
+            ))}
+            {days.map((day) => {
+              const isToday = day.offset === 0
+              const isSelected = day.date.getTime() === selected.getTime()
+              return (
+                <button
+                  key={day.date.getDate()}
+                  type="button"
+                  onClick={() => onSelect(day.date)}
+                  aria-label={`${formatDay(day.date)}: ${day.activity.label}${isToday ? ', today' : ''}`}
+                  aria-current={isToday ? 'date' : undefined}
+                  aria-pressed={isSelected}
+                  className="flex h-12 flex-col items-center justify-center gap-0.5 rounded-xl transition-colors hover:bg-canvas focus-visible:outline-2 focus-visible:outline-accent"
+                >
+                  {/* Today is outlined; the day being viewed is filled. When they are the same day, the
+                      filled circle keeps its outline, a ring out, so both still read. */}
+                  <span
+                    className={`flex size-8 items-center justify-center rounded-full text-[15px] tabular-nums ${
+                      isSelected
+                        ? `bg-accent font-semibold text-white${isToday ? ' ring-[1.5px] ring-accent ring-offset-2 ring-offset-surface' : ''}`
+                        : isToday
+                          ? 'font-semibold text-accent ring-[1.5px] ring-accent'
+                          : day.state === 'rest' || day.state === 'upcoming'
+                            ? 'text-ink-soft'
+                            : 'text-ink'
+                    }`}
+                  >
+                    {day.date.getDate()}
+                  </span>
+                  <Mark day={day} />
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="flex shrink-0 justify-center gap-5 px-6 pt-3 text-caption text-ink-soft">
+          {legend.map((item) => (
+            <span key={item.label} className="flex items-center gap-1.5">
+              <Mark day={item.day} />
+              {item.label}
+            </span>
+          ))}
+        </div>
       </div>
-    </Sheet>
+    </div>,
+    document.getElementById(appFrameId) ?? document.body,
   )
 }
+
+// The legend reads from the same marks as the grid, so the two can never drift apart.
+const legend = [
+  { label: 'Session', day: { state: 'upcoming' } as DayView },
+  { label: 'Recovery', day: { state: 'rest' } as DayView },
+  { label: 'Completed', day: { state: 'completed' } as DayView },
+]

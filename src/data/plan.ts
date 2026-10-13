@@ -7,7 +7,7 @@ export const planDetails = {
   focus: 'Mobility + Strength',
   exerciseCount: 4,
   durationMinutes: 25,
-  daysPerWeek: 5,
+  daysPerWeek: 4,
   lastUpdated: '8 October',
 }
 
@@ -24,7 +24,7 @@ export const planChanges: PlanChange[] = [
   {
     date: '3 October',
     title: 'Plan reviewed at your appointment',
-    change: 'Sessions continue 5 days per week with a Mobility + Strength focus.',
+    change: 'Sessions continue 4 days per week with a Mobility + Strength focus.',
     reason: 'Steady progress since your previous review.',
     updatedBy: by,
   },
