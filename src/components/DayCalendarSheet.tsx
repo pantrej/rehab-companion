@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react'
 import { useState } from 'react'
-import { TODAY, formatDay } from '../data/calendar'
+import { TODAY, exercisesPerSession, formatDay } from '../data/calendar'
 import type { DayView } from '../data/days'
 import { ModalSheet } from './ModalSheet'
 
@@ -57,9 +57,14 @@ function DayCell({ day, isToday, isSelected, onSelect }: { day: DayView; isToday
 // only where a check-in was recorded.
 function DayDetail({ day }: { day: DayView }) {
   const checkIn = day.calendar?.checkIn
+  // How much of a past session was actually done, where the plan recorded it: "2 of 4 exercises
+  // completed" answers more than "Partly completed" can. A session that never happened has no count,
+  // and none is invented for it.
+  const done = day.calendar?.exercisesDone
+  const progress = day.offset < 0 && done !== undefined ? `${done} of ${exercisesPerSession} exercises completed` : undefined
   // A past day with nothing planned would otherwise say so twice; everywhere else the focus line adds something.
   const quiet = day.state === 'open' && day.offset < 0
-  const lines = (quiet ? [day.activity.meta] : [day.activity.focus, day.activity.meta]).map((line) =>
+  const lines = (quiet ? [day.activity.meta] : [day.activity.focus, progress ?? day.activity.meta]).map((line) =>
     line.replace(/\.$/, ''),
   )
 

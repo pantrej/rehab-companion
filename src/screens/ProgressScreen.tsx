@@ -1,4 +1,4 @@
-import { ArrowRight, Check, ChevronDown, FileText, Minus } from 'lucide-react'
+import { CalendarDays, Check, ChevronDown, FileText, Minus } from 'lucide-react'
 import { useId, useRef, useState } from 'react'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
@@ -20,6 +20,9 @@ import { useCare } from '../utils/care'
 import type { SignalTone } from '../types/recovery'
 import { checkedInToday } from '../utils/storage'
 import { toneDot, toneStatusText } from '../utils/tone'
+
+// Recent activity is a glance at the last sessions, not a history: the calendar holds the rest.
+const recentCount = 2
 
 // The reading's scope, short enough to sit in a line of metadata.
 const shortScope = (scope: string) => scope.replace('since your last appointment on', 'Since').replace('in the last', 'Last')
@@ -155,24 +158,25 @@ export function ProgressScreen() {
         </Card>
       </Section>
 
-      {/* What actually happened: one session a week, newest first. */}
+      {/* The last sessions, newest first. Everything before them lives in the calendar, so this stays a
+          glance rather than a feed. */}
       <Section id="activity" title="Recent activity">
         <ul className="divide-y divide-line">
-          {sessionHistory.map((session) => (
+          {sessionHistory.slice(0, recentCount).map((session) => (
             <Activity key={session.date.toISOString()} session={session} />
           ))}
         </ul>
-        {/* The list says what happened; the calendar is where any one date is looked up. It is the same
-            sheet Home opens, so the schedule reads the same from either screen. */}
-        <button
-          type="button"
+        {/* The way into the whole history: the same sheet Home opens, so the schedule reads the same
+            from either screen. Secondary on purpose — this explores, it doesn't act. */}
+        <Button
+          variant="secondary"
           onClick={() => setCalendarOpen(true)}
+          aria-haspopup="dialog"
           aria-expanded={calendarOpen}
-          className="-ml-1 inline-flex min-h-11 items-center gap-1.5 self-start rounded-full px-1 text-[15px] font-semibold text-accent"
         >
+          <CalendarDays className="size-[18px]" strokeWidth={1.75} aria-hidden />
           View calendar
-          <ArrowRight className="size-4" aria-hidden />
-        </button>
+        </Button>
       </Section>
 
       {professional ? (
