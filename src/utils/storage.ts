@@ -22,6 +22,8 @@ export const storageKeys = {
   account: 'rehab.account',
   signedIn: 'rehab.signedIn',
   care: 'rehab.care',
+  // True while the saved setup was answered before any account, so the next new account adopts it.
+  pendingSetup: 'rehab.pendingSetup',
   // Older independent-only setups; read once and migrated into `care`.
   setup: 'rehab.setup',
   lastCheckIn: 'rehab.lastCheckIn',

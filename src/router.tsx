@@ -22,11 +22,16 @@ import { WelcomeScreen } from './screens/WelcomeScreen'
 // Loaded only when visited, so the showcase never weighs on the prototype.
 const DesignSystemPage = lazy(() => import('./design-system/DesignSystemPage').then((m) => ({ default: m.DesignSystemPage })))
 
+// Every visit to the app starts with the care question. Only a fresh load of the root is redirected,
+// so in-app navigation to Today and direct links (/welcome for usability tests) keep working.
+if (window.location.pathname === '/') window.history.replaceState(null, '', '/onboarding')
+
 export const router = createBrowserRouter([
   {
-    // Account entry: public.
+    // Entry and account: public. Onboarding comes first, before an account exists.
     element: <MobileLayout nav={false} />,
     children: [
+      { path: 'onboarding', element: <OnboardingScreen /> },
       { path: 'welcome', element: <WelcomeScreen /> },
       { path: 'login', element: <LoginScreen /> },
       { path: 'register', element: <RegisterScreen /> },
@@ -50,7 +55,6 @@ export const router = createBrowserRouter([
         // Focused flows: one task at a time, no tab bar.
         element: <MobileLayout nav={false} />,
         children: [
-          { path: 'onboarding', element: <OnboardingScreen /> },
           { path: 'session', element: <ExerciseScreen /> },
           { path: 'check-in', element: <CheckInScreen /> },
           { path: 'insight', element: <InsightScreen /> },

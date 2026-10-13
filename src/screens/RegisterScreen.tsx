@@ -7,6 +7,7 @@ import { BackButton } from '../components/BackButton'
 import { Button } from '../components/Button'
 import { TextField } from '../components/TextField'
 import { initialsOf, register } from '../utils/auth'
+import { readCare } from '../utils/care'
 
 type Errors = Partial<Record<'fullName' | 'email' | 'password', string>>
 
@@ -26,7 +27,8 @@ export function RegisterScreen() {
     setErrors(next)
     if (Object.keys(next).length) return
     register({ fullName: fullName.trim(), email: email.trim() })
-    navigate('/onboarding', { replace: true })
+    // Onboarding usually came first; only start it here if it hasn't been answered.
+    navigate(readCare() ? '/' : '/onboarding', { replace: true })
   }
 
   return (
