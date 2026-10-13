@@ -31,7 +31,7 @@ export function ModalSheet({ title, onClose, closeLabel, heightClass = 'max-h-[7
     if (leaving) return
     setLeaving(true)
     setDrag(sheetRef.current?.offsetHeight ?? 600)
-    window.setTimeout(then, 220)
+    window.setTimeout(then, 280)
   }
 
   // Dragging the sheet down dismisses it; anything short of that springs back.
@@ -72,7 +72,7 @@ export function ModalSheet({ title, onClose, closeLabel, heightClass = 'max-h-[7
         type="button"
         aria-label={close}
         onClick={() => dismiss(onClose)}
-        className={`animate-fade-in absolute inset-0 cursor-default bg-ink/35 backdrop-blur-[2px] transition-opacity duration-200 ${
+        className={`animate-fade-in absolute inset-0 cursor-default bg-ink/35 backdrop-blur-[2px] transition-opacity duration-[260ms] ${
           leaving ? 'opacity-0' : ''
         }`}
       />
@@ -84,7 +84,7 @@ export function ModalSheet({ title, onClose, closeLabel, heightClass = 'max-h-[7
         aria-labelledby={titleId}
         tabIndex={-1}
         style={{ transform: drag ? `translateY(${drag}px)` : undefined, transition: dragging ? 'none' : undefined }}
-        className={`relative flex ${heightClass} flex-col rounded-t-[2rem] bg-surface pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-raised outline-none transition-transform duration-200 motion-reduce:transition-none ${
+        className={`relative flex ${heightClass} flex-col rounded-t-[2rem] bg-surface pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-raised outline-none transition-transform duration-[260ms] ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none ${
           leaving ? '' : 'animate-sheet-rise'
         }`}
       >
