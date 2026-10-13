@@ -7,6 +7,8 @@ type Props = {
   // Accessible name of the chart, e.g. "Pain trend".
   label: string
   formatValue: (value: number) => string
+  // Optional "usual range" band behind the line, so normal is visible at a glance.
+  band?: { low: number; high: number }
 }
 
 const W = 300
@@ -18,7 +20,7 @@ const BOTTOM = 10
 
 // A single-series sparkline on a fixed 0–max scale, so "stable" honestly reads as flat.
 // The readout shows the latest point and follows hover, tap or keyboard focus.
-export function TrendLine({ points, max, label, formatValue }: Props) {
+export function TrendLine({ points, max, label, formatValue, band }: Props) {
   const last = points.length - 1
   const [active, setActive] = useState(last)
   const activeIndex = Math.min(active, last)
@@ -30,7 +32,7 @@ export function TrendLine({ points, max, label, formatValue }: Props) {
 
   return (
     <div>
-      <p className="text-[13px] text-ink-soft" aria-live="polite">
+      <p className="text-caption text-ink-soft" aria-live="polite">
         {points[activeIndex].label} · <span className="font-medium text-ink">{formatValue(points[activeIndex].value)}</span>
       </p>
 
@@ -49,6 +51,22 @@ export function TrendLine({ points, max, label, formatValue }: Props) {
             </text>
           </g>
         ))}
+
+        {band && (
+          <g aria-hidden>
+            <rect
+              x={LEFT}
+              width={W - LEFT - RIGHT}
+              y={y(band.high) - 3}
+              height={Math.max(y(band.low) - y(band.high), 0) + 6}
+              rx={4}
+              className="fill-positive-soft"
+            />
+            <text x={W - RIGHT} y={y(band.high) - 6} textAnchor="end" className="fill-positive text-[10px] font-medium">
+              your usual range
+            </text>
+          </g>
+        )}
 
         <path
           d={path}

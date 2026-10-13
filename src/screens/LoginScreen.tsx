@@ -25,7 +25,7 @@ export function LoginScreen() {
     <form onSubmit={submit} noValidate className="flex flex-1 flex-col">
       <div className="flex flex-1 flex-col px-5 pt-[max(env(safe-area-inset-top),2.5rem)] pb-10">
         <BackButton to="/welcome" label="Back to welcome" />
-        <h1 className="mt-5 text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">Log in</h1>
+        <h1 className="mt-5 text-title font-semibold text-ink">Log in</h1>
 
         <div className="mt-8 flex flex-col gap-5">
           <TextField
@@ -45,12 +45,12 @@ export function LoginScreen() {
           />
         </div>
 
-        <div className="mt-6 rounded-2xl bg-sunken/70 p-4">
+        <div className="mt-6 rounded-card bg-subtle p-4">
           <p className="text-sm text-ink-soft">
             Prototype: any password works. Try the demo account, {demoAccount.email}.
           </p>
           <Button
-            variant="ghost"
+            variant="text"
             className="mt-1 -mb-1"
             onClick={() => {
               setEmail(demoAccount.email)
@@ -63,7 +63,7 @@ export function LoginScreen() {
         </div>
       </div>
 
-      <div className="sticky bottom-0 border-t border-line bg-surface px-5 pt-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
+      <div className="sticky bottom-0 bg-linear-to-t from-canvas from-70% to-canvas/0 px-5 pt-8 pb-[max(env(safe-area-inset-bottom),1rem)]">
         <Button type="submit">Log in</Button>
       </div>
     </form>

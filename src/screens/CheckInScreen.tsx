@@ -2,6 +2,7 @@ import { Check, Plus } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Button } from '../components/Button'
+import { CautionNote } from '../components/CautionNote'
 import { ChoiceOption } from '../components/ChoiceOption'
 import { ContactSheet } from '../components/ContactSheet'
 import { PainScale } from '../components/PainScale'
@@ -93,7 +94,7 @@ export function CheckInScreen() {
           ref={headingRef}
           id="question"
           tabIndex={-1}
-          className="mt-1.5 text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink outline-none"
+          className="mt-1.5 text-title font-semibold text-ink outline-none"
         >
           {step.question}
         </h1>
@@ -114,16 +115,19 @@ export function CheckInScreen() {
             />
           )}
           {step.id === 'pain' && painIsHigh && (
-            <div className="mt-6 rounded-2xl bg-attention-soft/60 p-4" role="note">
-              <p className="text-[15px] leading-relaxed text-ink">
+            <div className="mt-6">
+              <CautionNote
+                action={
+                  professional && (
+                    <Button variant="text" className="mt-1 -mb-2" aria-haspopup="dialog" onClick={() => setContactOpen(true)}>
+                      Contact {professional.name}
+                    </Button>
+                  )
+                }
+              >
                 That’s higher than your recent check-ins ({recentLow}–{'\u2060'}{recentHigh}/10). If the pain is sharp,
                 spreading, or comes with numbness, tingling or weakness, stop and contact {pro}.
-              </p>
-              {professional && (
-                <Button variant="ghost" className="mt-1 -mb-2" aria-haspopup="dialog" onClick={() => setContactOpen(true)}>
-                  Contact {professional.name}
-                </Button>
-              )}
+              </CautionNote>
             </div>
           )}
 
@@ -200,7 +204,7 @@ export function CheckInScreen() {
                     value={checkIn.note}
                     onChange={(e) => update({ note: e.target.value })}
                     placeholder="Anything you’d like to remember or mention"
-                    className="mt-2 w-full resize-none rounded-2xl border border-line bg-surface px-4 py-3.5 text-[17px] text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
+                    className="mt-2 w-full resize-none rounded-control border border-line bg-surface px-4 py-3.5 text-[17px] text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
                   />
                 </div>
               ) : (
@@ -218,7 +222,7 @@ export function CheckInScreen() {
         </div>
       </div>
 
-      <div className="sticky bottom-0 border-t border-line bg-surface px-5 pt-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
+      <div className="sticky bottom-0 bg-linear-to-t from-canvas from-70% to-canvas/0 px-5 pt-8 pb-[max(env(safe-area-inset-bottom),1rem)]">
         {isLast ? (
           <Button onClick={finish}>Finish check-in</Button>
         ) : (

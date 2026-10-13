@@ -27,7 +27,7 @@ type Phase = 'entry' | 'connect' | 'connected' | 'plan' | 'summary' | number
 type ConnectMethod = 'code' | 'link'
 
 const total = onboardingSteps.length
-const headingClass = 'text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink outline-none'
+const headingClass = 'text-title font-semibold text-ink outline-none'
 
 // ?edit reopens the independent questions from Profile; ?change reopens the first question.
 export function OnboardingScreen() {
@@ -294,7 +294,7 @@ export function OnboardingScreen() {
         )}
       </div>
 
-      <div className="sticky bottom-0 border-t border-line bg-surface px-5 pt-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
+      <div className="sticky bottom-0 bg-linear-to-t from-canvas from-70% to-canvas/0 px-5 pt-8 pb-[max(env(safe-area-inset-bottom),1rem)]">
         {phase === 'entry' && (
           <Button disabled={!mode} onClick={() => setPhase(mode === 'connected' ? 'connect' : 0)}>
             Continue

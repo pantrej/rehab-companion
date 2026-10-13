@@ -30,13 +30,14 @@ export function ProgressScreen() {
   const assessment = currentAssessment(professional)
 
   return (
-    <div className="flex flex-col gap-10 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
-      <h1 className="text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">Progress</h1>
+    <div className="flex flex-col gap-8 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
+      <h1 className="text-title font-semibold text-ink">Progress</h1>
 
       {/* Recovery first: how pain, movement and effort are changing. Sessions are context, not the measure. */}
       <Section id="recovery" title="How your recovery is changing">
-        <Card className="p-6">
-          <p className="flex items-center gap-3 text-[26px] leading-tight font-semibold tracking-[-0.02em] text-ink">
+        {/* The one featured surface on Progress: the recovery reading, before any activity. */}
+        <Card tone="featured" className="p-6">
+          <p className="flex items-center gap-3 text-title font-semibold text-ink">
             <span className={`size-2.5 rounded-full ring-4 ${toneDot[assessment.tone]}`} aria-hidden />
             {assessment.verdict}
           </p>
@@ -45,7 +46,7 @@ export function ProgressScreen() {
           <Button
             to="/insight"
             state={{ returnTo: '/progress' }}
-            variant="ghost"
+            variant="text"
             icon={<ArrowRight className="size-4" aria-hidden />}
             className="mt-3 -mb-2"
           >
@@ -63,7 +64,11 @@ export function ProgressScreen() {
         />
         <RecoverySignalsCard
           signals={period.signals}
-          pain={{ points: period.painPoints, reading: period.painReading }}
+          pain={{
+            points: period.painPoints,
+            reading: period.painReading,
+            band: { low: assessment.series.painLow, high: assessment.series.painHigh },
+          }}
         />
       </Section>
 

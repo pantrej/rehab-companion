@@ -12,7 +12,7 @@ export function TomorrowPlanCard({ updated }: { updated: boolean }) {
         {tomorrow.exerciseCount} exercises · About {tomorrow.durationMinutes} min
       </p>
       {updated ? (
-        <div className="mt-4">
+        <div className="mt-4 border-t border-line pt-4">
           <PlanUpdateNote />
         </div>
       ) : (

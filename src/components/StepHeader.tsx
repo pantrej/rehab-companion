@@ -7,10 +7,12 @@ type Props = {
   // Omit on the first step; the space is kept so the progress bar doesn't shift.
   onBack?: () => void
   backLabel?: string
+  // Hide "n of total" when the screen already says it (e.g. "Exercise 1 of 4").
+  showCount?: boolean
 }
 
 // Top row of a stepped flow: back, a segmented progress bar, and "n of total".
-export function StepHeader({ current, total, onBack, backLabel = 'Previous question' }: Props) {
+export function StepHeader({ current, total, onBack, backLabel = 'Previous question', showCount = true }: Props) {
   return (
     <div className="flex items-center gap-3">
       {onBack ? <BackButton label={backLabel} onClick={onBack} /> : <span className="-ml-2.5 size-11 shrink-0" aria-hidden />}
@@ -24,9 +26,13 @@ export function StepHeader({ current, total, onBack, backLabel = 'Previous quest
         ))}
       </div>
 
-      <p className="w-11 shrink-0 text-right text-[13px] text-ink-faint">
-        {current < total ? `${current + 1} of ${total}` : ''}
-      </p>
+      {showCount ? (
+        <p className="w-11 shrink-0 text-right text-caption text-ink-faint">
+          {current < total ? `${current + 1} of ${total}` : ''}
+        </p>
+      ) : (
+        <span className="w-2 shrink-0" aria-hidden />
+      )}
     </div>
   )
 }

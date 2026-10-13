@@ -16,6 +16,14 @@ export type Assessment = {
   headline: string
   changes: InsightSignal[]
   checks: { label: string; ok: boolean }[]
+  // Oldest first, for the small charts that sit beside each signal.
+  series: {
+    pain: number[]
+    difficulty: number[]
+    movement: CheckInRecord['movement'][]
+    painLow: number
+    painHigh: number
+  }
 }
 
 // What would change the reading. Kept short and general; each points to professional input.
@@ -87,6 +95,13 @@ export function assess(records: CheckInRecord[], scope: string): Assessment {
       },
     ],
     checks,
+    series: {
+      pain: oldestFirst.map((r) => r.pain),
+      difficulty: oldestFirst.map((r) => r.difficulty),
+      movement: oldestFirst.map((r) => r.movement),
+      painLow: low,
+      painHigh: high,
+    },
   }
 }
 

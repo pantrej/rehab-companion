@@ -36,7 +36,7 @@ export function SupportTopicScreen() {
       <header>
         <BackButton to="/support" label="Back to support topics" />
         <p className="mt-5 text-[15px] text-ink-soft">You’re unsure about</p>
-        <h1 className="mt-1.5 text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">{topic.label}</h1>
+        <h1 className="mt-1.5 text-title font-semibold text-ink">{topic.label}</h1>
       </header>
 
       <div>
@@ -88,14 +88,14 @@ export function SupportTopicScreen() {
           </Button>
         )}
         {topic.related && (
-          <Button to={topic.related.to} variant="ghost" icon={<ArrowRight className="size-4" aria-hidden />}>
+          <Button to={topic.related.to} variant="text" icon={<ArrowRight className="size-4" aria-hidden />}>
             {topic.related.label}
           </Button>
         )}
         {topic.urgentNote && <p className="mt-3 px-1 text-sm text-ink-soft">{topic.urgentNote}</p>}
       </div>
 
-      <p className="px-1 text-[13px] leading-relaxed text-ink-faint">{supportDisclaimer}</p>
+      <p className="px-1 text-caption leading-relaxed text-ink-faint">{supportDisclaimer}</p>
 
       {contactOpen && professional && <ContactSheet professional={professional} onClose={closeContact} />}
     </div>

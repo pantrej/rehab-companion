@@ -1,6 +1,6 @@
 import { daysAgoLabel, movementTone } from '../data/progress'
 import type { CheckInRecord } from '../types/progress'
-import { toneText } from '../utils/tone'
+import { toneSolid, toneStatusText } from '../utils/tone'
 import { Card } from './Card'
 
 // Recent check-ins as plain rows: when, pain and difficulty, and the movement comparison.
@@ -17,8 +17,11 @@ export function CheckInList({ records }: { records: CheckInRecord[] }) {
               </p>
             </div>
             <div className="text-right">
-              <p className="text-[13px] text-ink-faint">Movement</p>
-              <p className={`text-[15px] font-medium ${toneText[movementTone[c.movement]]}`}>{c.movement}</p>
+              <p className="text-caption text-ink-faint">Movement</p>
+              <p className={`flex items-center justify-end gap-2 text-[15px] font-medium ${toneStatusText[movementTone[c.movement]]}`}>
+                <span className={`size-2 rounded-full ${toneSolid[movementTone[c.movement]]}`} aria-hidden />
+                {c.movement}
+              </p>
             </div>
           </li>
         ))}

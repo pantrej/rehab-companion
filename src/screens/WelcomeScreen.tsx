@@ -20,7 +20,7 @@ export function WelcomeScreen() {
         <Button to="/login" variant="secondary">
           Log in
         </Button>
-        <p className="mt-3 text-center text-[13px] text-ink-faint">Prototype · your data stays on this device</p>
+        <p className="mt-3 text-center text-caption text-ink-faint">Prototype · your data stays on this device</p>
       </div>
     </div>
   )

@@ -28,7 +28,7 @@ export function ProfileScreen() {
 
   return (
     <div className="flex flex-col gap-10 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
-      <h1 className="text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">Profile</h1>
+      <h1 className="text-title font-semibold text-ink">Profile</h1>
 
       <Section id="patient" title="Patient profile">
         <Card className="flex items-center gap-4 p-6">
@@ -48,7 +48,7 @@ export function ProfileScreen() {
                 { label: 'Recovery stage', value: patientRecord.recoveryStage },
               ]}
             />
-            <p className="-mt-1 px-1 text-[13px] text-ink-faint">From {professional.name}’s records</p>
+            <p className="-mt-1 px-1 text-caption text-ink-faint">From {professional.name}’s records</p>
           </>
         ) : (
           <>

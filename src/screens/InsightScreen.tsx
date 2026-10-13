@@ -1,8 +1,12 @@
-import { ArrowLeft, ArrowRight, Check, CircleAlert, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ChevronDown, CircleAlert, X } from 'lucide-react'
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { MiniTrend } from '../components/MiniTrend'
+import { MovementMarks } from '../components/MovementMarks'
+import { RangeBar } from '../components/RangeBar'
 import { SignalDetail } from '../components/SignalDetail'
 import { currentAssessment, onTrackRule, watchFor } from '../data/assessment'
 import { recoveryInsightScreen as insight } from '../data/insight'
@@ -15,9 +19,9 @@ import { toneDot, toneText } from '../utils/tone'
 
 function Question({ id, number, title, children }: { id: string; number: number; title: string; children: ReactNode }) {
   return (
-    <section aria-labelledby={id} className="flex flex-col gap-4">
-      <h2 id={id} className="flex items-center gap-3 px-1 text-lg font-semibold text-ink">
-        <span className="flex size-7 items-center justify-center rounded-full bg-accent-soft text-sm text-accent" aria-hidden>
+    <section aria-labelledby={id} className="flex flex-col gap-3">
+      <h2 id={id} className="flex items-center gap-3 text-section font-semibold text-ink">
+        <span className="flex size-7 items-center justify-center rounded-full bg-accent text-caption font-semibold text-white" aria-hidden>
           {number}
         </span>
         {title}
@@ -44,6 +48,8 @@ export function InsightScreen() {
     .filter((t) => t !== undefined)
   const { professional } = useCare()
   const a = currentAssessment(professional)
+  const [whyOpen, setWhyOpen] = useState(false)
+  const showWhy = whyOpen || !a.onTrack
   const pro = professionalPhrase(professional?.name)
 
   const steps: Step[] = [
@@ -100,26 +106,38 @@ export function InsightScreen() {
               <X className="size-[22px]" strokeWidth={1.75} aria-hidden />
             )}
           </Link>
-          <h1 className="mt-5 text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">{insight.title}</h1>
-          <p className="mt-1.5 text-[15px] text-ink-soft">
+          <h1 className="mt-5 text-title font-semibold text-ink">{insight.title}</h1>
+          <p className="mt-1 text-[15px] text-ink-soft">
             Based on {a.checkInCount} check-ins {a.scope}
           </p>
         </header>
 
-        <Card className="p-6">
-          <p className="text-sm text-ink-soft">How it’s going</p>
-          <p className="mt-2 flex items-center gap-3 text-[26px] leading-tight font-semibold tracking-[-0.02em] text-ink">
+        {/* The one featured surface on this screen: the reading, in a sentence. */}
+        <Card tone="featured" className="p-6">
+          <p className="text-caption font-medium text-accent">How it’s going</p>
+          <p className="mt-2 flex items-center gap-3 text-title font-semibold text-ink">
             <span className={`size-2.5 rounded-full ring-4 ${toneDot[a.tone]}`} aria-hidden />
             {a.verdict}
           </p>
-          <p className="mt-3 text-[17px] leading-relaxed text-ink">{a.headline}</p>
+          <p className="mt-2 text-[17px] leading-relaxed text-ink">{a.headline}</p>
         </Card>
 
         <Question id="changed" number={1} title={insight.questions.changed}>
           <Card className="px-6 py-2">
             <ul className="divide-y divide-line">
               {a.changes.map((signal) => (
-                <SignalDetail key={signal.id} {...signal} />
+                <SignalDetail key={signal.id} {...signal}>
+                  {signal.id === 'pain' && (
+                    <RangeBar
+                      value={a.series.pain[a.series.pain.length - 1]}
+                      low={a.series.painLow}
+                      high={a.series.painHigh}
+                      label="Pain"
+                    />
+                  )}
+                  {signal.id === 'mobility' && <MovementMarks values={a.series.movement} />}
+                  {signal.id === 'difficulty' && <MiniTrend values={a.series.difficulty} label="Session difficulty" showRange={false} />}
+                </SignalDetail>
               ))}
             </ul>
           </Card>
@@ -131,7 +149,20 @@ export function InsightScreen() {
               {a.onTrack ? 'Yes, this appears to be on track.' : 'Some signals are worth checking.'}
             </p>
             <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{onTrackRule}</p>
-            <ul className="mt-4 flex flex-col gap-2.5">
+
+            {/* The evidence folds away; it opens by itself when something needs checking. */}
+            <button
+              type="button"
+              aria-expanded={showWhy}
+              aria-controls="why"
+              onClick={() => setWhyOpen(!showWhy)}
+              className="-mx-2 mt-2 flex min-h-11 w-[calc(100%+1rem)] items-center justify-between rounded-xl px-2 text-[15px] font-semibold text-accent hover:bg-accent-soft"
+            >
+              Why we think so
+              <ChevronDown className={`size-4 transition-transform ${showWhy ? 'rotate-180' : ''}`} aria-hidden />
+            </button>
+            {showWhy && (
+            <ul id="why" className="mt-2 flex flex-col gap-2.5">
               {a.checks.map((c) => (
                 <li key={c.label} className="flex items-start gap-2.5 text-[15px] leading-relaxed text-ink">
                   {c.ok ? (
@@ -143,9 +174,10 @@ export function InsightScreen() {
                 </li>
               ))}
             </ul>
+            )}
 
             <div className="mt-5 border-t border-line pt-4">
-              <p className="text-sm font-medium text-ink-soft">What would change this</p>
+              <p className="text-caption font-medium text-ink-soft">What would change this</p>
               <ul className="mt-2 flex flex-col gap-2">
                 {watchFor.map((w) => (
                   <li key={w} className="flex items-baseline gap-2.5 text-[15px] leading-relaxed text-ink">
@@ -159,7 +191,7 @@ export function InsightScreen() {
               </p>
             </div>
           </Card>
-          <p className="-mt-1 px-1 text-[13px] text-ink-faint">{insight.notClinical}</p>
+          <p className="text-caption text-ink-faint">{insight.notClinical}</p>
         </Question>
 
         <Question id="next" number={3} title={insight.questions.next}>
@@ -167,7 +199,7 @@ export function InsightScreen() {
             <ol className="divide-y divide-line">
               {steps.map((step) => (
                 <li key={step.title} className="py-4">
-                  <p className="text-base font-medium text-ink">{step.title}</p>
+                  <p className="text-body font-semibold text-ink">{step.title}</p>
                   <p className="mt-1 text-[15px] leading-relaxed text-ink-soft">{step.detail}</p>
                   {step.links?.map((link) => (
                     <Link
@@ -186,18 +218,18 @@ export function InsightScreen() {
         </Question>
       </div>
 
-      <div className="sticky bottom-0 border-t border-line bg-surface px-5 pt-4 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
+      <div className="sticky bottom-0 bg-linear-to-t from-canvas from-70% to-canvas/0 px-5 pt-8 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
         {/* The next step is named, never implied: done for the day, or back to where the user came from. */}
         <Button onClick={() => navigate(fromProgress ? '/progress' : '/')}>
           {afterCheckIn ? 'Done for today' : fromProgress ? 'Back to Progress' : 'Back to Today'}
         </Button>
         {afterCheckIn && (
-          <p className="mt-2 text-center text-[13px] text-ink-soft">Next session: tomorrow · {tomorrow.focus}</p>
+          <p className="mt-2 text-center text-caption text-ink-soft">Next session: tomorrow · {tomorrow.focus}</p>
         )}
         <Button to="/support" variant="quiet" className="mt-1">
           I’m unsure about something
         </Button>
-        <p className="mt-1 text-center text-[13px] text-ink-faint">{insight.safetyNote}</p>
+        <p className="mt-1 text-center text-caption text-ink-faint">{insight.safetyNote}</p>
       </div>
     </div>
   )

@@ -94,7 +94,7 @@ export function MonthCalendar({ days, onSelect, showAppointments }: Props) {
         })}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 border-t border-line px-3 pt-4 text-[13px] text-ink-soft">
+      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 border-t border-line px-3 pt-4 text-caption text-ink-soft">
         {legend.map((item) => (
           <span key={item.label} className="flex items-center gap-1.5">
             <Mark status={item.status} appointment={item.appointment} />

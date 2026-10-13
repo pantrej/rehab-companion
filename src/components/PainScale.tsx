@@ -30,7 +30,7 @@ export function PainScale({ value, onChange, min, max, minLabel, maxLabel, label
                   aria-checked={selected}
                   aria-label={`${n}${description}`}
                   onClick={() => onChange(n)}
-                  className={`h-14 flex-1 rounded-2xl border text-[17px] font-medium tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                  className={`h-14 flex-1 rounded-control border text-[17px] font-medium tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                     selected
                       ? 'border-accent bg-accent text-white'
                       : 'border-line bg-surface text-ink hover:border-[#d9d4ca]'
@@ -43,7 +43,7 @@ export function PainScale({ value, onChange, min, max, minLabel, maxLabel, label
           </div>
         ))}
       </div>
-      <div className="mt-3 flex justify-between text-[13px] text-ink-soft" aria-hidden>
+      <div className="mt-3 flex justify-between text-caption text-ink-soft" aria-hidden>
         <span>
           {min} — {minLabel}
         </span>

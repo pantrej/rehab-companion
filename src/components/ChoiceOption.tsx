@@ -18,7 +18,7 @@ export function ChoiceOption({ label, description, selected, onSelect, multiple 
       role={multiple ? 'checkbox' : 'radio'}
       aria-checked={selected}
       onClick={onSelect}
-      className={`flex min-h-14 w-full items-center justify-between gap-4 rounded-2xl border px-5 py-3.5 text-left text-[17px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+      className={`flex min-h-14 w-full items-center justify-between gap-4 rounded-control border px-5 py-3.5 text-left text-[17px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
         selected
           ? 'border-accent bg-accent-soft text-ink'
           : 'border-line bg-surface text-ink hover:border-[#d9d4ca]'

@@ -20,7 +20,7 @@ export function TextField({ label, error, hint, className = '', ...props }: Prop
         id={id}
         aria-invalid={!!error}
         aria-describedby={error || hint ? messageId : undefined}
-        className={`mt-2 h-14 w-full rounded-2xl border bg-surface px-4 text-[17px] text-ink placeholder:text-ink-faint focus:outline-none ${
+        className={`mt-2 h-14 w-full rounded-control border bg-surface px-4 text-[17px] text-ink placeholder:text-ink-faint focus:outline-none ${
           error ? 'border-attention' : 'border-line focus:border-accent'
         }`}
         {...props}

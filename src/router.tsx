@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react'
 import { Navigate, createBrowserRouter } from 'react-router'
 import { MobileLayout } from './layouts/MobileLayout'
 import { RequireAccount } from './layouts/RequireAccount'
@@ -17,6 +18,9 @@ import { SupportScreen } from './screens/SupportScreen'
 import { SupportTopicScreen } from './screens/SupportTopicScreen'
 import { TherapistScreen } from './screens/TherapistScreen'
 import { WelcomeScreen } from './screens/WelcomeScreen'
+
+// Loaded only when visited, so the showcase never weighs on the prototype.
+const DesignSystemPage = lazy(() => import('./design-system/DesignSystemPage').then((m) => ({ default: m.DesignSystemPage })))
 
 export const router = createBrowserRouter([
   {
@@ -57,6 +61,15 @@ export const router = createBrowserRouter([
         ],
       },
     ],
+  },
+  // Portfolio showcase of the visual system. Public, full width, outside the app frame.
+  {
+    path: 'design-system',
+    element: (
+      <Suspense fallback={null}>
+        <DesignSystemPage />
+      </Suspense>
+    ),
   },
   { path: '*', element: <Navigate to="/" replace /> },
 ])
