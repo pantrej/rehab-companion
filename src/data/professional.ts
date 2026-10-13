@@ -33,11 +33,11 @@ export const careModeOptions = [
   {
     id: 'connected' as const,
     label: 'With a rehabilitation professional',
-    description: 'My physiotherapist or rehabilitation team manages my plan.',
+    description: 'My physiotherapist or care team manages my plan.',
   },
   {
     id: 'independent' as const,
     label: 'Mostly on my own',
-    description: 'I have an existing plan but no connected professional in the app.',
+    description: 'I follow an existing plan independently.',
   },
 ]

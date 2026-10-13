@@ -1,4 +1,5 @@
-import { ArrowRight, Check, ShieldAlert } from 'lucide-react'
+import { ArrowRight, Check, House, ShieldAlert, UsersRound } from 'lucide-react'
+import heroImage from '../assets/onboarding-hero.webp'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Avatar } from '../components/Avatar'
@@ -19,7 +20,7 @@ import { planDetails } from '../data/plan'
 import { careModeOptions, connection, professional } from '../data/professional'
 import type { CareMode } from '../types/care'
 import type { OnboardingAnswers } from '../types/onboarding'
-import { initialsOf, useAccount } from '../utils/auth'
+import { demoAccount, initialsOf, useAccount } from '../utils/auth'
 import { readCare, saveCare } from '../utils/care'
 
 // entry → connected care: connect → connected → plan · independent: questions 0–3 → summary
@@ -27,6 +28,9 @@ type Phase = 'entry' | 'connect' | 'connected' | 'plan' | 'summary' | number
 type ConnectMethod = 'code' | 'link'
 
 const total = onboardingSteps.length
+// The care question is step 1; the independent setup questions follow as steps 2 to total + 1.
+const setupSteps = total + 1
+const careIcons: Record<CareMode, typeof House> = { connected: UsersRound, independent: House }
 const headingClass = 'text-title font-semibold text-ink outline-none'
 
 // ?edit reopens the independent questions from Profile; ?change reopens the first question.
@@ -91,41 +95,59 @@ export function OnboardingScreen() {
     else if (fromProfile) navigate('/profile')
   }
   const canGoBack = phase !== 'entry' || fromProfile
-  const name = account?.fullName ?? 'You'
+  // Before an account exists, the clinic record names the (mock) patient.
+  const name = account?.fullName ?? demoAccount.fullName
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex flex-1 flex-col px-5 pt-[max(env(safe-area-inset-top),2.5rem)] pb-10">
-        {typeof phase === 'number' || phase === 'summary' ? (
+      <div
+        className={`flex flex-1 flex-col ${phase === 'entry' ? 'pb-2' : 'px-5 pt-[max(env(safe-area-inset-top),2.5rem)] pb-10'}`}
+      >
+        {phase === 'entry' ? (
+          <EntryHero onBack={canGoBack ? back : undefined} />
+        ) : typeof phase === 'number' || phase === 'summary' ? (
           <StepHeader
-            current={phase === 'summary' ? total : phase}
-            total={total}
+            current={phase === 'summary' ? setupSteps : phase + 1}
+            total={setupSteps}
             onBack={back}
             backLabel={phase === 0 && isEdit ? 'Back to Profile' : 'Previous question'}
           />
         ) : canGoBack ? (
-          <BackButton label={phase === 'entry' ? 'Back to Profile' : 'Back'} onClick={back} />
+          <BackButton label="Back" onClick={back} />
         ) : (
           <span className="size-11" aria-hidden />
         )}
 
         {phase === 'entry' && (
-          <>
-            <h1 ref={headingRef} id="question" tabIndex={-1} className={`mt-10 ${headingClass}`}>
+          <div className="relative px-5 pt-1">
+            <p className="text-[12px] font-semibold tracking-[0.16em] text-ink-faint uppercase">Rehab Companion</p>
+            <h1
+              ref={headingRef}
+              id="question"
+              tabIndex={-1}
+              className="mt-3 text-[30px] leading-[1.12] font-semibold tracking-[-0.025em] text-ink outline-none"
+            >
               How are you currently managing your rehabilitation?
             </h1>
-            <div role="radiogroup" aria-labelledby="question" className="mt-8 flex flex-col gap-3">
-              {careModeOptions.map((option) => (
-                <ChoiceOption
-                  key={option.id}
-                  label={option.label}
-                  description={option.description}
-                  selected={mode === option.id}
-                  onSelect={() => setMode(option.id)}
-                />
-              ))}
+            <p className="mt-2.5 text-[17px] leading-snug text-ink-soft">
+              We’ll tailor the app and its support to how you recover today.
+            </p>
+            <div role="radiogroup" aria-labelledby="question" className="mt-6 flex flex-col gap-3">
+              {careModeOptions.map((option) => {
+                const Icon = careIcons[option.id]
+                return (
+                  <ChoiceOption
+                    key={option.id}
+                    label={option.label}
+                    description={option.description}
+                    selected={mode === option.id}
+                    onSelect={() => setMode(option.id)}
+                    icon={<Icon className="size-[22px]" strokeWidth={1.75} />}
+                  />
+                )
+              })}
             </div>
-          </>
+          </div>
         )}
 
         {phase === 'connect' && (
@@ -296,7 +318,11 @@ export function OnboardingScreen() {
 
       <div className="sticky bottom-0 bg-linear-to-t from-canvas from-70% to-canvas/0 px-5 pt-8 pb-[max(env(safe-area-inset-bottom),1rem)]">
         {phase === 'entry' && (
-          <Button disabled={!mode} onClick={() => setPhase(mode === 'connected' ? 'connect' : 0)}>
+          <Button
+            disabled={!mode}
+            onClick={() => setPhase(mode === 'connected' ? 'connect' : 0)}
+            icon={<ArrowRight className="size-4" aria-hidden />}
+          >
             Continue
           </Button>
         )}
@@ -322,6 +348,28 @@ export function OnboardingScreen() {
           </Button>
         )}
       </div>
+    </div>
+  )
+}
+
+// The first screen of the app: a warm, human photo with the setup progress laid over it, easing into the
+// canvas through a soft curve. Photo: Yan Krukau, Pexels (free to use); swap the asset to replace it.
+function EntryHero({ onBack }: { onBack?: () => void }) {
+  return (
+    <div className="relative h-[clamp(200px,32dvh,270px)] shrink-0">
+      <img src={heroImage} alt="" className="absolute inset-0 size-full object-cover object-[50%_35%]" />
+      <div className="absolute inset-x-0 top-0 h-28 bg-linear-to-b from-canvas/85 to-canvas/0" aria-hidden />
+      <div className="relative px-5 pt-[max(env(safe-area-inset-top),1.25rem)]">
+        <StepHeader current={0} total={setupSteps} onBack={onBack} backLabel="Back to Profile" />
+      </div>
+      <svg
+        className="absolute inset-x-0 -bottom-px h-10 w-full fill-canvas"
+        viewBox="0 0 390 40"
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        <path d="M0 14 C 90 34, 210 36, 300 22 S 380 4, 390 2 L 390 40 L 0 40 Z" />
+      </svg>
     </div>
   )
 }
