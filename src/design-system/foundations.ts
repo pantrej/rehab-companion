@@ -45,15 +45,16 @@ export const palette: { group: string; note: string; swatches: Swatch[] }[] = [
   },
 ]
 
+// Real product copy at real product sizes.
 export const typeScale = [
-  { name: 'Display', token: 'text-display', spec: '40 / 44 · Semibold', sample: '3 × 12', usage: 'The one hero number' },
-  { name: 'Title', token: 'text-title', spec: '26 / 31 · Semibold', sample: 'Appears on track', usage: 'Screen titles, verdicts' },
-  { name: 'Section', token: 'text-section', spec: '18 / 25 · Semibold', sample: 'What changed', usage: 'Section headings' },
+  { name: 'Display', token: 'text-display', spec: '40 / 44 · Semibold', sample: '3 × 12', usage: 'The one hero number on a screen' },
+  { name: 'Title', token: 'text-title', spec: '26 / 31 · Semibold', sample: 'Appears on track', usage: 'Screen titles and verdicts' },
+  { name: 'Section', token: 'text-section', spec: '18 / 25 · Semibold', sample: 'What should I do next?', usage: 'Section headings' },
   { name: 'Body', token: 'text-body', spec: '16 / 25 · Regular', sample: 'Pain is holding steady while your sessions are getting easier.', usage: 'Reading text' },
-  { name: 'Caption', token: 'text-caption', spec: '13 / 18 · Medium', sample: 'Based on 3 check-ins since 3 October', usage: 'Labels, time frames' },
+  { name: 'Caption', token: 'text-caption', spec: '13 / 18 · Medium', sample: 'Based on 3 check-ins since your last appointment', usage: 'Labels and time frames' },
 ]
 
-export const spacing = [4, 8, 12, 16, 20, 24, 32, 40]
+export const spacing = [4, 8, 12, 16, 24, 32, 40, 48]
 
 export const radii = [
   { name: 'Control', value: '16 px', className: 'rounded-control', usage: 'Inputs, options' },

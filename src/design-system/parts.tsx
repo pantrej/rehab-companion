@@ -1,111 +1,110 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 import type { Swatch } from './foundations'
 
-// Presentation pieces for the design system page. They frame the real product components;
-// they are not used in the app itself.
+// Editorial presentation pieces for the design system page. They frame the real product
+// components with type, space and dividers rather than boxes; none of them ship in the app.
 
-export function DSSection({
+export function Eyebrow({ children }: { children: ReactNode }) {
+  return <p className="text-[12px] font-semibold tracking-[0.18em] text-accent uppercase">{children}</p>
+}
+
+// A section opening: eyebrow, a confident heading and a short standfirst, kept to a narrow measure.
+export function SectionHead({ eyebrow, title, intro }: { eyebrow: string; title: string; intro?: string }) {
+  return (
+    <header className="max-w-[34rem]">
+      <Eyebrow>{eyebrow}</Eyebrow>
+      <h2 className="mt-4 text-[34px] leading-[1.08] font-semibold tracking-[-0.025em] text-ink lg:text-[42px]">{title}</h2>
+      {intro && <p className="mt-5 text-[17px] leading-relaxed text-ink-soft">{intro}</p>}
+    </header>
+  )
+}
+
+// One component family: rationale on one side, a single large example on a tinted plane on the other,
+// supporting states underneath. `flip` alternates the sides down the page.
+export function Showcase({
   id,
-  index,
   title,
-  intro,
-  children,
+  rationale,
+  primary,
+  states,
+  flip = false,
 }: {
   id: string
-  index: string
   title: string
-  intro: string
-  children: ReactNode
+  rationale: ReactNode
+  primary: ReactNode
+  states?: { label: string; node: ReactNode }[]
+  flip?: boolean
 }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-24 border-t border-line py-14 lg:py-20">
-      <div className="grid gap-8 lg:grid-cols-[17rem_1fr] lg:gap-14">
-        <header className="lg:sticky lg:top-24 lg:self-start">
-          <p className="text-caption font-semibold tracking-[0.12em] text-accent">{index}</p>
-          <h2 id={`${id}-title`} className="mt-2 text-[30px] leading-tight font-semibold tracking-[-0.02em] text-ink">
-            {title}
-          </h2>
-          <p className="mt-3 text-body text-ink-soft">{intro}</p>
-        </header>
-        <div className="flex min-w-0 flex-col gap-6">{children}</div>
+    <section id={id} aria-labelledby={`${id}-title`} className="grid scroll-mt-24 gap-10 py-16 lg:grid-cols-12 lg:gap-12 lg:py-24">
+      <div className={`lg:col-span-4 ${flip ? 'lg:order-2 lg:col-start-9' : ''} lg:pt-6`}>
+        <h3 id={`${id}-title`} className="text-[26px] leading-tight font-semibold tracking-[-0.02em] text-ink">
+          {title}
+        </h3>
+        <div className="mt-4 flex flex-col gap-3 text-[17px] leading-relaxed text-ink-soft">{rationale}</div>
+      </div>
+      <div className={`flex min-w-0 flex-col gap-8 lg:col-span-7 ${flip ? 'lg:order-1 lg:col-start-1' : 'lg:col-start-6'}`}>
+        <div className="rounded-[28px] bg-subtle/70 px-6 py-10 sm:px-12 sm:py-14">{primary}</div>
+        {states && (
+          <div className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
+            {states.map((s) => (
+              <figure key={s.label} className="flex flex-col gap-3">
+                <figcaption className="text-[12px] font-semibold tracking-[0.14em] text-ink-faint uppercase">{s.label}</figcaption>
+                {s.node}
+              </figure>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )
 }
 
-// A framed specimen: label, optional note, and the real component on the canvas it lives on.
-export function Specimen({
-  label,
-  note,
-  children,
-  className = '',
-  surface = 'canvas',
-}: {
-  label: string
-  note?: string
-  children: ReactNode
-  className?: string
-  surface?: 'canvas' | 'surface'
-}) {
-  return (
-    <figure className={`overflow-hidden rounded-[24px] bg-surface shadow-card ${className}`}>
-      <figcaption className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line px-6 py-4">
-        <span className="text-caption font-semibold tracking-[0.08em] text-ink uppercase">{label}</span>
-        {note && <span className="text-caption text-ink-soft">{note}</span>}
-      </figcaption>
-      <div className={`p-6 ${surface === 'canvas' ? 'bg-canvas' : 'bg-surface'}`}>{children}</div>
-    </figure>
-  )
-}
-
-// A short usage rule under a specimen.
-export function Rule({ children }: { children: ReactNode }) {
-  return (
-    <p className="flex gap-2.5 text-[15px] leading-relaxed text-ink-soft">
-      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
-      <span>{children}</span>
-    </p>
-  )
-}
-
+// Reads the live token, so the page can never drift from src/styles/index.css. Client-only page.
 function useCssColor(token: string) {
-  const [value, setValue] = useState('')
-  useEffect(() => {
-    setValue(getComputedStyle(document.documentElement).getPropertyValue(`--color-${token}`).trim())
-  }, [token])
+  const [value] = useState(() => getComputedStyle(document.documentElement).getPropertyValue(`--color-${token}`).trim())
   return value
 }
 
-export function SwatchTile({ swatch }: { swatch: Swatch }) {
-  const hex = useCssColor(swatch.token)
+// Colour as a continuous strip of paint chips, labelled underneath; no swatch cards.
+export function ColourStrip({ swatches, tall = false }: { swatches: Swatch[]; tall?: boolean }) {
   return (
-    <div className="flex flex-col overflow-hidden rounded-card bg-surface shadow-card">
-      <div
-        className="flex h-24 items-end p-3 ring-1 ring-ink/5 ring-inset"
-        style={{ background: `var(--color-${swatch.token})` }}
-      >
-        <span className={`text-caption font-semibold ${swatch.onDark ? 'text-white/90' : 'text-ink/70'}`}>
-          {hex.toUpperCase()}
-        </span>
+    <div>
+      <div className={`flex overflow-hidden rounded-[22px] ring-1 ring-ink/5 ${tall ? 'h-44' : 'h-32'}`}>
+        {swatches.map((s) => (
+          <div key={s.token} className="flex-1" style={{ background: `var(--color-${s.token})` }} />
+        ))}
       </div>
-      <div className="px-3 py-3">
-        <p className="text-[15px] font-semibold text-ink">{swatch.name}</p>
-        <p className="text-caption text-ink-faint">{swatch.token}</p>
-        <p className="mt-1 text-caption text-ink-soft">{swatch.usage}</p>
+      <div className="mt-4 grid gap-4" style={{ gridTemplateColumns: `repeat(${swatches.length}, minmax(0, 1fr))` }}>
+        {swatches.map((s) => (
+          <SwatchLabel key={s.token} swatch={s} />
+        ))}
       </div>
     </div>
   )
 }
 
-// A phone-width frame for usage examples. Real components, real data, at real size.
-export function PhoneFrame({ title, children }: { title: string; children: ReactNode }) {
+function SwatchLabel({ swatch }: { swatch: Swatch }) {
+  const hex = useCssColor(swatch.token)
   return (
-    <figure className="flex w-full max-w-[360px] flex-col items-center gap-4">
-      <div className="w-full overflow-hidden rounded-[40px] bg-canvas p-2 shadow-[0_30px_60px_-30px_rgb(29_28_33/0.35)] ring-1 ring-ink/10">
-        <div className="flex h-[640px] flex-col gap-6 overflow-hidden rounded-[32px] bg-canvas px-4 pt-10 pb-4">{children}</div>
+    <div className="min-w-0">
+      <p className="truncate text-[15px] font-semibold text-ink">{swatch.name}</p>
+      <p className="text-[12px] tracking-wide text-ink-faint tabular-nums">{hex.toUpperCase()}</p>
+      <p className="mt-1 hidden text-[13px] leading-snug text-ink-soft sm:block">{swatch.usage}</p>
+    </div>
+  )
+}
+
+// A phone-sized frame for in-context compositions. Real components at real size.
+export function PhoneFrame({ title, children, className = '' }: { title: string; children: ReactNode; className?: string }) {
+  return (
+    <figure className={`flex w-full max-w-[340px] flex-col items-center gap-5 ${className}`}>
+      <div className="w-full rounded-[44px] bg-ink/90 p-[7px] shadow-[0_40px_80px_-40px_rgb(29_28_33/0.45)]">
+        <div className="flex h-[620px] flex-col gap-6 overflow-hidden rounded-[38px] bg-canvas px-5 pt-12 pb-5">{children}</div>
       </div>
-      <figcaption className="text-caption font-medium text-ink-soft">{title}</figcaption>
+      <figcaption className="text-[13px] font-medium text-ink-soft">{title}</figcaption>
     </figure>
   )
 }
