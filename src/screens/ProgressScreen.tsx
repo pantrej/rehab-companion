@@ -62,15 +62,16 @@ export function ProgressScreen() {
           {assessment.verdict}
         </p>
 
-        <Card tone="featured" className="mt-4 px-4 pt-4 pb-2">
-          {/* The three signals the reading is made of, each on its own scale. They are not added up:
-              there is no single recovery number, and the app doesn't invent one. */}
-          <div className="grid grid-cols-3 divide-x divide-accent/15">
-            {overviewSignals(assessment).map((signal) => (
-              <Signal key={signal.id} signal={signal} />
-            ))}
-          </div>
-          <p className="mt-3 border-t border-accent/15 pt-3 text-[12px] font-semibold tracking-[0.14em] text-accent uppercase">
+        {/* The signals first, each in its own card: three pieces of information, not three columns. */}
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {overviewSignals(assessment).map((signal) => (
+            <Signal key={signal.id} signal={signal} />
+          ))}
+        </div>
+
+        {/* Then what they add up to, on the surface the screen reserves for its one reading. */}
+        <Card tone="featured" className="mt-2 px-4 pt-4 pb-2">
+          <p className="text-[12px] font-semibold tracking-[0.14em] text-accent uppercase">
             What changed
           </p>
           <p className="mt-1.5 text-[17px] leading-snug text-ink">{assessment.headline}</p>
@@ -277,12 +278,13 @@ function overviewSignals(assessment: Assessment): OverviewSignal[] {
   ]
 }
 
-// One signal, in a column of its own: its name, where it stands, the line it took, and what that reads as.
+// One signal, in a card of its own: its name, where it stands, the line it took, and what that reads as.
+// Lighter than the card below it, so the eye reads the three of them as the evidence and that as the answer.
 function Signal({ signal }: { signal: OverviewSignal }) {
   return (
-    <div className="px-2.5 first:pl-0 last:pr-0">
+    <div className="rounded-2xl bg-surface/75 px-3 pt-2.5 pb-3">
       <p className="text-[10px] font-semibold tracking-[0.12em] text-ink-faint uppercase">{signal.label}</p>
-      <p className="mt-1 text-[18px] leading-none font-semibold text-ink tabular-nums">{signal.value}</p>
+      <p className="mt-1 text-[17px] leading-none font-semibold text-ink tabular-nums">{signal.value}</p>
       <Spark values={signal.series} max={signal.max} tone={signal.tone} label={signal.reading} />
       <p className={`mt-0.5 text-[12px] leading-snug ${toneStatusText[signal.tone]}`}>{signal.status}</p>
     </div>
