@@ -1,20 +1,21 @@
 import type { DayState } from '../data/days'
 
 // One semantic treatment per day state, used as soft tints and small indicators, never as floods.
-// `tint` is a solid colour so the hero's wave can flow seamlessly into the plan card.
-export const dayTheme: Record<DayState, { tint: string; label: string; line: string }> = {
+// `tint` is a solid colour so the hero's wave can flow seamlessly into the plan card. `dot` is the
+// same meaning at full strength, for marks that sit on that tint and should belong to it.
+export const dayTheme: Record<DayState, { tint: string; label: string; line: string; dot: string }> = {
   // Active: the saturated purple carries the action; the card is a soft lavender.
-  active: { tint: '#f0ebfb', label: 'text-accent', line: 'stroke-accent' },
+  active: { tint: '#f0ebfb', label: 'text-accent', line: 'stroke-accent', dot: 'bg-accent' },
   // On track and done.
-  completed: { tint: '#eaf2ec', label: 'text-positive', line: 'stroke-positive' },
+  completed: { tint: '#eaf2ec', label: 'text-positive', line: 'stroke-positive', dot: 'bg-positive' },
   // Upcoming: informational, warm neutral.
-  upcoming: { tint: '#f7efe5', label: 'text-[#8a5f2e]', line: 'stroke-accent' },
+  upcoming: { tint: '#f7efe5', label: 'text-[#8a5f2e]', line: 'stroke-accent', dot: 'bg-planned' },
   // Rest: intentional recovery, not a finished task.
-  rest: { tint: '#e8eff8', label: 'text-rest', line: 'stroke-rest' },
+  rest: { tint: '#e8eff8', label: 'text-rest', line: 'stroke-rest', dot: 'bg-rest' },
   // Needs attention: restrained coral, not an alarm.
-  attention: { tint: '#fbebe8', label: 'text-concern', line: 'stroke-concern' },
+  attention: { tint: '#fbebe8', label: 'text-concern', line: 'stroke-concern', dot: 'bg-concern' },
   // A session that didn't happen: plain neutral, so a missed day is stated, never scolded.
-  missed: { tint: '#f1eee8', label: 'text-ink-soft', line: 'stroke-ink-faint' },
+  missed: { tint: '#f1eee8', label: 'text-ink-soft', line: 'stroke-ink-faint', dot: 'bg-ink-soft' },
   // A day the plan says nothing about: the same plain neutral, with nothing asked of it.
-  open: { tint: '#f1eee8', label: 'text-ink-soft', line: 'stroke-ink-faint' },
+  open: { tint: '#f1eee8', label: 'text-ink-soft', line: 'stroke-ink-faint', dot: 'bg-ink-soft' },
 }

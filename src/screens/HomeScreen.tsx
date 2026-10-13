@@ -18,6 +18,7 @@ import { recentCheckIns } from '../data/progress'
 import type { CheckInRecord } from '../types/progress'
 import { firstName, initialsOf, useAccount } from '../utils/auth'
 import { useCare } from '../utils/care'
+import { dayTheme } from '../utils/dayTheme'
 import { readStored, storageKeys, writeStored } from '../utils/storage'
 
 // Prototype preview of worsening signals (/?state=attention), read by the same rules as real check-ins.
@@ -74,6 +75,7 @@ export function HomeScreen() {
         onChange={(i) => setSwiped({ center: centerKey, index: i })}
         indicator={(active, goTo) => (
           // Below the wave, on the day's own surface, and in the same place whichever day is in view.
+          // The marks take that surface's own colour, so they read as part of it rather than on top of it.
           <div className="pointer-events-none absolute inset-x-0 top-[calc(var(--hero-h)-1.625rem)] flex justify-center">
             <div className="pointer-events-auto flex items-center">
               {days.map((_, i) => (
@@ -86,7 +88,9 @@ export function HomeScreen() {
                   className="flex h-9 items-center justify-center px-2"
                 >
                   <span
-                    className={`h-1.5 rounded-full transition-all ${i === active ? 'w-5 bg-accent' : 'w-1.5 bg-accent/30'}`}
+                    className={`h-1.5 rounded-full transition-all ${dayTheme[days[active].state].dot} ${
+                      i === active ? 'w-5' : 'w-1.5 opacity-30'
+                    }`}
                   />
                 </button>
               ))}
