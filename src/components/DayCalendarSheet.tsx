@@ -3,11 +3,11 @@ import type { DayState, DayView } from '../data/days'
 import { Sheet } from './Sheet'
 
 // One mark per day state, in the same shapes and colours the rest of the app uses for these meanings:
-// purple for a planned rehabilitation session, green for one that ran, blue for a recovery day.
+// orange for a planned rehabilitation session, green for one that ran, blue for a recovery day.
 const marks: Record<DayState, string> = {
-  active: 'size-1.5 rounded-full bg-accent',
+  active: 'size-1.5 rounded-full bg-planned',
   attention: 'size-1.5 rounded-full bg-concern',
-  upcoming: 'size-1.5 rounded-full bg-accent',
+  upcoming: 'size-1.5 rounded-full bg-planned',
   completed: 'size-1.5 rounded-full bg-positive',
   rest: 'size-1.5 rounded-full bg-rest',
   missed: 'h-0.5 w-2 rounded-full bg-ink-faint',

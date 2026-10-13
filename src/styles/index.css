@@ -28,7 +28,9 @@
 
   --color-attention: #9a5f0c;
   --color-attention-soft: #f7ecd9;
-  /* Home day states: blue for intentional rest, a restrained coral for "something changed". */
+  /* Home day states: orange for a session still to come, blue for intentional rest, a restrained coral
+     for "something changed". */
+  --color-planned: #c2660f;
   --color-rest: #3b6aa3;
   --color-rest-soft: #e4ecf7;
   --color-concern: #b4473a;
