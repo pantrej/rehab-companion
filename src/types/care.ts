@@ -15,6 +15,8 @@ export type Professional = {
   // Post-nominal shorthand, e.g. "PT".
   credential: string
   initials: string
+  // A portrait; the initials stand in wherever it's missing.
+  photo?: string
   clinic: string
   nextAppointment: string
   lastAppointment: string

@@ -2,8 +2,8 @@ import { ArrowRight, Lock, Mail, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router'
-// Photo: Kampus Production on Pexels (free to use). Swap the file to replace it.
-import loginImage from '../assets/login.webp'
+// Same photo as Welcome, framed closer, so signing in feels like the same place.
+import loginImage from '../assets/sunlit-mindful-moment-by-the-window.webp'
 import { AppleMark, AuthButton, AuthDivider, GoogleMark } from '../components/AuthButton'
 import { BackButton } from '../components/BackButton'
 import { Button } from '../components/Button'
@@ -41,7 +41,7 @@ export function LoginScreen() {
       <CurvedHero
         size="md"
         image={loginImage}
-        imagePosition="58% 30%"
+        imagePosition="62% 10%"
         curve="left"
         wash={false}
         header={<BackButton to="/welcome" label="Back to welcome" tone="frosted" />}

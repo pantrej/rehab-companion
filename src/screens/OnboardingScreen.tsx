@@ -20,13 +20,11 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-// Photos from Pexels (free to use): MART PRODUCTION, Yan Krukau (care team, therapist), Dajana Reçi.
-// Swap the files to replace them.
-import annaPhoto from '../assets/anna-novak.webp'
-import careTeamImage from '../assets/onboarding-care-team.webp'
-import planImage from '../assets/onboarding-plan.webp'
-import startImage from '../assets/onboarding-start.webp'
-import therapistImage from '../assets/onboarding-therapist.webp'
+// The Rehab Companion photography set. Swap the files to replace them.
+import careTeamImage from '../assets/collaborative-physiotherapy-consultation.webp'
+import planImage from '../assets/golden-hour-lake-view-hike.webp'
+import startImage from '../assets/serene-seated-yoga-stretch-at-home.webp'
+import therapistImage from '../assets/smiling-physiotherapist-in-bright-wellness-studio.webp'
 import { Avatar } from '../components/Avatar'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
@@ -164,15 +162,15 @@ export function OnboardingScreen() {
 
   return (
     <div className="flex flex-1 flex-col">
-      {phase === 'entry' && <CurvedHero header={header} image={startImage} imagePosition="30% 45%" />}
+      {phase === 'entry' && <CurvedHero header={header} image={startImage} imagePosition="50% 25%" />}
       {phase === 'connect' && (
-        <CurvedHero header={header} image={careTeamImage} imagePosition="50% 0%" imageTop={28} size="md" />
+        <CurvedHero header={header} image={careTeamImage} imagePosition="50% 29%" size="xl" />
       )}
       {phase === 'connected' && (
         <CurvedHero
           header={header}
           image={therapistImage}
-          imagePosition="50% 30%"
+          imagePosition="50% 29%"
           badge={
             <span className="flex size-16 items-center justify-center rounded-full bg-surface shadow-card">
               <span className="flex size-11 items-center justify-center rounded-full bg-positive-soft text-positive">
@@ -183,7 +181,7 @@ export function OnboardingScreen() {
         >
         </CurvedHero>
       )}
-      {phase === 'plan' && <CurvedHero header={header} image={planImage} imagePosition="50% 70%" size="md" />}
+      {phase === 'plan' && <CurvedHero header={header} image={planImage} imagePosition="50% 20%" />}
       {step && (
         <CurvedHero header={header} size="sm">
           <ThemeCard compact icon={<StepIcon id={step.id} />} label={stepThemes[step.id].label} />
@@ -310,7 +308,7 @@ export function OnboardingScreen() {
             {/* The same person as in the photo above, so the connection reads as one real professional. */}
             <Card className="mt-6 flex items-center gap-4 p-4">
               <img
-                src={annaPhoto}
+                src={professional.photo}
                 alt={`${professional.name}, ${professional.role}`}
                 className="size-[76px] shrink-0 rounded-[22px] object-cover"
               />

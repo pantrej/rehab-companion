@@ -8,5 +8,5 @@ type Props = {
 }
 
 export function ProfessionalAvatar({ professional, size = 'md' }: Props) {
-  return <Avatar initials={professional.initials} size={size} tone="professional" />
+  return <Avatar initials={professional.initials} photo={professional.photo} size={size} tone="professional" />
 }

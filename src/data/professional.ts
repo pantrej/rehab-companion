@@ -1,11 +1,14 @@
+import photo from '../assets/anna-novak-avatar.webp'
 import type { Professional } from '../types/care'
 
-// Mock professional for the connected-care scenario. Fictional; shown with an initials avatar, never a photo.
+// Mock professional for the connected-care scenario. Fictional, with a generated portrait so she reads as one
+// consistent, real person wherever she appears.
 export const professional: Professional = {
   name: 'Anna Novak',
   role: 'Physiotherapist',
   credential: 'PT',
   initials: 'AN',
+  photo,
   clinic: 'Rehabilitation Centre',
   nextAppointment: '20 October · 10:30',
   lastAppointment: '3 October',

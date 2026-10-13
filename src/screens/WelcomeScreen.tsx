@@ -1,8 +1,8 @@
 import { HeartPulse, Mail } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
-// Photo: Mikhail Nilov on Pexels (free to use). Swap the file to replace it.
-import welcomeImage from '../assets/welcome.webp'
+// The Rehab Companion photography set. Swap the file to replace it.
+import welcomeImage from '../assets/sunlit-mindful-moment-by-the-window.webp'
 import { AppleMark, AuthButton, AuthDivider, GoogleMark } from '../components/AuthButton'
 import { Button } from '../components/Button'
 import { CurvedHero } from '../components/CurvedHero'
@@ -18,7 +18,7 @@ export function WelcomeScreen() {
       <CurvedHero
         size="xl"
         image={welcomeImage}
-        imagePosition="50% 30%"
+        imagePosition="50% 11%"
         curve="left"
         wash={false}
         header={
