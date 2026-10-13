@@ -1,9 +1,12 @@
 // Photos from Pexels (free to use): Vitaly Gariev, Alex Urezkov, Karolapics, Katrin Bolovtsova, khezez.
-// One file per day state; swap a file to replace its photo everywhere.
+// One file per day state; swap a file to replace its photo everywhere. What a photo shows has to match
+// what the day is: resting is not the same as having nothing planned, and a day that needs a closer look
+// is reflective, never distressed.
 import activeImage from '../assets/home-active.webp'
-import attentionImage from '../assets/home-attention.webp'
-import completedImage from '../assets/home-completed.webp'
+import reflectiveImage from '../assets/home-completed.webp'
+import ordinaryDayImage from '../assets/golden-hour-lake-view-hike.webp'
 import restImage from '../assets/home-rest.webp'
+import afterSessionImage from '../assets/serene-seated-yoga-stretch-at-home.webp'
 import upcomingImage from '../assets/home-upcoming.webp'
 import type { CheckInRecord } from '../types/progress'
 import { TODAY, addDays, buildMonth, daysBetween } from './calendar'
@@ -39,15 +42,20 @@ export type DayView = {
 }
 
 export const dayImages: Record<DayState, string> = {
+  // The session itself: mobility work at home.
   active: activeImage,
-  completed: completedImage,
+  // After a session that ran: settled, awake, nothing triumphant.
+  completed: afterSessionImage,
+  // A session still ahead: what it takes, laid out ready.
   upcoming: upcomingImage,
+  // Recovery the plan asked for: resting on purpose.
   rest: restImage,
-  attention: attentionImage,
-  // A day whose session never happened: the same warm neutral scene as an unworked day ahead.
+  // A day that needs a closer look: calm and reflective, never distress.
+  attention: reflectiveImage,
+  // A session that never happened: the same things, left as they were.
   missed: upcomingImage,
-  // A day the plan says nothing about: the quiet scene of a day at home.
-  open: restImage,
+  // A day the plan says nothing about: an ordinary day, outdoors and the person's own.
+  open: ordinaryDayImage,
 }
 
 const weekday = (d: Date) => d.toLocaleDateString('en-GB', { weekday: 'long' })

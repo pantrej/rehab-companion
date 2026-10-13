@@ -4,12 +4,12 @@ import { dayTheme } from '../utils/dayTheme'
 // Where each photo's subject sits, so faces stay clear of the text and the wave.
 const focus: Record<DayState, string> = {
   active: '35% 60%',
-  completed: '62% 30%',
+  completed: '58% 45%',
   upcoming: '50% 55%',
   rest: '62% 30%',
-  attention: '68% 28%',
+  attention: '62% 30%',
   missed: '50% 55%',
-  open: '62% 30%',
+  open: '50% 40%',
 }
 
 type Props = {

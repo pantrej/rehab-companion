@@ -22,13 +22,35 @@ const softAction =
   'flex h-12 w-full items-center justify-center gap-2 rounded-full text-body font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
 
 // One day's plan. What it says and what it asks for follow the day's state: only today is actionable.
+// A day carries at most one button; anything else a day offers rides quietly on its label.
 export function DailyPlanCard({ day, professional, onViewSummary, onLogRest, restFeeling }: Props) {
   const theme = dayTheme[day.state]
   const past = day.offset < 0
+  const aside =
+    day.state === 'attention'
+      ? { to: '/insight', state: { returnTo: '/' }, label: 'See what changed' }
+      : day.state === 'completed' && day.doneToday
+        ? { to: '/session', label: 'Repeat session' }
+        : professional && (day.state === 'active' || day.state === 'upcoming')
+          ? { to: '/plan-changes', label: day.state === 'upcoming' ? 'Preview plan' : 'View plan' }
+          : undefined
 
   return (
-    <div className="-mt-px flex flex-1 flex-col rounded-b-[32px] px-5 pt-3 pb-6" style={{ background: theme.tint }}>
-      <p className={`text-caption font-semibold ${theme.label}`}>{day.activity.label}</p>
+    <div className="-mt-px flex flex-1 flex-col rounded-b-[32px] px-5 pt-3 pb-5" style={{ background: theme.tint }}>
+      {/* The day's kind, and beside it the quiet way to look further, so no action needs a row of its own. */}
+      <div className="flex items-baseline justify-between gap-3">
+        <p className={`text-caption font-semibold ${theme.label}`}>{day.activity.label}</p>
+        {aside && (
+          <Link
+            to={aside.to}
+            state={aside.state}
+            className="-my-2 -mr-1 inline-flex min-h-10 shrink-0 items-center gap-1 rounded-full px-1 text-[13px] font-semibold text-accent"
+          >
+            {aside.label}
+            <ArrowRight className="size-3.5" aria-hidden />
+          </Link>
+        )}
+      </div>
       <h2 className="mt-1.5 text-[26px] leading-tight font-bold tracking-[-0.02em] text-ink">{day.activity.focus}</h2>
       <p className="mt-1 text-body text-ink-soft">{day.activity.meta}</p>
 
@@ -46,17 +68,6 @@ export function DailyPlanCard({ day, professional, onViewSummary, onLogRest, res
             <Button to="/session" icon={<Play className="size-4 fill-current" aria-hidden />}>
               Start session
             </Button>
-            {day.state === 'attention' ? (
-              <Button to="/insight" state={{ returnTo: '/' }} variant="text">
-                See what changed
-              </Button>
-            ) : (
-              professional && (
-                <Button to="/plan-changes" variant="text">
-                  View plan
-                </Button>
-              )
-            )}
           </Actions>
         </>
       )}
@@ -75,18 +86,13 @@ export function DailyPlanCard({ day, professional, onViewSummary, onLogRest, res
           />
           <Actions>
             {day.doneToday ? (
-              <>
-                <Link
-                  to="/insight"
-                  state={{ returnTo: '/' }}
-                  className={`${softAction} border-[1.5px] border-positive/35 bg-white/70 text-positive hover:bg-white`}
-                >
-                  View today’s insight
-                </Link>
-                <Button to="/session" variant="quiet">
-                  Repeat today’s session
-                </Button>
-              </>
+              <Link
+                to="/insight"
+                state={{ returnTo: '/' }}
+                className={`${softAction} border-[1.5px] border-positive/35 bg-white/70 text-positive hover:bg-white`}
+              >
+                View today’s insight
+              </Link>
             ) : (
               <button
                 type="button"
@@ -119,41 +125,21 @@ export function DailyPlanCard({ day, professional, onViewSummary, onLogRest, res
         </>
       )}
 
+      {/* A day the plan says nothing about, and a session still ahead, ask nothing: the calendar and the
+          carousel already reach the rest of the plan. */}
       {day.state === 'open' && (
-        <>
-          <p className="mt-2 text-[15px] leading-snug text-ink-soft">
-            {professional
-              ? `${professional.name} plans one session a week. The days in between are yours.`
-              : 'Your plan runs one session a week. The days in between are yours.'}
-          </p>
-          <Actions>
-            <Link
-              to="/progress"
-              className={`${softAction} border-[1.5px] border-line bg-white/70 text-ink-soft hover:bg-white`}
-            >
-              See your week
-            </Link>
-          </Actions>
-        </>
+        <p className="mt-2 text-[15px] leading-snug text-ink-soft">
+          {professional
+            ? `${professional.name} plans one session a week. The days in between are yours.`
+            : 'Your plan runs one session a week. The days in between are yours.'}
+        </p>
       )}
 
-      {day.state === 'upcoming' && (
-        <>
-          {professional && (
-            <p className="mt-3 flex items-start gap-2 text-caption leading-snug text-ink-soft">
-              <RefreshCw className="mt-0.5 size-3.5 shrink-0" strokeWidth={2} aria-hidden />
-              Updated by {professional.name}: {tomorrow.changeInBrief}
-            </p>
-          )}
-          <Actions>
-            <Link
-              to={professional ? '/plan-changes' : '/progress'}
-              className={`${softAction} bg-accent-soft text-accent hover:bg-[#e0d7f8]`}
-            >
-              {professional ? 'Preview plan' : 'See your week'}
-            </Link>
-          </Actions>
-        </>
+      {day.state === 'upcoming' && professional && (
+        <p className="mt-3 flex items-start gap-2 text-caption leading-snug text-ink-soft">
+          <RefreshCw className="mt-0.5 size-3.5 shrink-0" strokeWidth={2} aria-hidden />
+          Updated by {professional.name}: {tomorrow.changeInBrief}
+        </p>
       )}
 
       {day.state === 'rest' && (
@@ -161,32 +147,34 @@ export function DailyPlanCard({ day, professional, onViewSummary, onLogRest, res
           <p className="mt-2 text-[15px] leading-snug text-ink-soft">
             Rest is part of your plan: it gives your body time to recover between sessions.
           </p>
-          <Actions>
-            {day.offset > 0 ? (
-              <Link to="/progress" className={`${softAction} border-[1.5px] border-rest/30 bg-white/75 text-rest hover:bg-white`}>
-                See your week
-              </Link>
-            ) : restFeeling ? (
-              <p className="flex h-12 items-center justify-center gap-2 text-body font-medium text-rest">
-                <span className="size-2 rounded-full bg-rest" aria-hidden />
-                Logged: {restFeeling.toLowerCase()}
-              </p>
-            ) : (
-              <button type="button" onClick={onLogRest} className={`${softAction} border-[1.5px] border-rest/30 bg-white/75 text-rest hover:bg-white`}>
-                {past ? 'Log how you felt' : 'Log how you feel'}
-                <ArrowRight className="size-4" aria-hidden />
-              </button>
-            )}
-          </Actions>
+          {day.offset <= 0 && (
+            <Actions>
+              {restFeeling ? (
+                <p className="flex h-12 items-center justify-center gap-2 text-body font-medium text-rest">
+                  <span className="size-2 rounded-full bg-rest" aria-hidden />
+                  Logged: {restFeeling.toLowerCase()}
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onLogRest}
+                  className={`${softAction} border-[1.5px] border-rest/30 bg-white/75 text-rest hover:bg-white`}
+                >
+                  {past ? 'Log how you felt' : 'Log how you feel'}
+                  <ArrowRight className="size-4" aria-hidden />
+                </button>
+              )}
+            </Actions>
+          )}
         </>
       )}
     </div>
   )
 }
 
-// Actions sit at the bottom, so cards line up across days whatever their content.
+// The one action a day has sits at the bottom, so cards line up across days whatever their content.
 function Actions({ children }: { children: ReactNode }) {
-  return <div className="mt-auto flex flex-col gap-1 pt-5">{children}</div>
+  return <div className="mt-auto pt-4">{children}</div>
 }
 
 // The small mark says what happened: a tick for a session that ran, a plain dash for one that didn't.
