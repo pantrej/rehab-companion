@@ -89,10 +89,22 @@ export function HomeScreen() {
                   className="flex h-9 items-center justify-center px-2"
                 >
                   {/* The day in view is a pill. Today is the one other mark worth finding at a glance,
-                      so it stands larger and clearer than the days around it — and tapping it goes there. */}
+                      so it stands larger and clearer than the days around it — and tapping it goes there.
+
+                      Each mark carries its own radius in pixels, half its own height, rather than the
+                      shared full-round class: that compiles to a border-radius of 2147483647px, and
+                      WebKit has been seen painting such a mark as an unclipped square while it is being
+                      animated. Only the properties that actually change are transitioned, for the same
+                      reason — `all` hands the compositor more than it needs. */}
                   <span
-                    className={`rounded-full transition-all ${dayTheme[days[active].state].dot} ${
-                      i === active ? 'h-1.5 w-5' : day.offset === 0 ? 'size-2.5 opacity-60' : 'size-1.5 opacity-30'
+                    className={`transition-[width,height,border-radius,background-color,opacity] duration-300 ease-out ${
+                      dayTheme[days[active].state].dot
+                    } ${
+                      i === active
+                        ? 'h-1.5 w-5 rounded-[3px]'
+                        : day.offset === 0
+                          ? 'size-2.5 rounded-[5px] opacity-60'
+                          : 'size-1.5 rounded-[3px] opacity-30'
                     }`}
                   />
                 </button>
