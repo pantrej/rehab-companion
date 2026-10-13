@@ -18,6 +18,7 @@ import { recentCheckIns } from '../data/progress'
 import type { CheckInRecord } from '../types/progress'
 import { firstName, initialsOf, useAccount } from '../utils/auth'
 import { useCare } from '../utils/care'
+import { readPhoto } from '../utils/photo'
 import { dayTheme } from '../utils/dayTheme'
 import { checkedInToday, readStored, storageKeys, writeStored } from '../utils/storage'
 
@@ -50,6 +51,7 @@ export function HomeScreen() {
 
   const name = account?.fullName ?? ''
   const doneToday = checkedInToday()
+  const photo = readPhoto()
 
   const preview = params.get('state') === 'attention'
   const records = preview ? worseningCheckIns : recentCheckIns
@@ -152,8 +154,8 @@ export function HomeScreen() {
         aria-label="Profile"
         className="absolute top-[max(env(safe-area-inset-top),2.75rem)] right-4 flex size-11 items-center justify-center"
       >
-        <span className="flex size-9 items-center justify-center rounded-full bg-white/80 text-caption font-semibold text-ink-soft backdrop-blur-sm">
-          {initialsOf(name) || '?'}
+        <span className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-white/80 text-caption font-semibold text-ink-soft backdrop-blur-sm">
+          {photo ? <img src={photo} alt="" className="size-full object-cover" /> : initialsOf(name) || '?'}
         </span>
       </Link>
 

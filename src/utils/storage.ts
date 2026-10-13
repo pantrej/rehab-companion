@@ -10,11 +10,15 @@ export function readStored<T>(key: string, fallback: T): T {
   }
 }
 
+// Returns whether the value actually reached storage, so a caller that saves something large (a photo)
+// can say so rather than showing it as saved.
 export function writeStored(key: string, value: unknown) {
   try {
     localStorage.setItem(key, JSON.stringify(value))
+    return true
   } catch {
     // The prototype carries on without persistence.
+    return false
   }
 }
 
@@ -30,6 +34,9 @@ export const storageKeys = {
   appointmentNote: 'rehab.appointmentNote',
   // How rest days felt, by date.
   restFeelings: 'rehab.restFeelings',
+  // The profile photo, kept beside the account rather than inside it: an image is far larger than the
+  // rest of an account, and a device out of room should lose the photo, never the account.
+  photo: 'rehab.photo',
 }
 
 // A check-in saved today (on this device) means today's session is complete. Every screen that builds

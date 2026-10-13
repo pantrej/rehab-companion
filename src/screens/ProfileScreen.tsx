@@ -1,11 +1,11 @@
 import { ChevronRight, FileText, Info, LogOut, PencilLine, RefreshCw, UserRound } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Avatar } from '../components/Avatar'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { DetailList } from '../components/DetailList'
 import { ProfessionalCard } from '../components/ProfessionalCard'
+import { ProfilePhotoPicker } from '../components/ProfilePhotoPicker'
 import { Section } from '../components/Section'
 import { Sheet } from '../components/Sheet'
 import { patientRecord } from '../data/patient'
@@ -14,6 +14,7 @@ import { aboutGuidance, carePrinciple, preferences } from '../data/profile'
 import { connectedPlan } from '../data/professional'
 import { initialsOf, logOut, useAccount } from '../utils/auth'
 import { useCare } from '../utils/care'
+import { useProfilePhoto } from '../utils/photo'
 
 const notSet = 'Not set yet'
 
@@ -22,6 +23,7 @@ export function ProfileScreen() {
   const account = useAccount()
   const { care, professional } = useCare()
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [photo, setPhoto] = useProfilePhoto()
   const closeAbout = useCallback(() => setAboutOpen(false), [])
   const setup = care?.setup ?? {}
   const name = account?.fullName ?? 'You'
@@ -32,7 +34,7 @@ export function ProfileScreen() {
 
       <Section id="patient" title="Patient profile">
         <Card className="flex items-center gap-4 p-6">
-          <Avatar initials={initialsOf(name)} size="lg" />
+          <ProfilePhotoPicker initials={initialsOf(name)} photo={photo} onChange={setPhoto} />
           <div>
             <p className="text-[17px] font-semibold text-ink">{name}</p>
             {professional && <p className="text-[15px] text-ink-soft">{patientRecord.age} years</p>}
