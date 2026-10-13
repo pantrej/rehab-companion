@@ -79,3 +79,70 @@ body {
   }
 }
 
+
+/* A seated calf raise: the heel lifts on the ball of the foot, and the knee and thigh rise with it.
+   The three parts share one timing, so they move as one leg. */
+@keyframes heel-raise {
+  0%,
+  10% {
+    transform: rotate(0deg);
+  }
+  45%,
+  60% {
+    transform: rotate(-17deg);
+  }
+  95%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes shin-lift {
+  0%,
+  10% {
+    transform: translateY(0);
+  }
+  45%,
+  60% {
+    transform: translateY(-9px);
+  }
+  95%,
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes thigh-lift {
+  0%,
+  10% {
+    transform: rotate(0deg);
+  }
+  45%,
+  60% {
+    transform: rotate(-4.5deg);
+  }
+  95%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@utility animate-heel-raise {
+  animation: heel-raise 2.8s ease-in-out infinite;
+}
+
+@utility animate-shin-lift {
+  animation: shin-lift 2.8s ease-in-out infinite;
+}
+
+@utility animate-thigh-lift {
+  animation: thigh-lift 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-heel-raise,
+  .animate-shin-lift,
+  .animate-thigh-lift {
+    animation: none;
+  }
+}

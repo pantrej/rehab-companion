@@ -1,9 +1,10 @@
-import { Check, ChevronDown, ChevronRight, LifeBuoy, Play } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight, LifeBuoy } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { ContactSheet } from '../components/ContactSheet'
+import { ExerciseDemo } from '../components/ExerciseDemo'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
 import { SafetyGuide } from '../components/SafetyGuide'
 import { StepHeader } from '../components/StepHeader'
@@ -50,15 +51,7 @@ export function ExerciseScreen() {
           )}
         </header>
 
-        <button
-          type="button"
-          className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-card bg-sunken transition-colors hover:bg-line"
-        >
-          <span className="flex size-16 items-center justify-center rounded-full bg-surface text-accent shadow-card">
-            <Play className="ml-0.5 size-6 fill-current" aria-hidden />
-          </span>
-          <span className="text-[15px] font-medium text-ink-soft">Watch demonstration</span>
-        </button>
+        <ExerciseDemo name={exercise.name} instruction={exercise.instruction} />
 
         <div className="flex flex-col gap-3">
           <Card className="p-6">
