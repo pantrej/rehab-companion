@@ -200,10 +200,11 @@ export function OnboardingScreen() {
           <>
             <p className="text-[12px] font-semibold tracking-[0.16em] text-ink-faint uppercase">Rehab Companion</p>
             <h1 ref={headingRef} id="question" tabIndex={-1} className={`mt-3 ${titleClass}`}>
-              How are you currently managing your rehabilitation?
+              Choose your care type
             </h1>
             <p className={bodyClass}>We’ll tailor the app and its support to how you recover today.</p>
-            <div role="radiogroup" aria-labelledby="question" className="mt-6 flex flex-col gap-3">
+            {/* Equal rows, so both care types read as equal choices. */}
+            <div role="radiogroup" aria-labelledby="question" className="mt-6 grid auto-rows-fr gap-3">
               {careModeOptions.map((option) => {
                 const Icon = careIcons[option.id]
                 return (

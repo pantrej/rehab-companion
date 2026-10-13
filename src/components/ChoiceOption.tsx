@@ -22,10 +22,8 @@ export function ChoiceOption({ label, description, selected, onSelect, multiple 
         role={multiple ? 'checkbox' : 'radio'}
         aria-checked={selected}
         onClick={onSelect}
-        className={`flex w-full items-center gap-4 rounded-[22px] border-[1.5px] px-4 py-3.5 pr-5 text-left transition-[background-color,border-color,box-shadow] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-          selected
-            ? 'border-accent bg-[#f4f0fd] shadow-[0_12px_28px_-16px_rgb(75_42_173/0.5)]'
-            : 'border-transparent bg-surface shadow-card hover:border-line'
+        className={`flex h-full w-full items-center gap-4 rounded-[22px] border-[1.5px] px-4 py-3.5 pr-5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+          selected ? 'border-accent bg-[#f4f0fd]' : 'border-line bg-surface hover:border-[#d9d4ca]'
         }`}
       >
         <span
@@ -40,13 +38,14 @@ export function ChoiceOption({ label, description, selected, onSelect, multiple 
           <span className="block text-[17px] leading-snug font-semibold text-ink">{label}</span>
           {description && <span className="mt-1 block text-[15px] leading-snug text-ink-soft">{description}</span>}
         </span>
+        {/* A checkmark marks the choice; the space is kept so the text never shifts. */}
         <span
-          className={`flex size-6 shrink-0 items-center justify-center rounded-full border-[1.5px] transition-colors ${
-            selected ? 'border-accent' : 'border-[#d3cec5]'
+          className={`flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-white transition-[opacity,scale] ${
+            selected ? 'scale-100 opacity-100' : 'scale-75 opacity-0'
           }`}
           aria-hidden
         >
-          <span className={`size-3 rounded-full bg-accent transition-transform ${selected ? 'scale-100' : 'scale-0'}`} />
+          <Check className="size-3.5" strokeWidth={3} />
         </span>
       </button>
     )
