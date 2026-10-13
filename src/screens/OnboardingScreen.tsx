@@ -33,7 +33,6 @@ import { DetailList } from '../components/DetailList'
 import { CurvedHero, ThemeCard } from '../components/CurvedHero'
 import { ProfessionalCard } from '../components/ProfessionalCard'
 import { Section } from '../components/Section'
-import { SegmentedControl } from '../components/SegmentedControl'
 import { StepHeader } from '../components/StepHeader'
 import { TextField } from '../components/TextField'
 import { onboardingSteps, onboardingSummary } from '../data/onboarding'
@@ -48,7 +47,6 @@ import { readCare, saveCare } from '../utils/care'
 // entry → connected care: connect → connected → plan · independent: questions 0–3 → summary.
 // Both paths end plan-ready and hand over to the account step, which saves what setup produced.
 type Phase = 'entry' | 'connect' | 'connected' | 'plan' | 'summary' | number
-type ConnectMethod = 'code' | 'link'
 
 const total = onboardingSteps.length
 // Progress counts the care question as step 1 on both paths.
@@ -78,9 +76,7 @@ export function OnboardingScreen() {
   const [phase, setPhase] = useState<Phase>(isEdit ? 0 : 'entry')
   const [mode, setMode] = useState<CareMode | undefined>(fromProfile ? existing?.mode : undefined)
   const [answers, setAnswers] = useState<OnboardingAnswers>(() => (isEdit ? (existing?.setup ?? {}) : {}))
-  const [method, setMethod] = useState<ConnectMethod>('code')
   const [code, setCode] = useState('')
-  const [link, setLink] = useState('')
   const [connectError, setConnectError] = useState<string>()
   const [showHelp, setShowHelp] = useState(false)
   const headingRef = useRef<HTMLHeadingElement>(null)
@@ -94,16 +90,11 @@ export function OnboardingScreen() {
 
   const step = typeof phase === 'number' ? onboardingSteps[phase] : undefined
   const selected = step ? answers[step.id] : undefined
-  const connectValue = method === 'code' ? code.trim() : link.trim()
+  const connectValue = code.trim()
 
   const connect = () => {
-    const ok = method === 'code' ? connectValue === connection.code : connectValue.includes(connection.code)
-    if (!ok) {
-      setConnectError(
-        method === 'code'
-          ? 'That code doesn’t match an invitation. Check the code from your clinic.'
-          : 'That link doesn’t match an invitation. Check the link from your clinic.',
-      )
+    if (connectValue !== connection.code) {
+      setConnectError('That code doesn’t match an invitation. Check the code from your clinic.')
       return
     }
     setConnectError(undefined)
@@ -231,57 +222,24 @@ export function OnboardingScreen() {
               Connect with your rehabilitation professional
             </h1>
             <p className={bodyClass}>
-              Your clinic gives you a connection code or an invite link. Once connected, you’ll see the plan they
-              prepared for you.
+              Your clinic gives you a connection code. Once connected, you’ll see the plan they prepared for you.
             </p>
-            <div className="mt-5">
-              <SegmentedControl
-                variant="accent"
-                label="Connection method"
-                options={[
-                  { id: 'code', label: 'Enter connection code' },
-                  { id: 'link', label: 'Use invite link' },
-                ]}
-                value={method}
-                onChange={(m) => {
-                  setMethod(m)
-                  setConnectError(undefined)
-                }}
-              />
-            </div>
-            {method === 'code' ? (
-              <TextField
-                className="mt-5"
-                label="Connection code"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={6}
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                onClear={() => setCode('')}
-                error={connectError}
-              />
-            ) : (
-              <TextField
-                className="mt-5"
-                label="Invite link"
-                inputMode="url"
-                autoComplete="off"
-                value={link}
-                onChange={(e) => setLink(e.target.value)}
-                onClear={() => setLink('')}
-                error={connectError}
-              />
-            )}
+            <TextField
+              className="mt-6"
+              label="Connection code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+              onClear={() => setCode('')}
+              error={connectError}
+            />
             <div className="mt-4 flex gap-3 rounded-2xl bg-accent-soft/60 p-4">
               <Info className="mt-0.5 size-5 shrink-0 text-accent" strokeWidth={1.75} aria-hidden />
               <p className="text-[15px] leading-snug text-ink-soft">
-                {method === 'code'
-                  ? 'You can find the code in your clinic email or ask your physiotherapist.'
-                  : 'Paste the invite link from your clinic email or message.'}
-                <span className="mt-1.5 block font-medium text-ink">
-                  Prototype {method === 'code' ? `code: ${connection.code}` : `link: ${connection.inviteLinkHint}`}
-                </span>
+                You can find the code in your clinic email or ask your physiotherapist.
+                <span className="mt-1.5 block font-medium text-ink">Prototype code: {connection.code}</span>
               </p>
             </div>
             <button

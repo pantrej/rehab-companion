@@ -18,10 +18,9 @@ export const professional: Professional = {
     'Keep checking in after each session. Your notes help me adjust your plan safely at our reviews.',
 }
 
-// Connection is by an invitation from the clinic. Prototype code and link only.
+// Connection is by an invitation from the clinic: one code, prototype only.
 export const connection = {
   code: '482913',
-  inviteLinkHint: 'rehab.example/invite/482913',
 }
 
 // What the professional has already supplied, so a connected user is never asked to recreate it.
