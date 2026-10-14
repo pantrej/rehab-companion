@@ -25,7 +25,7 @@ import { CautionNote } from '../components/CautionNote'
 import { ChoiceOption } from '../components/ChoiceOption'
 import { MiniTrend } from '../components/MiniTrend'
 import { MovementMarks } from '../components/MovementMarks'
-import { PainScale } from '../components/PainScale'
+import { RatingSlider } from '../components/RatingSlider'
 import { PlanUpdateNote } from '../components/PlanUpdateNote'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
 import { ProfessionalCard } from '../components/ProfessionalCard'
@@ -41,7 +41,7 @@ import { assess, currentAssessment } from '../data/assessment'
 import type { Assessment } from '../data/assessment'
 import { professional } from '../data/professional'
 import { progressPeriods } from '../data/progress'
-import { currentExercise } from '../data/session'
+import { sessionExercises } from '../data/session'
 import { recoverySignals, todayPlan } from '../data/today'
 import { toneDot, toneSolid, toneStatusText, toneText } from '../utils/tone'
 import { elevation, palette, principles, radii, spacing, typeScale } from './foundations'
@@ -155,8 +155,8 @@ function Prescription() {
     <div>
     <dl className="grid grid-cols-2 gap-4">
       {[
-        ['sets', currentExercise.sets],
-        ['repetitions', currentExercise.reps],
+        ['sets', sessionExercises[0].sets],
+        ['repetitions', sessionExercises[0].reps],
       ].map(([label, value]) => (
         <div key={label} className="flex flex-col-reverse">
           <dt className="mt-1 text-[15px] text-ink-soft">{label}</dt>
@@ -164,7 +164,7 @@ function Prescription() {
         </div>
       ))}
     </dl>
-      <p className="mt-5 border-t border-ink/10 pt-4 text-body font-medium text-ink">{currentExercise.equipment}</p>
+      <p className="mt-5 border-t border-ink/10 pt-4 text-body font-medium text-ink">{sessionExercises[0].equipment}</p>
     </div>
   )
 }
@@ -177,7 +177,7 @@ export function DesignSystemPage() {
   const [single, setSingle] = useState('A few weeks in')
   const [multi, setMulti] = useState<string[]>(['Exercise technique'])
   const [range, setRange] = useState<'7d' | '30d'>('7d')
-  const [pain, setPain] = useState<number | undefined>(2)
+  const [pain, setPain] = useState(2)
   const [name, setName] = useState('Alex Novak')
 
   return (
@@ -499,7 +499,14 @@ export function DesignSystemPage() {
                     How was your pain during the session?
                   </p>
                   <div className="mt-8">
-                    <PainScale value={pain} onChange={setPain} min={0} max={10} minLabel="No pain" maxLabel="Severe pain" labelledBy="ds-pain" />
+                    <RatingSlider
+                      id="ds-pain-slider"
+                      label="How was your pain during the session?"
+                      value={pain}
+                      onChange={setPain}
+                      minLabel="No pain"
+                      maxLabel="Worst pain"
+                    />
                   </div>
                 </div>
               }
@@ -778,7 +785,7 @@ export function DesignSystemPage() {
                 <StepHeader current={0} total={4} onBack={() => {}} backLabel="Back to Today" showCount={false} />
                 <div className="-mt-2">
                   <p className="text-caption font-medium text-accent">Exercise 1 of 4</p>
-                  <p className="mt-1 text-title font-semibold">{currentExercise.name}</p>
+                  <p className="mt-1 text-title font-semibold">{sessionExercises[0].name}</p>
                 </div>
                 <Card className="p-5">
                   <Prescription />

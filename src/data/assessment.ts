@@ -106,12 +106,13 @@ export function assess(records: CheckInRecord[], scope: string): Assessment {
 }
 
 // Connected care reads the time since the last appointment, so it lines up with the next review;
-// independent users get the last 7 days.
-export function currentAssessment(professional?: Professional) {
+// independent users get the last 7 days. `records` is the live list of check-ins, so a session checked
+// in on this device is part of the reading as soon as it is saved.
+export function currentAssessment(professional?: Professional, records: CheckInRecord[] = recentCheckIns) {
   return professional
     ? assess(
-        recentCheckIns.filter((r) => r.daysAgo < professional.daysSinceLastAppointment),
+        records.filter((r) => r.daysAgo < professional.daysSinceLastAppointment),
         `since your last appointment on ${professional.lastAppointment}`,
       )
-    : assess(recentCheckIns, 'in the last 7 days')
+    : assess(records, 'in the last 7 days')
 }

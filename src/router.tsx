@@ -5,6 +5,7 @@ import { RequireAccount } from './layouts/RequireAccount'
 import { AppointmentScreen } from './screens/AppointmentScreen'
 import { CheckInScreen } from './screens/CheckInScreen'
 import { ExerciseScreen } from './screens/ExerciseScreen'
+import { ExerciseScreenClassic } from './screens/ExerciseScreenClassic'
 import { HomeScreen } from './screens/HomeScreen'
 import { HomeScreenClassic } from './screens/HomeScreenClassic'
 import { InsightScreen } from './screens/InsightScreen'
@@ -63,6 +64,8 @@ export const router = createBrowserRouter([
         element: <MobileLayout nav={false} />,
         children: [
           { path: 'session', element: <ExerciseScreen /> },
+          // The session before it became a real four-exercise sequence, for the case study before/after.
+          { path: 'session-classic', element: <ExerciseScreenClassic /> },
           { path: 'check-in', element: <CheckInScreen /> },
           { path: 'insight', element: <InsightScreen /> },
           { path: 'summary', element: <SummaryScreen /> },

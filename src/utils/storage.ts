@@ -34,6 +34,9 @@ export const storageKeys = {
   appointmentNote: 'rehab.appointmentNote',
   // How rest days felt, by date.
   restFeelings: 'rehab.restFeelings',
+  // How far today's rehabilitation session has got, so leaving it and coming back keeps the exercises
+  // already completed.
+  session: 'rehab.session',
   // The profile photo, kept beside the account rather than inside it: an image is far larger than the
   // rest of an account, and a device out of room should lose the photo, never the account.
   photo: 'rehab.photo',

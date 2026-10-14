@@ -10,7 +10,7 @@ import { Section } from '../components/Section'
 import { currentAssessment } from '../data/assessment'
 import type { Assessment } from '../data/assessment'
 import { buildDayMonth } from '../data/days'
-import { progressPeriods, progressTrends } from '../data/progress'
+import { buildTrends, progressPeriods } from '../data/progress'
 import type { TrendSignal } from '../data/progress'
 import { sessionHistory } from '../data/sessions'
 import type { SessionRecord } from '../data/sessions'
@@ -18,6 +18,7 @@ import { sinceLastAppointment } from '../data/summary'
 import type { ProgressRangeId } from '../types/progress'
 import { useCare } from '../utils/care'
 import type { SignalTone } from '../types/recovery'
+import { liveCheckIns } from '../utils/checkIn'
 import { checkedInToday } from '../utils/storage'
 import { toneDot, toneStatusText } from '../utils/tone'
 
@@ -48,7 +49,10 @@ export function ProgressScreen() {
       })
     }
   }
-  const assessment = currentAssessment(professional)
+  // The same check-ins everywhere: the history, plus a session checked in on this device today.
+  const records = liveCheckIns()
+  const assessment = currentAssessment(professional, records)
+  const trends = buildTrends(records, assessment.changes)
   const completed = sessionHistory.filter((session) => session.outcome === 'Completed').length
   const difficulty = assessment.series.difficulty
 
@@ -151,7 +155,7 @@ export function ProgressScreen() {
         />
         <Card className="px-5 py-1">
           <ul className="divide-y divide-line">
-            {progressTrends[range].map((signal) => (
+            {trends[range].map((signal) => (
               <Trend key={signal.id} signal={signal} />
             ))}
           </ul>
@@ -227,7 +231,7 @@ export function ProgressScreen() {
 
       {calendarOpen && (
         <DayCalendarSheet
-          days={buildDayMonth({ firstName: '', connected, onTrack: assessment.onTrack, doneToday: checkedInToday() })}
+          days={buildDayMonth({ firstName: '', connected, onTrack: assessment.onTrack, doneToday: checkedInToday(), records })}
           mode="inspect"
           onClose={() => setCalendarOpen(false)}
         />

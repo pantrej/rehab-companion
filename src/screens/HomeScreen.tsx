@@ -14,10 +14,10 @@ import { assess, currentAssessment } from '../data/assessment'
 import { TODAY } from '../data/calendar'
 import { buildDayMonth, buildDayWindow } from '../data/days'
 import type { DayView } from '../data/days'
-import { recentCheckIns } from '../data/progress'
 import type { CheckInRecord } from '../types/progress'
 import { firstName, initialsOf, useAccount } from '../utils/auth'
 import { useCare } from '../utils/care'
+import { liveCheckIns } from '../utils/checkIn'
 import { readPhoto } from '../utils/photo'
 import { dayTheme } from '../utils/dayTheme'
 import { checkedInToday, readStored, storageKeys, writeStored } from '../utils/storage'
@@ -54,9 +54,11 @@ export function HomeScreen() {
   const photo = readPhoto()
 
   const preview = params.get('state') === 'attention'
-  const records = preview ? worseningCheckIns : recentCheckIns
-  const assessment = preview ? assess(worseningCheckIns, 'in the last 7 days') : currentAssessment(professional)
-  const context = { firstName: firstName(name), connected, onTrack: assessment.onTrack, doneToday }
+  // One list of check-ins behind the day, the reading and the calendar: the prototype's history, plus a
+  // session checked in on this device today.
+  const records = preview ? worseningCheckIns : liveCheckIns()
+  const assessment = preview ? assess(worseningCheckIns, 'in the last 7 days') : currentAssessment(professional, records)
+  const context = { firstName: firstName(name), connected, onTrack: assessment.onTrack, doneToday, records }
   const { days, index } = buildDayWindow({ ...context, center: center.date })
   const centerKey = `${dateKey(center.date)}-${center.pick}`
   // Swiping moves within the window; picking a date in the calendar rebuilds it around that day.

@@ -103,84 +103,123 @@ export type TrendSignal = {
 }
 
 // Self-reported movement, drawn on its own three-step scale.
-const movementScale: Record<Movement, number> = { Worse: 1, 'About the same': 2, Better: 3 }
-const recentMovement = [...recentCheckIns].reverse().map((c) => movementScale[c.movement])
-const recentDifficulty = [...recentCheckIns].reverse().map((c) => c.difficulty)
+export const movementScale: Record<Movement, number> = { Worse: 1, 'About the same': 2, Better: 3 }
 // The month before the recent check-ins, oldest first.
 const earlierDifficulty = [8, 8, 7, 7, 7, 6, 7, 6]
 const earlierMovement = [2, 2, 1, 2, 3, 2, 3, 3]
 
-export const progressTrends: Record<ProgressRangeId, TrendSignal[]> = {
-  '7d': [
-    {
-      id: 'pain',
-      label: 'Pain',
-      status: 'Stable',
-      tone: 'positive',
-      value: '2–⁠3 / 10',
-      series: [...recentCheckIns].reverse().map((c) => c.pain),
-      max: 10,
-      seriesLabel: 'Pain at each check-in, out of 10',
-      reading: 'Stayed within your usual range over the last 7 days.',
-    },
-    {
-      id: 'mobility',
-      label: 'Mobility',
-      status: 'Improving',
-      tone: 'positive',
-      value: '↑ across 3 check-ins',
-      series: recentMovement,
-      max: 3,
-      seriesLabel: 'How movement felt at each check-in, from worse to better',
-      reading: 'Movement has gradually improved across recent check-ins.',
-    },
-    {
-      id: 'difficulty',
-      label: 'Session difficulty',
-      status: 'Getting easier',
-      tone: 'positive',
-      value: '7/10 → 5/10',
-      series: recentDifficulty,
-      max: 10,
-      seriesLabel: 'Session difficulty at each check-in, out of 10',
-      reading: 'Exercises have felt easier across recent sessions.',
-    },
-  ],
-  '30d': [
-    {
-      id: 'pain',
-      label: 'Pain',
-      status: 'Stable',
-      tone: 'positive',
-      value: '2–⁠4 / 10',
-      series: [...earlierPain.map(([, value]) => value), ...[...recentCheckIns].reverse().map((c) => c.pain)],
-      max: 10,
-      seriesLabel: 'Pain at each check-in this month, out of 10',
-      reading: 'Stayed between 2 and 4 out of 10 this month, and between 2 and 3 recently.',
-    },
-    {
-      id: 'mobility',
-      label: 'Mobility',
-      status: 'Improving',
-      tone: 'positive',
-      value: '↑ over the month',
-      series: [...earlierMovement, ...recentMovement],
-      max: 3,
-      seriesLabel: 'How movement felt at each check-in this month, from worse to better',
-      reading: 'Movement has improved overall, after steadier weeks earlier in the month.',
-    },
-    {
-      id: 'difficulty',
-      label: 'Session difficulty',
-      status: 'Getting easier',
-      tone: 'positive',
-      value: '8/10 → 5/10',
-      series: [...earlierDifficulty, ...recentDifficulty],
-      max: 10,
-      seriesLabel: 'Session difficulty at each check-in this month, out of 10',
-      reading: 'Sessions have felt steadily easier since the start of the month.',
-    },
-  ],
+// The trend cards, built from the live check-ins so they say the same thing as the reading above them.
+// Each signal's status comes from the assessment, not from a second opinion written here: one rule, one
+// verdict, whichever part of Progress is showing it.
+export function buildTrends(records: CheckInRecord[], changes: InsightSignal[]): Record<ProgressRangeId, TrendSignal[]> {
+  const oldestFirst = [...records].reverse()
+  const pain = oldestFirst.map((c) => c.pain)
+  const difficulty = oldestFirst.map((c) => c.difficulty)
+  const movement = oldestFirst.map((c) => movementScale[c.movement])
+  const status = (id: InsightSignal['id']) => changes.find((c) => c.id === id) ?? changes[0]
+  const low = Math.min(...pain)
+  const high = Math.max(...pain)
+  // An en dash with a word joiner after it, so a range never breaks across two lines.
+  const span = (values: number[]) => {
+    const min = Math.min(...values)
+    const max = Math.max(...values)
+    return min === max ? `${min} / 10` : `${min}\u2013\u2060${max} / 10`
+  }
+  const first = difficulty[0]
+  const last = difficulty[difficulty.length - 1]
+  const movementReading = (scope: string) =>
+    status('mobility').status === 'Improving'
+      ? `Movement has gradually improved across ${scope}.`
+      : status('mobility').status === 'Worse'
+        ? `Movement has felt worse across ${scope}.`
+        : `Movement has felt about the same across ${scope}.`
+  const difficultyReading = (scope: string) =>
+    last < first
+      ? `Exercises have felt easier across ${scope}.`
+      : last > first
+        ? `Exercises have felt harder across ${scope}.`
+        : `Exercises have felt about the same across ${scope}.`
+  const monthPain = [...earlierPain.map(([, value]) => value), ...pain]
+  const monthDifficulty = [...earlierDifficulty, ...difficulty]
+  const monthMovement = [...earlierMovement, ...movement]
+
+  return {
+    '7d': [
+      {
+        id: 'pain',
+        label: 'Pain',
+        status: status('pain').status,
+        tone: status('pain').tone,
+        value: span(pain),
+        series: pain,
+        max: 10,
+        seriesLabel: 'Pain at each check-in, out of 10',
+        reading:
+          low === high
+            ? `Held at ${low} out of 10 over the last 7 days.`
+            : `Stayed between ${low} and ${high} out of 10 over the last 7 days.`,
+      },
+      {
+        id: 'mobility',
+        label: 'Mobility',
+        status: status('mobility').status,
+        tone: status('mobility').tone,
+        value: `${arrow(status('mobility').status)} across ${records.length} check-ins`,
+        series: movement,
+        max: 3,
+        seriesLabel: 'How movement felt at each check-in, from worse to better',
+        reading: movementReading('recent check-ins'),
+      },
+      {
+        id: 'difficulty',
+        label: 'Session difficulty',
+        status: status('difficulty').status,
+        tone: status('difficulty').tone,
+        value: `${first}/10 → ${last}/10`,
+        series: difficulty,
+        max: 10,
+        seriesLabel: 'Session difficulty at each check-in, out of 10',
+        reading: difficultyReading('recent sessions'),
+      },
+    ],
+    '30d': [
+      {
+        id: 'pain',
+        label: 'Pain',
+        status: status('pain').status,
+        tone: status('pain').tone,
+        value: span(monthPain),
+        series: monthPain,
+        max: 10,
+        seriesLabel: 'Pain at each check-in this month, out of 10',
+        reading: `Stayed between ${Math.min(...monthPain)} and ${Math.max(...monthPain)} out of 10 this month, and between ${low} and ${high} recently.`,
+      },
+      {
+        id: 'mobility',
+        label: 'Mobility',
+        status: status('mobility').status,
+        tone: status('mobility').tone,
+        value: `${arrow(status('mobility').status)} over the month`,
+        series: monthMovement,
+        max: 3,
+        seriesLabel: 'How movement felt at each check-in this month, from worse to better',
+        reading: movementReading('the month'),
+      },
+      {
+        id: 'difficulty',
+        label: 'Session difficulty',
+        status: status('difficulty').status,
+        tone: status('difficulty').tone,
+        value: `${monthDifficulty[0]}/10 → ${monthDifficulty[monthDifficulty.length - 1]}/10`,
+        series: monthDifficulty,
+        max: 10,
+        seriesLabel: 'Session difficulty at each check-in this month, out of 10',
+        reading: difficultyReading('the month'),
+      },
+    ],
+  }
 }
+
+const arrow = (status: string) => (status === 'Improving' ? '↑' : status === 'Worse' ? '↓' : '→')
 
 export const whatChangedRecently = 'Your sessions are becoming easier while pain remains stable.'

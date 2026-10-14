@@ -14,6 +14,7 @@ import { tomorrow } from '../data/plan'
 import { supportTopics } from '../data/support'
 import type { CheckIn } from '../types/checkin'
 import { professionalPhrase, useCare } from '../utils/care'
+import { liveCheckIns } from '../utils/checkIn'
 import { readStored, storageKeys } from '../utils/storage'
 import { toneDot, toneText } from '../utils/tone'
 
@@ -47,7 +48,7 @@ export function InsightScreen() {
     .map((label) => supportTopics.find((t) => t.label === label))
     .filter((t) => t !== undefined)
   const { professional } = useCare()
-  const a = currentAssessment(professional)
+  const a = currentAssessment(professional, liveCheckIns())
   const [whyOpen, setWhyOpen] = useState(false)
   const showWhy = whyOpen || !a.onTrack
   const pro = professionalPhrase(professional?.name)

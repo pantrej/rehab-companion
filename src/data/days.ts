@@ -69,6 +69,8 @@ type Context = {
   connected: boolean
   onTrack: boolean
   doneToday: boolean
+  // The check-ins to attach to the days, so a check-in saved today shows on today's date.
+  records?: CheckInRecord[]
 }
 
 const monthLength = new Date(TODAY.getFullYear(), TODAY.getMonth() + 1, 0).getDate()
@@ -164,7 +166,7 @@ function buildDay(date: Date, month: CalendarDay[], { firstName, onTrack, doneTo
 // every slide has real plan data. `index` is where `center` sits in that window.
 export function buildDayWindow(context: Context & { center?: Date }): { days: DayView[]; index: number } {
   const { center = TODAY } = context
-  const month = buildMonth(recentCheckIns, context.connected)
+  const month = buildMonth(context.records ?? recentCheckIns, context.connected)
   const centerDay = clamp(center.getDate(), 1, monthLength)
   const start = clamp(centerDay - Math.floor(windowSize / 2), 1, monthLength - windowSize + 1)
   const first = new Date(TODAY.getFullYear(), TODAY.getMonth(), start)
@@ -177,7 +179,7 @@ export function buildDayWindow(context: Context & { center?: Date }): { days: Da
 // The same days, for the whole month: what the calendar navigates. Identical rules, so a date reads the
 // same in the calendar and on Home.
 export function buildDayMonth(context: Context): DayView[] {
-  const month = buildMonth(recentCheckIns, context.connected)
+  const month = buildMonth(context.records ?? recentCheckIns, context.connected)
   return month.map((day) => buildDay(day.date, month, context))
 }
 
