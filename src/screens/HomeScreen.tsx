@@ -157,15 +157,16 @@ export function HomeScreen() {
         </span>
       </Link>
 
-      {/* The reading sits in the room the screen has left under the day, settled a little below the
-          middle of it: the space is shared three parts above to two below. Sharing it out rather than
-          pushing with a margin means a screen with nothing to spare simply gives none, instead of
-          sending the reading under the tab bar. */}
-      <span className="grow-[3] basis-0" aria-hidden />
-      <div className="px-5 pt-4">
+      {/* The reading follows close under the day — a gap of about a twentieth of the screen, so the two
+          read as one column rather than two things at opposite ends of the room. The gap grows into the
+          room the screen has left over but no further than that twentieth, and what remains falls below
+          it, so a screen with nothing to spare simply gives less instead of scrolling the day out of
+          one screen. */}
+      <span className="max-h-[5dvh] grow basis-0" aria-hidden />
+      <div className="px-5">
         <RecoveryStatus assessment={assessment} day={days[activeIndex]} records={records} />
       </div>
-      <span className="grow-[2] basis-0" aria-hidden />
+      <span className="grow basis-0" aria-hidden />
 
       {calendarOpen && (
         <DayCalendarSheet
