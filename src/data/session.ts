@@ -1,38 +1,21 @@
-import kneeMp4 from '../assets/demos/seated-knee-extension.mp4'
-import kneePoster from '../assets/demos/seated-knee-extension.webp'
-import kneeWebm from '../assets/demos/seated-knee-extension.webm'
-import calfMp4 from '../assets/demos/seated-calf-raise.mp4'
-import calfPoster from '../assets/demos/seated-calf-raise.webp'
-import calfWebm from '../assets/demos/seated-calf-raise.webm'
-import squatMp4 from '../assets/demos/supported-squat.mp4'
-import squatPoster from '../assets/demos/supported-squat.webp'
-import squatWebm from '../assets/demos/supported-squat.webm'
-import hipMp4 from '../assets/demos/standing-hip-abduction.mp4'
-import hipPoster from '../assets/demos/standing-hip-abduction.webp'
-import hipWebm from '../assets/demos/standing-hip-abduction.webm'
 import type { ExerciseFilm } from '../components/ExerciseVideo'
 import type { Exercise } from '../types/session'
 
-// One demonstration per exercise, each its own file, none shared with another exercise.
+// Each exercise's demonstration must show that exercise being performed — not a related activity, not a
+// photograph of rehabilitation in general. None of the four has been filmed yet, so each one carries the
+// shot it needs instead, and the screen says the film is not yet recorded.
 //
-// These are stand-ins: real people in real rooms, but not yet a recording of the movement each exercise
-// prescribes — this prototype has no filmed demonstrations yet, and the clinic's own footage replaces
-// them file for file. Each exercise's clip and still live under src/assets/demos with that exercise's
-// name, so swapping in the real recording is: export it at 4:3, name it the same, and nothing else
-// changes. Two sources each, because iOS needs H.264 MP4 and everything else prefers WebM.
-const film = (webm: string, mp4: string, poster: string, seconds: number): ExerciseFilm => ({
-  sources: [
-    { src: webm, type: 'video/webm' },
-    { src: mp4, type: 'video/mp4' },
-  ],
-  poster,
-  seconds,
-})
+// To add one: put the files in src/assets/demos as <exercise-name>.webm, .mp4 and .webp (a frame from the
+// clip), import them here, and replace `pending` with:
+//   film: { sources: [{ src: webm, type: 'video/webm' }, { src: mp4, type: 'video/mp4' }], poster, seconds }
+// Two sources because iOS needs H.264 MP4 and everything else prefers WebM; 4:3, static camera, the whole
+// working body in frame. Nothing in the screen or the player changes.
+const pending = (shot: string): ExerciseFilm => ({ pending: true, shot })
 
 // Today's session, as the plan promises it on Home: four exercises, Mobility + Strength, about 25 minutes.
 // They run seated first and standing after, which is how a home programme after a spinal injury is
 // usually ordered: the easiest position to control comes first, and the leg is warm before it carries
-// weight. Each one is its own movement, with its own demonstration and its own cues.
+// weight.
 export const sessionExercises: Exercise[] = [
   {
     name: 'Seated knee extension',
@@ -48,7 +31,9 @@ export const sessionExercises: Exercise[] = [
       'Work within the range your plan sets.',
     ],
     movement: 'knee-extension',
-    film: film(kneeWebm, kneeMp4, kneePoster, 12),
+    film: pending(
+      'Seated on a chair with the back supported, both feet flat on the floor. One knee straightens until the lower leg is level, holds two seconds, then lowers slowly. 3/4 side view, static camera, torso to feet in frame.',
+    ),
   },
   {
     name: 'Seated calf raise',
@@ -63,7 +48,9 @@ export const sessionExercises: Exercise[] = [
       'Keep the band’s tension even throughout.',
     ],
     movement: 'calf-raise',
-    film: film(calfWebm, calfMp4, calfPoster, 12),
+    film: pending(
+      'Seated on a chair, foot flat with a band over the knee. The heel lifts off the floor on the ball of the foot, holds, and lowers under control. Side view, static camera, knee to floor in frame.',
+    ),
   },
   {
     name: 'Supported squat',
@@ -78,7 +65,9 @@ export const sessionExercises: Exercise[] = [
       'Lower only as far as your plan sets.',
     ],
     movement: 'squat',
-    film: film(squatWebm, squatMp4, squatPoster, 12),
+    film: pending(
+      'Standing behind a chair, hands resting on its back. Knees bend and hips travel back into a shallow squat, then press back up to standing. 3/4 side view, static camera, head to feet in frame.',
+    ),
   },
   {
     name: 'Standing hip abduction',
@@ -93,7 +82,9 @@ export const sessionExercises: Exercise[] = [
       'Lower it under control rather than letting it drop.',
     ],
     movement: 'hip-abduction',
-    film: film(hipWebm, hipMp4, hipPoster, 12),
+    film: pending(
+      'Standing tall with one hand on a chair back. One leg lifts out to the side without the torso leaning, then lowers under control. Front or 3/4 front view, static camera, head to feet in frame.',
+    ),
   },
 ]
 

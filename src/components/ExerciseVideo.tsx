@@ -1,16 +1,28 @@
-import { Maximize2, Pause, Play, Volume2, VolumeX } from 'lucide-react'
+import { Clapperboard, Maximize2, Pause, Play, Volume2, VolumeX } from 'lucide-react'
 import { useRef, useState } from 'react'
 
-export type ExerciseFilm = {
-  // Best source first; a browser takes the first one it can play. WebM for most, H.264 MP4 for iOS.
-  sources: { src: string; type: string }[]
-  // The frame shown before it plays: the demonstration itself, not a decorative photo.
-  poster: string
-  // How long it runs, in seconds, for the indicator on the still.
-  seconds: number
-  // Shown over the footage where its licence or its clinic asks to be credited.
-  credit?: string
-}
+// A demonstration of one exercise, or the absence of one. A demonstration shows that exercise being
+// performed: not a related activity, not the same body part doing something else, not a photograph of
+// rehabilitation in general. Nothing else belongs in this frame — a person doing the wrong movement
+// teaches the wrong movement, and an exercise screen that shows one is worse than one that shows none.
+export type ExerciseFilm =
+  | {
+      pending?: false
+      // Best source first; a browser takes the first it can play. WebM for most, H.264 MP4 for iOS.
+      sources: { src: string; type: string }[]
+      // A frame from the demonstration itself.
+      poster: string
+      // How long it runs, in seconds, for the indicator on the still.
+      seconds: number
+      // Shown over the footage where its licence or its clinic asks to be credited.
+      credit?: string
+    }
+  | {
+      // No demonstration of this exercise exists yet. The frame says so and offers nothing to play.
+      pending: true
+      // What has to be filmed, so whoever records it knows exactly what the shot is.
+      shot: string
+    }
 
 type Props = {
   name: string
@@ -33,7 +45,7 @@ export function ExerciseVideo({ name, instruction, film }: Props) {
   const [at, setAt] = useState(0)
   const [failed, setFailed] = useState(false)
   // The clip's own length once it is known; until then, the length the exercise says it is.
-  const [length, setLength] = useState(film.seconds)
+  const [length, setLength] = useState(film.pending ? 0 : film.seconds)
 
   const play = () => {
     const element = video.current
@@ -73,6 +85,19 @@ export function ExerciseVideo({ name, instruction, film }: Props) {
   }
 
   // A device that can't play the clip keeps the frame it was going to play: the still, held.
+  // Nothing to show yet: say that, rather than filling the frame with something else.
+  if (film.pending) {
+    return (
+      <div className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-card bg-sunken px-8 text-center">
+        <span className="flex size-12 items-center justify-center rounded-full bg-surface text-ink-soft shadow-card">
+          <Clapperboard className="size-5" strokeWidth={1.75} aria-hidden />
+        </span>
+        <span className="text-[15px] font-medium text-ink">Demonstration film</span>
+        <span className="text-caption leading-snug text-ink-soft">{name} · not yet recorded</span>
+      </div>
+    )
+  }
+
   if (failed) {
     return (
       <div
@@ -94,7 +119,7 @@ export function ExerciseVideo({ name, instruction, film }: Props) {
         playsInline
         preload="metadata"
         aria-label={`${name}: ${instruction}`}
-        onLoadedMetadata={(e) => setLength(e.currentTarget.duration || film.seconds)}
+        onLoadedMetadata={(e) => setLength(e.currentTarget.duration || length)}
         onTimeUpdate={(e) => setAt(e.currentTarget.currentTime)}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
@@ -123,7 +148,7 @@ export function ExerciseVideo({ name, instruction, film }: Props) {
             <Play className="ml-0.5 size-6 fill-current" aria-hidden />
           </span>
           <span className="absolute right-3 bottom-3 rounded-full bg-ink/55 px-2 py-0.5 text-[12px] font-medium text-white tabular-nums backdrop-blur-sm">
-            {clock(film.seconds)}
+            {clock(length)}
           </span>
         </button>
       ) : (
