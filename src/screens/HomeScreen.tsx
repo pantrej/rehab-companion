@@ -157,12 +157,12 @@ export function HomeScreen() {
         </span>
       </Link>
 
-      {/* The reading follows close under the day — a gap of about a twentieth of the screen, so the two
+      {/* The reading follows close under the day — a gap of about a thirtieth of the screen, so the two
           read as one column rather than two things at opposite ends of the room. The gap grows into the
-          room the screen has left over but no further than that twentieth, and what remains falls below
+          room the screen has left over but no further than that thirtieth, and what remains falls below
           it, so a screen with nothing to spare simply gives less instead of scrolling the day out of
           one screen. */}
-      <span className="max-h-[5dvh] grow basis-0" aria-hidden />
+      <span className="max-h-[3dvh] grow basis-0" aria-hidden />
       <div className="px-5">
         <RecoveryStatus assessment={assessment} day={days[activeIndex]} records={records} />
       </div>
