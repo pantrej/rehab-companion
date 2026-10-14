@@ -157,11 +157,15 @@ export function HomeScreen() {
         </span>
       </Link>
 
-      {/* The reading sits in the space left under the day, with the same gap above it as below: the two
-          auto margins split whatever room the screen has over, and never leave it less than 16px. */}
-      <div className="my-auto px-5 pt-4">
+      {/* The reading sits in the room the screen has left under the day, settled a little below the
+          middle of it: the space is shared three parts above to two below. Sharing it out rather than
+          pushing with a margin means a screen with nothing to spare simply gives none, instead of
+          sending the reading under the tab bar. */}
+      <span className="grow-[3] basis-0" aria-hidden />
+      <div className="px-5 pt-4">
         <RecoveryStatus assessment={assessment} day={days[activeIndex]} records={records} />
       </div>
+      <span className="grow-[2] basis-0" aria-hidden />
 
       {calendarOpen && (
         <DayCalendarSheet
