@@ -66,7 +66,10 @@ export function HomeScreen() {
   const dayName = (i: number) => `${days[i].time}, ${days[i].dateLabel}`
 
   return (
-    <div className="relative flex flex-col pb-8 [--hero-h:clamp(238px,38dvh,320px)]">
+    // The hero gives up the height the floating tab bar takes, so the day's reading is never pushed
+    // under it. The column fills the screen and never shrinks below its own content: what is left over
+    // gets shared out around the reading, and anything taller than the screen simply scrolls.
+    <div className="relative flex min-h-full shrink-0 flex-col pb-1 [--hero-h:clamp(238px,calc(38dvh-2rem),320px)]">
       <h1 className="sr-only">Today's rehabilitation</h1>
 
       <DayCarousel
@@ -154,7 +157,9 @@ export function HomeScreen() {
         </span>
       </Link>
 
-      <div className="px-5 pt-4">
+      {/* The reading sits in the space left under the day, with the same gap above it as below: the two
+          auto margins split whatever room the screen has over, and never leave it less than 16px. */}
+      <div className="my-auto px-5 pt-4">
         <RecoveryStatus assessment={assessment} day={days[activeIndex]} records={records} />
       </div>
 
