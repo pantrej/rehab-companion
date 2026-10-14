@@ -61,12 +61,7 @@ export function ExerciseScreenClassic() {
           )}
         </header>
 
-        <ExerciseDemo
-          name={exercise.name}
-          instruction={exercise.instruction}
-          movement={exercise.movement}
-          clip={exercise.demo}
-        />
+        <ExerciseDemo name={exercise.name} instruction={exercise.instruction} movement={exercise.movement} />
 
         <div className="flex flex-col gap-3">
           <Card className="p-6">

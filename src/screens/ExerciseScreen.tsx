@@ -5,7 +5,7 @@ import { BackButton } from '../components/BackButton'
 import { Button } from '../components/Button'
 import { ContactSheet } from '../components/ContactSheet'
 import { DayCarousel } from '../components/DayCarousel'
-import { ExerciseDemo } from '../components/ExerciseDemo'
+import { ExerciseVideo } from '../components/ExerciseVideo'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
 import { SafetyGuide } from '../components/SafetyGuide'
 import { SupportSheet } from '../components/SupportSheet'
@@ -35,6 +35,8 @@ export function ExerciseScreen() {
   const [contactOpen, setContactOpen] = useState(false)
   const closeContact = useCallback(() => setContactOpen(false), [])
   const [guideOpen, setGuideOpen] = useState(false)
+  // Which exercise has its cues open, so moving to another one starts from the instruction again.
+  const [tipsOpen, setTipsOpen] = useState<number>()
 
   const done = isComplete(active)
   // The last exercise left to do finishes the session's exercises, wherever it sits in the order.
@@ -114,11 +116,11 @@ export function ExerciseScreen() {
             const item = sessionExercises[i]
             return (
               <div className="flex flex-col gap-4 px-5">
-                <ExerciseDemo
+                <ExerciseVideo
                   name={item.name}
                   instruction={item.instruction}
+                  film={item.film}
                   movement={item.movement}
-                  clip={item.demo}
                 />
                 <div>
                   <h1 className="text-title font-semibold text-ink">{item.name}</h1>
@@ -126,6 +128,38 @@ export function ExerciseScreen() {
                     {item.sets} sets · {item.reps} reps · {item.equipment}
                   </p>
                   <p className="mt-3 text-[17px] leading-relaxed text-ink">{item.instruction}</p>
+                  {/* Doing it well, in the cues a therapist would give while watching. Folded away: the
+                      instruction is the thing to read, these are for when the question is "like this?" */}
+                  <button
+                    type="button"
+                    aria-expanded={tipsOpen === i}
+                    aria-controls={`form-tips-${i}`}
+                    onClick={() => setTipsOpen(tipsOpen === i ? undefined : i)}
+                    className="-ml-1 mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-xl px-1 text-[15px] font-medium text-accent"
+                  >
+                    Form tips
+                    <ChevronDown
+                      className={`size-4 transition-transform duration-300 ease-out ${tipsOpen === i ? 'rotate-180' : ''}`}
+                      aria-hidden
+                    />
+                  </button>
+                  <div
+                    id={`form-tips-${i}`}
+                    className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+                      tipsOpen === i ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                    }`}
+                  >
+                    <div className="overflow-hidden" aria-hidden={tipsOpen !== i}>
+                      <ul className="mt-1 flex flex-col gap-2 pb-1">
+                        {item.formTips.map((tip) => (
+                          <li key={tip} className="flex items-baseline gap-2.5 text-[15px] leading-snug text-ink">
+                            <span className="size-1.5 shrink-0 translate-y-[-2px] rounded-full bg-accent/60" aria-hidden />
+                            {tip}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                   {/* Where this exercise and its numbers come from: the plan, not the app. */}
                   <p className="mt-3 text-caption text-ink-faint">
                     From your {planDetails.focus} plan · updated {planDetails.lastUpdated}

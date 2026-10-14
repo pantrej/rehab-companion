@@ -1,4 +1,4 @@
-import type { DemoClip } from '../components/ExerciseDemo'
+import type { ExerciseFilm } from '../components/ExerciseVideo'
 import type { MovementId } from '../components/MovementIllustration'
 
 export type Exercise = {
@@ -8,8 +8,10 @@ export type Exercise = {
   // What the person needs to hand, in their own home.
   equipment: string
   instruction: string
-  // Which movement is drawn for this exercise. Every exercise shows its own.
+  // Two or three cues for doing it well. Form, not safety: nothing here is a medical claim.
+  formTips: string[]
+  // Which movement is drawn if the demonstration can't play.
   movement: MovementId
-  // A recorded demonstration of this movement, when the clinic has one. The drawing stands in until then.
-  demo?: DemoClip
+  // The demonstration of this exercise, and only this one.
+  film: ExerciseFilm
 }
