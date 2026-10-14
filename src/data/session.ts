@@ -41,7 +41,11 @@ export const sessionExercises: Exercise[] = [
       'Move slowly, without swinging the leg.',
       'Work within the range your plan sets.',
     ],
-    film: published('FsPB8BCvZCc', 'Demonstration on YouTube'),
+    // The reference for this one (youtube.com/watch?v=FsPB8BCvZCc) has playback on other sites disabled
+    // by its owner, so embedding it shows YouTube's own error box rather than the movement.
+    film: pending(
+      'Sitting tall in a chair with back support, both feet flat. One knee straightens until the lower leg is level, holds, then lowers slowly. 3/4 side view, static camera, whole body in frame.',
+    ),
   },
   {
     name: 'Seated calf raise',
