@@ -5,7 +5,7 @@ import { BackButton } from '../components/BackButton'
 import { Button } from '../components/Button'
 import { ContactSheet } from '../components/ContactSheet'
 import { DayCarousel } from '../components/DayCarousel'
-import { ExerciseVideo } from '../components/ExerciseVideo'
+import { ExerciseMedia } from '../components/ExerciseMedia'
 import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
 import { SafetyGuide } from '../components/SafetyGuide'
 import { SupportSheet } from '../components/SupportSheet'
@@ -116,7 +116,7 @@ export function ExerciseScreen() {
             const item = sessionExercises[i]
             return (
               <div className="flex flex-col gap-4 px-5">
-                <ExerciseVideo name={item.name} instruction={item.instruction} film={item.film} />
+                <ExerciseMedia name={item.name} photo={item.photo} />
                 <div>
                   <h1 className="text-title font-semibold text-ink">{item.name}</h1>
                   <p className="mt-1.5 text-[15px] text-ink-soft tabular-nums">

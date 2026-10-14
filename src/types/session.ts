@@ -1,4 +1,4 @@
-import type { ExerciseFilm } from '../components/ExerciseVideo'
+import type { ExercisePhoto } from '../components/ExerciseMedia'
 
 export type Exercise = {
   name: string
@@ -10,5 +10,5 @@ export type Exercise = {
   // Two or three cues for doing it well. Form, not safety: nothing here is a medical claim.
   formTips: string[]
   // The demonstration of this exercise, and only this one.
-  film: ExerciseFilm
+  photo: ExercisePhoto
 }

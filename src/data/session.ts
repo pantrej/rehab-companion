@@ -1,27 +1,16 @@
-import type { ExerciseFilm } from '../components/ExerciseVideo'
+import calfRaise from '../assets/demos/seated-calf-raise.webp'
+import hipAbduction from '../assets/demos/standing-hip-abduction.webp'
+import kneeExtension from '../assets/demos/seated-knee-extension.webp'
+import supportedSquat from '../assets/demos/supported-squat.webp'
 import type { Exercise } from '../types/session'
 
-// Each exercise's demonstration must show that exercise being performed — not a related activity, not a
-// photograph of rehabilitation in general.
+// Each exercise's demonstration shows that exercise being performed — not a related activity, not a
+// photograph of rehabilitation in general. All four are photographs for now: the same person, the same
+// room, the same chair, so the session reads as one set of instructions rather than four found pictures.
 //
-// Three of them are published recordings, played from where they live: the still and the play control are
-// ours, and tapping hands over to the publisher's own player on their own domain. Nothing is downloaded,
-// re-hosted or re-cut, so nobody's licence is strained — and the movement shown is the movement
-// prescribed, which is the whole point of the frame.
-//
-// The clinic's own recording replaces any of them: put the files in src/assets/demos as
-// <exercise-name>.webm, .mp4 and .webp (a frame from the clip), import them, and use
-//   film: { kind: 'file', sources: [{ src: webm, type: 'video/webm' }, { src: mp4, type: 'video/mp4' }], poster, seconds }
-// Two sources because iOS needs H.264 MP4 and everything else prefers WebM; 4:3, static camera, the whole
-// working body in frame. Nothing in the screen or the player changes.
-const published = (id: string, credit: string): ExerciseFilm => ({
-  kind: 'youtube',
-  id,
-  source: `https://www.youtube.com/watch?v=${id}`,
-  credit,
-})
-
-const pending = (shot: string): ExerciseFilm => ({ pending: true, shot })
+// A filmed demonstration replaces any of them when one exists. The player for that — our own controls,
+// scrubber, mute and fullscreen over a WebM/MP4 pair — is in this branch's history at 2f33d27, and goes
+// back in with the clip rather than waiting around for it.
 
 // Today's session, as the plan promises it on Home: four exercises, Mobility + Strength, about 25 minutes.
 // They run seated first and standing after, which is how a home programme after a spinal injury is
@@ -41,11 +30,10 @@ export const sessionExercises: Exercise[] = [
       'Move slowly, without swinging the leg.',
       'Work within the range your plan sets.',
     ],
-    // The reference for this one (youtube.com/watch?v=FsPB8BCvZCc) has playback on other sites disabled
-    // by its owner, so embedding it shows YouTube's own error box rather than the movement.
-    film: pending(
-      'Sitting tall in a chair with back support, both feet flat. One knee straightens until the lower leg is level, holds, then lowers slowly. 3/4 side view, static camera, whole body in frame.',
-    ),
+    photo: {
+      src: kneeExtension,
+      shows: 'seated with the back supported, one knee straightened until the lower leg is level',
+    },
   },
   {
     name: 'Seated calf raise',
@@ -59,7 +47,10 @@ export const sessionExercises: Exercise[] = [
       'Raise and lower at the same steady speed.',
       'Keep the band’s tension even throughout.',
     ],
-    film: published('BxfKOyI8sUg', 'Demonstration on YouTube'),
+    photo: {
+      src: calfRaise,
+      shows: 'seated tall with both feet flat on the floor, the position the heel lifts from',
+    },
   },
   {
     name: 'Supported squat',
@@ -73,11 +64,10 @@ export const sessionExercises: Exercise[] = [
       'Let your hips travel back as your knees bend.',
       'Lower only as far as your plan sets.',
     ],
-    // The reference for this one (na.physitrack.com/home-exercise-video/supported-squat) is a page, not a
-    // recording that can be played in place, so this frame waits for a demonstration it can show.
-    film: pending(
-      'Standing behind a chair, hands resting on its back. Knees bend and hips travel back into a shallow squat, then press back up to standing. 3/4 side view, static camera, head to feet in frame.',
-    ),
+    photo: {
+      src: supportedSquat,
+      shows: 'standing behind the chair with both hands on its back, hips lowered into a shallow squat',
+    },
   },
   {
     name: 'Standing hip abduction',
@@ -91,7 +81,10 @@ export const sessionExercises: Exercise[] = [
       'Lift the leg to the side without leaning away from it.',
       'Lower it under control rather than letting it drop.',
     ],
-    film: published('tpt4OB1DPh0', 'Demonstration on YouTube'),
+    photo: {
+      src: hipAbduction,
+      shows: 'standing with one hand on the chair, the far leg lifted out to the side',
+    },
   },
 ]
 
