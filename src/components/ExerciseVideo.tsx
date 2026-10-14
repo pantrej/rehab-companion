@@ -7,14 +7,24 @@ import { useRef, useState } from 'react'
 // teaches the wrong movement, and an exercise screen that shows one is worse than one that shows none.
 export type ExerciseFilm =
   | {
-      pending?: false
-      // Best source first; a browser takes the first it can play. WebM for most, H.264 MP4 for iOS.
+      // Someone else's recording, played from where it lives. Nothing is copied here: the publisher
+      // serves the video and its own still, and keeps whatever their licence says they keep.
+      kind: 'youtube'
+      id: string
+      // The page the recording lives on, for anyone who wants the source itself.
+      source: string
+      // Who published it, shown on the frame.
+      credit: string
+    }
+  | {
+      // The clinic's own file, in this repository. Best source first; a browser takes the first it can
+      // play: WebM for most, H.264 MP4 for iOS.
+      kind: 'file'
       sources: { src: string; type: string }[]
       // A frame from the demonstration itself.
       poster: string
       // How long it runs, in seconds, for the indicator on the still.
       seconds: number
-      // Shown over the footage where its licence or its clinic asks to be credited.
       credit?: string
     }
   | {
@@ -33,7 +43,51 @@ type Props = {
 
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`
 
-// The demonstration of one exercise: a still of the movement, a play control, and the clip itself in
+const frameClass = 'relative aspect-[4/3] w-full overflow-hidden rounded-card bg-sunken'
+
+// The still and the play control, in the app's own language, whatever is behind them. Tapping is what
+// loads the recording: nothing streams, and nobody else's player runs, until the person asks for it.
+function Still({
+  name,
+  background,
+  onPlay,
+  seconds,
+  credit,
+}: {
+  name: string
+  background: React.ReactNode
+  onPlay: () => void
+  seconds?: number
+  credit?: string
+}) {
+  return (
+    <>
+      {background}
+      {credit && (
+        <span className="pointer-events-none absolute top-3 left-3 rounded-full bg-ink/55 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
+          {credit}
+        </span>
+      )}
+      <button
+        type="button"
+        onClick={onPlay}
+        aria-label={`Play the ${name.toLowerCase()} demonstration`}
+        className="absolute inset-0 flex items-center justify-center bg-linear-to-t from-ink/35 to-ink/0 to-50% focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
+      >
+        <span className="flex size-16 items-center justify-center rounded-full bg-surface/95 text-accent shadow-card backdrop-blur-sm">
+          <Play className="ml-0.5 size-6 fill-current" aria-hidden />
+        </span>
+        {seconds !== undefined && seconds > 0 && (
+          <span className="absolute right-3 bottom-3 rounded-full bg-ink/55 px-2 py-0.5 text-[12px] font-medium text-white tabular-nums backdrop-blur-sm">
+            {clock(seconds)}
+          </span>
+        )}
+      </button>
+    </>
+  )
+}
+
+// The demonstration of one exercise: a still of the movement, a play control, and the recording itself in
 // place. Nothing navigates away, and nothing covers the frame with a label — the picture is the
 // instruction, so it is the thing that is shown.
 export function ExerciseVideo({ name, instruction, film }: Props) {
@@ -44,8 +98,60 @@ export function ExerciseVideo({ name, instruction, film }: Props) {
   const [muted, setMuted] = useState(true)
   const [at, setAt] = useState(0)
   const [failed, setFailed] = useState(false)
-  // The clip's own length once it is known; until then, the length the exercise says it is.
-  const [length, setLength] = useState(film.pending ? 0 : film.seconds)
+  const [stillFailed, setStillFailed] = useState(false)
+  const [length, setLength] = useState('seconds' in film ? film.seconds : 0)
+
+  // Nothing to show yet: say that, rather than filling the frame with something else.
+  if ('pending' in film) {
+    return (
+      <div className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-card bg-sunken px-8 text-center">
+        <span className="flex size-12 items-center justify-center rounded-full bg-surface text-ink-soft shadow-card">
+          <Clapperboard className="size-5" strokeWidth={1.75} aria-hidden />
+        </span>
+        <span className="text-[15px] font-medium text-ink">Demonstration film</span>
+        <span className="text-caption leading-snug text-ink-soft">{name} · not yet recorded</span>
+      </div>
+    )
+  }
+
+  // Someone else's recording, played from their own player on their own domain. We hold the still and the
+  // play control; past that it is their video, their controls and their terms.
+  if (film.kind === 'youtube') {
+    return (
+      <div className={frameClass}>
+        {started ? (
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${film.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+            title={`${name} demonstration`}
+            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+            allowFullScreen
+            className="size-full border-0"
+          />
+        ) : (
+          <Still
+            name={name}
+            credit={film.credit}
+            onPlay={() => setStarted(true)}
+            background={
+              stillFailed ? null : (
+                <img
+                  src={`https://i.ytimg.com/vi/${film.id}/maxresdefault.jpg`}
+                  alt={`${name}: ${instruction}`}
+                  onError={(e) => {
+                    // Not every recording has a high-resolution still; the standard one always exists.
+                    const img = e.currentTarget
+                    if (img.src.includes('maxresdefault')) img.src = `https://i.ytimg.com/vi/${film.id}/hqdefault.jpg`
+                    else setStillFailed(true)
+                  }}
+                  className="size-full object-cover"
+                />
+              )
+            }
+          />
+        )}
+      </div>
+    )
+  }
 
   const play = () => {
     const element = video.current
@@ -85,19 +191,6 @@ export function ExerciseVideo({ name, instruction, film }: Props) {
   }
 
   // A device that can't play the clip keeps the frame it was going to play: the still, held.
-  // Nothing to show yet: say that, rather than filling the frame with something else.
-  if (film.pending) {
-    return (
-      <div className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-card bg-sunken px-8 text-center">
-        <span className="flex size-12 items-center justify-center rounded-full bg-surface text-ink-soft shadow-card">
-          <Clapperboard className="size-5" strokeWidth={1.75} aria-hidden />
-        </span>
-        <span className="text-[15px] font-medium text-ink">Demonstration film</span>
-        <span className="text-caption leading-snug text-ink-soft">{name} · not yet recorded</span>
-      </div>
-    )
-  }
-
   if (failed) {
     return (
       <div
@@ -110,7 +203,7 @@ export function ExerciseVideo({ name, instruction, film }: Props) {
   }
 
   return (
-    <div ref={frame} className="relative aspect-[4/3] w-full overflow-hidden rounded-card bg-sunken">
+    <div ref={frame} className={frameClass}>
       <video
         ref={video}
         poster={film.poster}
@@ -131,26 +224,8 @@ export function ExerciseVideo({ name, instruction, film }: Props) {
         ))}
       </video>
 
-      {film.credit && (
-        <span className="pointer-events-none absolute top-3 left-3 rounded-full bg-ink/55 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
-          {film.credit}
-        </span>
-      )}
-
       {!started ? (
-        <button
-          type="button"
-          onClick={play}
-          aria-label={`Play the ${name.toLowerCase()} demonstration`}
-          className="absolute inset-0 flex items-center justify-center bg-linear-to-t from-ink/35 to-ink/0 to-50% focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
-        >
-          <span className="flex size-16 items-center justify-center rounded-full bg-surface/95 text-accent shadow-card backdrop-blur-sm">
-            <Play className="ml-0.5 size-6 fill-current" aria-hidden />
-          </span>
-          <span className="absolute right-3 bottom-3 rounded-full bg-ink/55 px-2 py-0.5 text-[12px] font-medium text-white tabular-nums backdrop-blur-sm">
-            {clock(length)}
-          </span>
-        </button>
+        <Still name={name} credit={film.credit} seconds={length} onPlay={play} background={null} />
       ) : (
         // Enough control to study a movement: stop it where you want it, scrub back, hear it, fill the screen.
         <div className="absolute inset-x-0 bottom-0 flex items-center gap-2.5 bg-linear-to-t from-ink/65 to-ink/0 px-3 pt-8 pb-2.5">

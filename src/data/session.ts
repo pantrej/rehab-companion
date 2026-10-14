@@ -2,14 +2,25 @@ import type { ExerciseFilm } from '../components/ExerciseVideo'
 import type { Exercise } from '../types/session'
 
 // Each exercise's demonstration must show that exercise being performed — not a related activity, not a
-// photograph of rehabilitation in general. None of the four has been filmed yet, so each one carries the
-// shot it needs instead, and the screen says the film is not yet recorded.
+// photograph of rehabilitation in general.
 //
-// To add one: put the files in src/assets/demos as <exercise-name>.webm, .mp4 and .webp (a frame from the
-// clip), import them here, and replace `pending` with:
-//   film: { sources: [{ src: webm, type: 'video/webm' }, { src: mp4, type: 'video/mp4' }], poster, seconds }
+// Three of them are published recordings, played from where they live: the still and the play control are
+// ours, and tapping hands over to the publisher's own player on their own domain. Nothing is downloaded,
+// re-hosted or re-cut, so nobody's licence is strained — and the movement shown is the movement
+// prescribed, which is the whole point of the frame.
+//
+// The clinic's own recording replaces any of them: put the files in src/assets/demos as
+// <exercise-name>.webm, .mp4 and .webp (a frame from the clip), import them, and use
+//   film: { kind: 'file', sources: [{ src: webm, type: 'video/webm' }, { src: mp4, type: 'video/mp4' }], poster, seconds }
 // Two sources because iOS needs H.264 MP4 and everything else prefers WebM; 4:3, static camera, the whole
 // working body in frame. Nothing in the screen or the player changes.
+const published = (id: string, credit: string): ExerciseFilm => ({
+  kind: 'youtube',
+  id,
+  source: `https://www.youtube.com/watch?v=${id}`,
+  credit,
+})
+
 const pending = (shot: string): ExerciseFilm => ({ pending: true, shot })
 
 // Today's session, as the plan promises it on Home: four exercises, Mobility + Strength, about 25 minutes.
@@ -30,10 +41,7 @@ export const sessionExercises: Exercise[] = [
       'Move slowly, without swinging the leg.',
       'Work within the range your plan sets.',
     ],
-    movement: 'knee-extension',
-    film: pending(
-      'Seated on a chair with the back supported, both feet flat on the floor. One knee straightens until the lower leg is level, holds two seconds, then lowers slowly. 3/4 side view, static camera, torso to feet in frame.',
-    ),
+    film: published('FsPB8BCvZCc', 'Demonstration on YouTube'),
   },
   {
     name: 'Seated calf raise',
@@ -47,10 +55,7 @@ export const sessionExercises: Exercise[] = [
       'Raise and lower at the same steady speed.',
       'Keep the band’s tension even throughout.',
     ],
-    movement: 'calf-raise',
-    film: pending(
-      'Seated on a chair, foot flat with a band over the knee. The heel lifts off the floor on the ball of the foot, holds, and lowers under control. Side view, static camera, knee to floor in frame.',
-    ),
+    film: published('BxfKOyI8sUg', 'Demonstration on YouTube'),
   },
   {
     name: 'Supported squat',
@@ -64,7 +69,8 @@ export const sessionExercises: Exercise[] = [
       'Let your hips travel back as your knees bend.',
       'Lower only as far as your plan sets.',
     ],
-    movement: 'squat',
+    // The reference for this one (na.physitrack.com/home-exercise-video/supported-squat) is a page, not a
+    // recording that can be played in place, so this frame waits for a demonstration it can show.
     film: pending(
       'Standing behind a chair, hands resting on its back. Knees bend and hips travel back into a shallow squat, then press back up to standing. 3/4 side view, static camera, head to feet in frame.',
     ),
@@ -81,10 +87,7 @@ export const sessionExercises: Exercise[] = [
       'Lift the leg to the side without leaning away from it.',
       'Lower it under control rather than letting it drop.',
     ],
-    movement: 'hip-abduction',
-    film: pending(
-      'Standing tall with one hand on a chair back. One leg lifts out to the side without the torso leaning, then lowers under control. Front or 3/4 front view, static camera, head to feet in frame.',
-    ),
+    film: published('tpt4OB1DPh0', 'Demonstration on YouTube'),
   },
 ]
 
