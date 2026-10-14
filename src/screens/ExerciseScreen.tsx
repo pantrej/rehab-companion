@@ -10,6 +10,7 @@ import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
 import { SafetyGuide } from '../components/SafetyGuide'
 import { SupportSheet } from '../components/SupportSheet'
 import { techniqueTip } from '../data/safety'
+import { planDetails } from '../data/plan'
 import { exerciseCount, sessionExercises } from '../data/session'
 import { useCare } from '../utils/care'
 import { useCarousel } from '../utils/carousel'
@@ -61,7 +62,7 @@ export function ExerciseScreen() {
             {professional && (
               <p className="flex items-center gap-2 rounded-full bg-surface py-1 pr-3 pl-1 text-caption text-ink-soft shadow-card">
                 <ProfessionalAvatar professional={professional} size="sm" />
-                {professional.name}, {professional.credential}
+                Prescribed by {professional.name}, {professional.credential}
               </p>
             )}
           </div>
@@ -125,6 +126,10 @@ export function ExerciseScreen() {
                     {item.sets} sets · {item.reps} reps · {item.equipment}
                   </p>
                   <p className="mt-3 text-[17px] leading-relaxed text-ink">{item.instruction}</p>
+                  {/* Where this exercise and its numbers come from: the plan, not the app. */}
+                  <p className="mt-3 text-caption text-ink-faint">
+                    From your {planDetails.focus} plan · updated {planDetails.lastUpdated}
+                  </p>
                 </div>
                 {isComplete(i) && (
                   <p className="flex items-center gap-2 text-[15px] font-medium text-positive">
@@ -137,41 +142,57 @@ export function ExerciseScreen() {
           }}
         </DayCarousel>
 
-        {/* The same guidance whichever exercise is in view: it is about how the session should feel. */}
+        {/* The same guidance whichever exercise is in view: it is about how the session should feel.
+            Both ways out of a doubt sit together on one surface, each saying what it holds, so the
+            question "is this meant to feel like this?" has a visible answer rather than a quiet link. */}
         <section aria-labelledby="how-it-feels" className="px-5">
           <h2 id="how-it-feels" className="sr-only">
-            How this should feel
+            If you are unsure
           </h2>
-          <button
-            type="button"
-            aria-expanded={guideOpen}
-            aria-controls="feel-guide"
-            onClick={() => setGuideOpen(!guideOpen)}
-            className="-ml-1 flex h-11 w-full items-center justify-between gap-2 rounded-xl px-1 text-[15px] font-medium text-ink transition-colors hover:bg-line/40"
-          >
-            How should this feel?
-            <ChevronDown
-              className={`size-4 text-ink-faint transition-transform ${guideOpen ? 'rotate-180' : ''}`}
-              aria-hidden
-            />
-          </button>
-          {guideOpen && (
-            <div id="feel-guide" className="mt-2 rounded-card bg-surface p-5 shadow-card">
-              <SafetyGuide professionalName={professional?.name} />
-              <p className="mt-3 border-t border-line pt-3 text-[15px] leading-relaxed text-ink-soft">{techniqueTip}</p>
-            </div>
-          )}
+          <div className="overflow-hidden rounded-card bg-surface shadow-card">
+            <button
+              type="button"
+              aria-expanded={guideOpen}
+              aria-controls="feel-guide"
+              onClick={() => setGuideOpen(!guideOpen)}
+              className="flex min-h-14 w-full items-center justify-between gap-3 px-5 py-3.5 text-left transition-colors hover:bg-canvas/60"
+            >
+              <span>
+                <span className="block text-[17px] font-medium text-ink">How should this feel?</span>
+                <span className="mt-0.5 block text-caption text-ink-soft">Continue, ease off, or stop</span>
+              </span>
+              <ChevronDown
+                className={`size-5 shrink-0 text-ink-faint transition-transform ${guideOpen ? 'rotate-180' : ''}`}
+                aria-hidden
+              />
+            </button>
+            {guideOpen && (
+              <div id="feel-guide" className="border-t border-line px-5 pt-4 pb-5">
+                <SafetyGuide professionalName={professional?.name} />
+                <p className="mt-3 border-t border-line pt-3 text-[15px] leading-relaxed text-ink-soft">
+                  {techniqueTip}
+                </p>
+              </div>
+            )}
 
-          <button
-            type="button"
-            aria-haspopup="dialog"
-            onClick={() => setSupportOpen(true)}
-            className="-ml-1 mt-1 inline-flex h-11 items-center gap-2 rounded-xl px-1 text-[15px] text-ink-soft transition-colors hover:text-ink"
-          >
-            <LifeBuoy className="size-[18px]" strokeWidth={1.75} aria-hidden />
-            Something doesn't feel right
-            <ChevronRight className="size-4 text-ink-faint" aria-hidden />
-          </button>
+            <button
+              type="button"
+              aria-haspopup="dialog"
+              onClick={() => setSupportOpen(true)}
+              className="flex min-h-14 w-full items-center justify-between gap-3 border-t border-line px-5 py-3.5 text-left transition-colors hover:bg-canvas/60"
+            >
+              <span className="flex items-center gap-3">
+                <LifeBuoy className="size-5 shrink-0 text-ink-soft" strokeWidth={1.75} aria-hidden />
+                <span>
+                  <span className="block text-[17px] font-medium text-ink">Something doesn't feel right</span>
+                  <span className="mt-0.5 block text-caption text-ink-soft">
+                    {professional ? `Pause, or reach ${professional.name}` : 'Pause and see what to do'}
+                  </span>
+                </span>
+              </span>
+              <ChevronRight className="size-5 shrink-0 text-ink-faint" aria-hidden />
+            </button>
+          </div>
         </section>
       </div>
 
