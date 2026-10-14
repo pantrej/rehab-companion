@@ -116,12 +116,7 @@ export function ExerciseScreen() {
             const item = sessionExercises[i]
             return (
               <div className="flex flex-col gap-4 px-5">
-                <ExerciseVideo
-                  name={item.name}
-                  instruction={item.instruction}
-                  film={item.film}
-                  movement={item.movement}
-                />
+                <ExerciseVideo name={item.name} instruction={item.instruction} film={item.film} />
                 <div>
                   <h1 className="text-title font-semibold text-ink">{item.name}</h1>
                   <p className="mt-1.5 text-[15px] text-ink-soft tabular-nums">

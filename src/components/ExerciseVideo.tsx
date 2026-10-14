@@ -1,7 +1,5 @@
 import { Maximize2, Pause, Play, Volume2, VolumeX } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { MovementIllustration } from './MovementIllustration'
-import type { MovementId } from './MovementIllustration'
 
 export type ExerciseFilm = {
   // Best source first; a browser takes the first one it can play. WebM for most, H.264 MP4 for iOS.
@@ -10,9 +8,7 @@ export type ExerciseFilm = {
   poster: string
   // How long it runs, in seconds, for the indicator on the still.
   seconds: number
-  // 'illustration' is a drawn stand-in and says so on the frame; 'film' is a recording of the movement.
-  kind: 'illustration' | 'film'
-  // Shown with the footage where its licence or its clinic asks to be credited.
+  // Shown over the footage where its licence or its clinic asks to be credited.
   credit?: string
 }
 
@@ -21,8 +17,6 @@ type Props = {
   // What the movement is, in words, for anyone who can't see the demonstration.
   instruction: string
   film: ExerciseFilm
-  // Drawn instead if the clip can't play on this device.
-  movement: MovementId
 }
 
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`
@@ -30,7 +24,7 @@ const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.fl
 // The demonstration of one exercise: a still of the movement, a play control, and the clip itself in
 // place. Nothing navigates away, and nothing covers the frame with a label — the picture is the
 // instruction, so it is the thing that is shown.
-export function ExerciseVideo({ name, instruction, film, movement }: Props) {
+export function ExerciseVideo({ name, instruction, film }: Props) {
   const video = useRef<HTMLVideoElement>(null)
   const frame = useRef<HTMLDivElement>(null)
   const [started, setStarted] = useState(false)
@@ -78,14 +72,15 @@ export function ExerciseVideo({ name, instruction, film, movement }: Props) {
     else element?.webkitRequestFullscreen?.()
   }
 
+  // A device that can't play the clip keeps the frame it was going to play: the still, held.
   if (failed) {
     return (
-      <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-card bg-sunken">
-        <MovementIllustration movement={movement} playing label={`${name}: ${instruction}`} />
-        <span className="absolute top-3 left-3 rounded-full bg-ink/55 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
-          Drawn movement
-        </span>
-      </div>
+      <div
+        role="img"
+        aria-label={`${name}: ${instruction}`}
+        style={{ backgroundImage: `url(${film.poster})` }}
+        className="aspect-[4/3] w-full overflow-hidden rounded-card bg-sunken bg-cover bg-center"
+      />
     )
   }
 
@@ -111,10 +106,9 @@ export function ExerciseVideo({ name, instruction, film, movement }: Props) {
         ))}
       </video>
 
-      {/* What this footage is. A drawn stand-in says so plainly, so nobody takes it for a recording. */}
-      {(film.kind === 'illustration' || film.credit) && (
+      {film.credit && (
         <span className="pointer-events-none absolute top-3 left-3 rounded-full bg-ink/55 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
-          {film.kind === 'illustration' ? 'Drawn movement · film to follow' : film.credit}
+          {film.credit}
         </span>
       )}
 
