@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react'
-import { Navigate, createBrowserRouter } from 'react-router'
+import { Navigate, createBrowserRouter, createHashRouter } from 'react-router'
 import { MobileLayout } from './layouts/MobileLayout'
 import { RequireAccount } from './layouts/RequireAccount'
 import { AppointmentScreen } from './screens/AppointmentScreen'
@@ -27,7 +27,12 @@ const DesignSystemPage = lazy(() => import('./design-system/DesignSystemPage').t
 // Opening the app lands on Today: the link opens where the app itself would. Someone who has no account
 // on this device has nothing to show there yet, so `RequireAccount` sends them to Welcome, and a setup
 // finished without an account resumes at the account step.
-export const router = createBrowserRouter([
+// Clean paths everywhere the prototype has a server that can rewrite them (the dev server, Vercel).
+// A build for a plain static host — anywhere a deep link would 404 — sets VITE_STATIC_HOST and gets the
+// same routes behind a hash instead.
+const createRouter = import.meta.env.VITE_STATIC_HOST ? createHashRouter : createBrowserRouter
+
+export const router = createRouter([
   {
     // Entry and account: public. Onboarding comes first, before an account exists.
     element: <MobileLayout nav={false} />,
