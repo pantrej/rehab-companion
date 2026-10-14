@@ -20,18 +20,13 @@ import { SupportScreen } from './screens/SupportScreen'
 import { SupportTopicScreen } from './screens/SupportTopicScreen'
 import { TherapistScreen } from './screens/TherapistScreen'
 import { WelcomeScreen } from './screens/WelcomeScreen'
-import { hasPendingSetup } from './utils/care'
 
 // Loaded only when visited, so the showcase never weighs on the prototype.
 const DesignSystemPage = lazy(() => import('./design-system/DesignSystemPage').then((m) => ({ default: m.DesignSystemPage })))
 
-// Every visit to the app starts at Welcome, which leads into setup and ends at the account step. A setup
-// finished without an account resumes there instead, so a reload never loses it. Only a fresh load of the
-// root is redirected, so in-app navigation to Today and direct links keep working.
-if (window.location.pathname === '/' && !window.location.search) {
-  window.history.replaceState(null, '', hasPendingSetup() ? '/register' : '/welcome')
-}
-
+// Opening the app lands on Today: the link opens where the app itself would. Someone who has no account
+// on this device has nothing to show there yet, so `RequireAccount` sends them to Welcome, and a setup
+// finished without an account resumes at the account step.
 export const router = createBrowserRouter([
   {
     // Entry and account: public. Onboarding comes first, before an account exists.
