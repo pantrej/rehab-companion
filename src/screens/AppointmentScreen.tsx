@@ -31,7 +31,7 @@ export function AppointmentScreen() {
       <div className="flex flex-1 flex-col gap-10 px-5 pt-[max(env(safe-area-inset-top),2.5rem)] pb-10">
         <header>
           <BackButton label="Back" onClick={back} />
-          <h1 className="mt-5 text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">
+          <h1 className="mt-5 text-title font-semibold text-ink">
             Prepare for your appointment
           </h1>
           <p className="mt-1.5 text-[15px] text-ink-soft">
@@ -68,13 +68,13 @@ export function AppointmentScreen() {
                 setSaved(false)
               }}
               placeholder="For example, whether to progress an exercise"
-              className="block w-full resize-none rounded-3xl bg-transparent px-6 py-5 text-[17px] text-ink placeholder:text-ink-faint focus:outline-none"
+              className="block w-full resize-none rounded-card bg-transparent px-6 py-5 text-[17px] text-ink placeholder:text-ink-faint focus:outline-none"
             />
           </Card>
         </Section>
       </div>
 
-      <div className="sticky bottom-0 border-t border-line bg-surface px-5 pt-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
+      <div className="sticky bottom-0 bg-linear-to-t from-canvas from-70% to-canvas/0 px-5 pt-8 pb-[max(env(safe-area-inset-bottom),1rem)]">
         <Button
           onClick={() => {
             writeStored(storageKeys.appointmentNote, note)

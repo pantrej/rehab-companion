@@ -1,11 +1,14 @@
+import photo from '../assets/anna-novak-avatar.webp'
 import type { Professional } from '../types/care'
 
-// Mock professional for the connected-care scenario. Fictional; shown with an initials avatar, never a photo.
+// Mock professional for the connected-care scenario. Fictional, with a generated portrait so she reads as one
+// consistent, real person wherever she appears.
 export const professional: Professional = {
   name: 'Anna Novak',
   role: 'Physiotherapist',
   credential: 'PT',
   initials: 'AN',
+  photo,
   clinic: 'Rehabilitation Centre',
   nextAppointment: '20 October · 10:30',
   lastAppointment: '3 October',
@@ -15,10 +18,9 @@ export const professional: Professional = {
     'Keep checking in after each session. Your notes help me adjust your plan safely at our reviews.',
 }
 
-// Connection is by an invitation from the clinic. Prototype code and link only.
+// Connection is by an invitation from the clinic: one code, prototype only.
 export const connection = {
   code: '482913',
-  inviteLinkHint: 'rehab.example/invite/482913',
 }
 
 // What the professional has already supplied, so a connected user is never asked to recreate it.
@@ -33,11 +35,11 @@ export const careModeOptions = [
   {
     id: 'connected' as const,
     label: 'With a rehabilitation professional',
-    description: 'My physiotherapist or rehabilitation team manages my plan.',
+    description: 'My physiotherapist or care team manages my plan.',
   },
   {
     id: 'independent' as const,
     label: 'Mostly on my own',
-    description: 'I have an existing plan but no connected professional in the app.',
+    description: 'I follow an existing plan independently.',
   },
 ]

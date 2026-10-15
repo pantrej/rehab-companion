@@ -1,12 +1,19 @@
-import { Camera } from 'lucide-react'
+import { Camera, Lock, Mail, ShieldCheck, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
+import { AppleMark, AuthButton, AuthDivider, GoogleMark } from '../components/AuthButton'
 import { Avatar } from '../components/Avatar'
 import { BackButton } from '../components/BackButton'
 import { Button } from '../components/Button'
+import { CurvedHero, ThemeCard } from '../components/CurvedHero'
+import { SocialSignInSheet } from '../components/SocialSignInSheet'
+import type { SocialProvider } from '../components/SocialSignInSheet'
 import { TextField } from '../components/TextField'
 import { initialsOf, register } from '../utils/auth'
+import { readCare } from '../utils/care'
+
+const fieldIcon = { className: 'size-5', strokeWidth: 1.75 }
 
 type Errors = Partial<Record<'fullName' | 'email' | 'password', string>>
 
@@ -16,6 +23,7 @@ export function RegisterScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<Errors>({})
+  const [provider, setProvider] = useState<SocialProvider>()
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -26,17 +34,37 @@ export function RegisterScreen() {
     setErrors(next)
     if (Object.keys(next).length) return
     register({ fullName: fullName.trim(), email: email.trim() })
-    navigate('/onboarding', { replace: true })
+    // Setup comes before the account, so there is a plan to save; only start it here if it is missing.
+    navigate(readCare() ? '/' : '/onboarding', { replace: true })
   }
 
   return (
     <form onSubmit={submit} noValidate className="flex flex-1 flex-col">
-      <div className="flex flex-1 flex-col px-5 pt-[max(env(safe-area-inset-top),2.5rem)] pb-10">
-        <BackButton to="/welcome" label="Back to welcome" />
-        <h1 className="mt-5 text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">Create account</h1>
+      <CurvedHero size="sm" header={<BackButton to="/welcome" label="Back to welcome" tone="frosted" />}>
+        <ThemeCard compact icon={<ShieldCheck className="size-5" strokeWidth={1.75} />} label="Your plan" />
+      </CurvedHero>
+      <div className="flex flex-1 flex-col px-5 pt-1 pb-8">
+        {/* The account comes last, so it can say what it is for: keeping the setup just finished. */}
+        <h1 className="text-[32px] leading-[1.1] font-bold tracking-[-0.025em] text-ink">Save your rehabilitation plan</h1>
+        <p className="mt-2 text-body leading-relaxed text-ink-soft">
+          Create an account to access your plan and keep your recovery progress in one place.
+        </p>
+
+        <div className="mt-6 flex flex-col gap-3">
+          <AuthButton variant="primary" icon={<GoogleMark onColor />} onClick={() => setProvider('Google')}>
+            Continue with Google
+          </AuthButton>
+          <AuthButton icon={<AppleMark />} onClick={() => setProvider('Apple')}>
+            Continue with Apple
+          </AuthButton>
+        </div>
+
+        <div className="my-6">
+          <AuthDivider />
+        </div>
 
         {/* Profile image placeholder: initials until photos are supported. */}
-        <div className="mt-8 flex items-center gap-4">
+        <div className="flex items-center gap-4">
           <span className="relative">
             <Avatar initials={initialsOf(fullName) || '?'} size="lg" />
             <span className="absolute -right-1 -bottom-1 flex size-7 items-center justify-center rounded-full bg-surface text-ink-soft ring-1 ring-line">
@@ -46,10 +74,11 @@ export function RegisterScreen() {
           <p className="text-[15px] leading-snug text-ink-soft">Profile photo · you can add one later</p>
         </div>
 
-        <div className="mt-8 flex flex-col gap-5">
+        <div className="mt-6 flex flex-col gap-5">
           <TextField
             label="Full name"
             autoComplete="name"
+            icon={<UserRound {...fieldIcon} />}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             error={errors.fullName}
@@ -58,6 +87,8 @@ export function RegisterScreen() {
             label="Email"
             type="email"
             autoComplete="email"
+            placeholder="you@example.com"
+            icon={<Mail {...fieldIcon} />}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={errors.email}
@@ -66,17 +97,44 @@ export function RegisterScreen() {
             label="Password"
             type="password"
             autoComplete="new-password"
+            icon={<Lock {...fieldIcon} />}
+            revealable
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={errors.password}
             hint="At least 8 characters. Prototype only: it isn’t stored."
           />
         </div>
+
+        <p className="mt-6 text-center text-[15px] text-ink-soft">
+          Already have an account?{' '}
+          <Link to="/login" className="-mx-1.5 inline-flex min-h-11 items-center rounded-full px-1.5 font-semibold text-accent">
+            Log in
+          </Link>
+        </p>
       </div>
 
-      <div className="sticky bottom-0 border-t border-line bg-surface px-5 pt-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
+      <div className="sticky bottom-0 bg-linear-to-t from-canvas from-70% to-canvas/0 px-5 pt-8 pb-[max(env(safe-area-inset-bottom),1rem)]">
         <Button type="submit">Create account</Button>
       </div>
+
+      {provider && (
+        <SocialSignInSheet
+          provider={provider}
+          onClose={() => setProvider(undefined)}
+          emailAction={
+            <Button
+              type="button"
+              onClick={() => {
+                setProvider(undefined)
+                document.querySelector<HTMLInputElement>('input[autocomplete="name"]')?.focus()
+              }}
+            >
+              Continue with email
+            </Button>
+          }
+        />
+      )}
     </form>
   )
 }

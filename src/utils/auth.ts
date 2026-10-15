@@ -20,8 +20,9 @@ export function isSignedIn() {
 export function register(account: Account) {
   writeStored(storageKeys.account, account)
   writeStored(storageKeys.signedIn, true)
-  // A new account starts its own rehabilitation setup.
-  writeStored(storageKeys.care, null)
+  // Keep a setup answered just before signing up; any other saved setup belonged to someone else.
+  if (!readStored<boolean>(storageKeys.pendingSetup, false)) writeStored(storageKeys.care, null)
+  writeStored(storageKeys.pendingSetup, false)
 }
 
 // Accepts the account registered on this device or the demo account; any password works in the prototype.

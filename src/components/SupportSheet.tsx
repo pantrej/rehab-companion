@@ -1,24 +1,31 @@
-import { professionalPhrase } from '../utils/care'
 import { Button } from './Button'
+import { SafetyGuide } from './SafetyGuide'
 import { Sheet } from './Sheet'
 
 type Props = {
   // The connected professional, if any; never invented.
   professionalName?: string
   onClose: () => void
+  // Connected care only: open the contact guidance for the professional.
+  onContact?: () => void
 }
 
-// A calm pause during an exercise, not an alert: reassures, points to support, and lets the user return.
-export function SupportSheet({ professionalName, onClose }: Props) {
+// A calm pause during an exercise: what to do now (continue, ease off, stop), and who to ask.
+export function SupportSheet({ professionalName, onClose, onContact }: Props) {
   return (
     <Sheet title="It’s okay to pause" onClose={onClose}>
-      <p className="mt-2 text-base leading-relaxed text-ink-soft">
-        You can stop this exercise at any time. If something feels different from usual, consider letting{' '}
-        {professionalPhrase(professionalName)} know before you continue with it.
-      </p>
+      <p className="mt-2 text-base leading-relaxed text-ink-soft">Use this to decide what to do next.</p>
+      <div className="mt-5">
+        <SafetyGuide professionalName={professionalName} />
+      </div>
       <div className="mt-6 flex flex-col gap-1">
-        <Button to="/support" variant="secondary">
-          Get support
+        {onContact && professionalName && (
+          <Button variant="secondary" onClick={onContact}>
+            Contact {professionalName}
+          </Button>
+        )}
+        <Button to="/support/pain" variant={onContact ? 'quiet' : 'secondary'}>
+          More guidance on pain and symptoms
         </Button>
         <Button variant="quiet" onClick={onClose}>
           Back to exercise

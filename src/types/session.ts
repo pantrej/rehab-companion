@@ -1,16 +1,14 @@
+import type { ExercisePhoto } from '../components/ExerciseMedia'
+
 export type Exercise = {
   name: string
-  // Where this exercise sits in today's session, e.g. 1 of 4.
-  position: number
-  total: number
   sets: number
   reps: number
+  // What the person needs to hand, in their own home.
   equipment: string
   instruction: string
-  lastSession: {
-    difficulty: number
-    pain: number
-    sets: number
-    reps: number
-  }
+  // Two or three cues for doing it well. Form, not safety: nothing here is a medical claim.
+  formTips: string[]
+  // The demonstration of this exercise, and only this one.
+  photo: ExercisePhoto
 }

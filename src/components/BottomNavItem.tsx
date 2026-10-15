@@ -1,36 +1,39 @@
 import type { LucideIcon } from 'lucide-react'
-import { NavLink } from 'react-router'
+import { Link } from 'react-router'
 
 type Props = {
   to: string
   label: string
   icon: LucideIcon
+  active: boolean
 }
 
-export function BottomNavItem({ to, label, icon: Icon }: Props) {
+// How a tab reads, active or not. The active bed is the pill behind it, so the tab itself only carries
+// the colour; the icon settles the last few per cent of its size as it becomes current.
+export function TabItemView({ label, icon: Icon, active }: { label: string; icon: LucideIcon; active: boolean }) {
   return (
-    <NavLink
-      to={to}
-      // Today matches only "/"; other tabs stay selected on their sub-pages (e.g. /support/pain).
-      end={to === '/'}
-      className={({ isActive }) =>
-        `flex flex-1 flex-col items-center gap-1 pt-2.5 pb-2 text-xs font-medium transition-colors ${
-          isActive ? 'text-accent' : 'text-ink-faint hover:text-ink-soft'
-        }`
-      }
-    >
-      {({ isActive }) => (
-        <>
-          <span
-            className={`flex h-8 w-14 items-center justify-center rounded-full transition-colors ${
-              isActive ? 'bg-accent-soft' : ''
-            }`}
-          >
-            <Icon className="size-[22px]" strokeWidth={isActive ? 2 : 1.75} aria-hidden />
-          </span>
-          {label}
-        </>
-      )}
-    </NavLink>
+    <>
+      <Icon
+        className={`size-[22px] transition-transform duration-300 ease-out motion-reduce:transition-none ${
+          active ? 'scale-100' : 'scale-[0.96]'
+        }`}
+        strokeWidth={active ? 2 : 1.75}
+        aria-hidden
+      />
+      {label}
+    </>
+  )
+}
+
+export const tabItemClass = (active: boolean) =>
+  `relative z-[1] flex h-full flex-1 flex-col items-center justify-center gap-1 rounded-[20px] text-[11px] transition-colors duration-300 ${
+    active ? 'font-semibold text-accent' : 'font-medium text-ink-faint hover:text-ink-soft'
+  }`
+
+export function BottomNavItem({ to, label, icon, active }: Props) {
+  return (
+    <Link to={to} aria-current={active ? 'page' : undefined} className={tabItemClass(active)}>
+      <TabItemView label={label} icon={icon} active={active} />
+    </Link>
   )
 }

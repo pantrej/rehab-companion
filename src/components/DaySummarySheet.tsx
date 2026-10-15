@@ -49,14 +49,14 @@ export function DaySummarySheet({ day, professional, onClose }: Props) {
         )}
 
         {checkIn?.note && (
-          <div className="rounded-2xl bg-canvas p-4">
+          <div className="rounded-card bg-subtle p-4">
             <p className="text-sm text-ink-soft">Your note</p>
             <p className="mt-1 text-base text-ink">“{checkIn.note}”</p>
           </div>
         )}
 
         {day.therapistNote && professional && (
-          <div className="rounded-2xl bg-accent-soft/60 p-4">
+          <div className="rounded-card bg-featured p-4">
             <p className="flex items-center gap-2 text-sm text-ink-soft">
               <ProfessionalAvatar professional={professional} size="sm" />
               Note from {professional.name}, {professional.credential}
@@ -65,10 +65,15 @@ export function DaySummarySheet({ day, professional, onClose }: Props) {
           </div>
         )}
 
-        {status === 'rest' && <p className="px-1 text-[15px] text-ink-soft">A rest day in your plan.</p>}
+        {status === 'rest' && <p className="px-1 text-[15px] text-ink-soft">A recovery and check-in day in your plan.</p>}
+        {status === 'open' && <p className="px-1 text-[15px] text-ink-soft">No session was planned for this day.</p>}
         {status === 'today' && <p className="px-1 text-[15px] text-ink">Today’s session: {session}</p>}
         {status === 'upcoming' && <p className="px-1 text-[15px] text-ink">Planned: {session}</p>}
-        {isTomorrow && professional && <PlanUpdateNote title="Plan updated for this day" />}
+        {isTomorrow && professional && (
+          <div className="rounded-card bg-subtle p-4">
+            <PlanUpdateNote title="Plan updated for this day" />
+          </div>
+        )}
 
         {day.appointment && professional && (
           <p className="flex items-center gap-2 px-1 text-[15px] text-ink">

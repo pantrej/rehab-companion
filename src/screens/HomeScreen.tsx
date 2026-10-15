@@ -1,112 +1,218 @@
-import { ArrowRight, ChevronRight, Play, RefreshCw } from 'lucide-react'
-import { Link, Navigate } from 'react-router'
+import { CalendarDays } from 'lucide-react'
+import { useState } from 'react'
+import { Link, Navigate, useSearchParams } from 'react-router'
 import { Button } from '../components/Button'
-import { Card } from '../components/Card'
-import { ProfessionalAvatar } from '../components/ProfessionalAvatar'
-import { StatusItem } from '../components/StatusItem'
-import { recoveryInsight, recoveryOverall, recoverySignals, todayPlan } from '../data/today'
+import { ChoiceOption } from '../components/ChoiceOption'
+import { DailyHero } from '../components/DailyHero'
+import { DailyPlanCard } from '../components/DailyPlanCard'
+import { DayCalendarSheet } from '../components/DayCalendarSheet'
+import { DayCarousel } from '../components/DayCarousel'
+import { DaySummarySheet } from '../components/DaySummarySheet'
+import { RecoveryStatus } from '../components/RecoveryStatus'
+import { Sheet } from '../components/Sheet'
+import { assess, currentAssessment } from '../data/assessment'
+import { TODAY } from '../data/calendar'
+import { buildDayMonth, buildDayWindow } from '../data/days'
+import type { DayView } from '../data/days'
+import type { CheckInRecord } from '../types/progress'
 import { firstName, initialsOf, useAccount } from '../utils/auth'
 import { useCare } from '../utils/care'
-import { toneDot } from '../utils/tone'
+import { liveCheckIns } from '../utils/checkIn'
+import { readPhoto } from '../utils/photo'
+import { dayTheme } from '../utils/dayTheme'
+import { checkedInToday, readStored, storageKeys, writeStored } from '../utils/storage'
 
+// Prototype preview of worsening signals (/?state=attention), read by the same rules as real check-ins.
+const worseningCheckIns: CheckInRecord[] = [
+  { daysAgo: 1, pain: 6, difficulty: 8, movement: 'Worse' },
+  { daysAgo: 3, pain: 4, difficulty: 7, movement: 'About the same' },
+  { daysAgo: 5, pain: 3, difficulty: 6, movement: 'Better' },
+]
+
+const feelings = ['Better', 'About the same', 'Worse']
+const dateKey = (d: Date) => d.toISOString().slice(0, 10)
+
+// Home answers "what does my rehabilitation look like today?": one day at a time, swiping back to what
+// happened and ahead to what's next. Photo, plan, action and state change together.
 export function HomeScreen() {
-  const { care, professional } = useCare()
+  const { care, connected, professional } = useCare()
   const account = useAccount()
+  const [params] = useSearchParams()
+  // The carousel holds five days around `center`; the calendar is what moves the window. The count makes
+  // every pick its own, so choosing the day the window is already built around still lands on it.
+  const [center, setCenter] = useState({ date: TODAY, pick: 0 })
+  const [calendarOpen, setCalendarOpen] = useState(false)
+  const [swiped, setSwiped] = useState<{ center: string; index: number }>()
+  const [summaryDay, setSummaryDay] = useState<DayView>()
+  const [restDay, setRestDay] = useState<DayView>()
+  const [restFeelings, setRestFeelings] = useState(() => readStored<Record<string, string>>(storageKeys.restFeelings, {}))
   // First visit: set up how rehabilitation is managed before showing today's plan.
   if (!care) return <Navigate to="/onboarding" replace />
 
   const name = account?.fullName ?? ''
+  const doneToday = checkedInToday()
+  const photo = readPhoto()
+
+  const preview = params.get('state') === 'attention'
+  // One list of check-ins behind the day, the reading and the calendar: the prototype's history, plus a
+  // session checked in on this device today.
+  const records = preview ? worseningCheckIns : liveCheckIns()
+  const assessment = preview ? assess(worseningCheckIns, 'in the last 7 days') : currentAssessment(professional, records)
+  const context = { firstName: firstName(name), connected, onTrack: assessment.onTrack, doneToday, records }
+  const { days, index } = buildDayWindow({ ...context, center: center.date })
+  const centerKey = `${dateKey(center.date)}-${center.pick}`
+  // Swiping moves within the window; picking a date in the calendar rebuilds it around that day.
+  const activeIndex = swiped?.center === centerKey ? swiped.index : index
+  const dayName = (i: number) => `${days[i].time}, ${days[i].dateLabel}`
 
   return (
-    <div className="flex flex-col gap-10 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-[15px] text-ink-soft">Good morning{name ? `, ${firstName(name)}` : ''}</p>
-          <h1 className="mt-1.5 text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">
-            Today's rehabilitation
-          </h1>
-        </div>
-        {/* 44px touch target around the quieter 36px avatar. */}
-        <Link to="/profile" aria-label="Profile" className="-m-1 flex size-11 shrink-0 items-center justify-center">
-          <span className="flex size-9 items-center justify-center rounded-full bg-sunken text-[13px] font-semibold text-ink-soft">
-            {initialsOf(name) || '?'}
-          </span>
-        </Link>
-      </header>
+    // The hero gives up the height the floating tab bar takes, so the day's reading is never pushed
+    // under it. The column fills the screen and never shrinks below its own content: what is left over
+    // gets shared out around the reading, and anything taller than the screen simply scrolls.
+    <div className="relative flex min-h-full shrink-0 flex-col pb-1 [--hero-h:clamp(238px,calc(38dvh-2rem),320px)]">
+      <h1 className="sr-only">Today's rehabilitation</h1>
 
-      <Card className="p-6">
-        <p className="text-sm text-ink-soft">Today's plan</p>
-        <h2 className="mt-2 text-[26px] leading-tight font-semibold tracking-[-0.02em] text-ink">
-          {todayPlan.focus.join(' + ')}
-        </h2>
-        <p className="mt-2 text-[15px] text-ink-soft">
-          {todayPlan.exerciseCount} exercises · About {todayPlan.durationMinutes} min
-        </p>
-        {professional ? (
-          <p className="mt-4 flex items-center gap-2.5 text-[13px] text-ink-soft">
-            <ProfessionalAvatar professional={professional} size="sm" />
-            Prepared by {professional.name}, {professional.credential}
-          </p>
-        ) : (
-          <p className="mt-1 text-[13px] text-ink-faint">From your existing rehabilitation plan</p>
-        )}
+      <DayCarousel
+        key={centerKey}
+        count={days.length}
+        initial={index}
+        label="Your rehabilitation, day by day"
+        slideLabel={(i) => `${days[i].time}, ${days[i].date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}`}
+        onChange={(i) => setSwiped({ center: centerKey, index: i })}
+        indicator={(active, goTo) => (
+          // Below the wave, on the day's own surface, and in the same place whichever day is in view.
+          // The marks take that surface's own colour, so they read as part of it rather than on top of it.
+          <div className="pointer-events-none absolute inset-x-0 top-[calc(var(--hero-h)-1.625rem)] flex items-center justify-center">
+            <div className="pointer-events-auto flex items-center">
+              {days.map((day, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => goTo(i)}
+                  aria-label={`Show ${dayName(i)}`}
+                  aria-current={i === active ? 'true' : undefined}
+                  className="flex h-9 items-center justify-center px-2"
+                >
+                  {/* The day in view is a pill. Today is the one other mark worth finding at a glance,
+                      so it stands larger and clearer than the days around it — and tapping it goes there.
 
-        <Button to="/session" icon={<Play className="size-4 fill-current" aria-hidden />} className="mt-7">
-          Start session
-        </Button>
+                      Each mark carries its own radius in pixels, half its own height, rather than the
+                      shared full-round class: that compiles to a border-radius of 2147483647px, and
+                      WebKit has been seen painting such a mark as an unclipped square while it is being
+                      animated. Only the properties that actually change are transitioned, for the same
+                      reason — `all` hands the compositor more than it needs. */}
+                  <span
+                    className={`transition-[width,height,border-radius,background-color,opacity] duration-300 ease-out ${
+                      dayTheme[days[active].state].dot
+                    } ${
+                      i === active
+                        ? 'h-1.5 w-5 rounded-[3px]'
+                        : day.offset === 0
+                          ? 'size-2.5 rounded-[5px] opacity-60'
+                          : 'size-1.5 rounded-[3px] opacity-30'
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
 
-        {/* A recent professional change, stated calmly and attributed; the app never changes the plan itself. */}
-        {professional && (
-          <Link
-            to="/plan-changes"
-            className="-mx-2 mt-4 -mb-2 flex min-h-11 items-center justify-between gap-3 rounded-xl px-2 py-2 text-[13px] text-ink-soft transition-colors hover:bg-canvas"
-          >
-            <span className="flex items-center gap-2">
-              <RefreshCw className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
-              Plan updated yesterday · changes apply from tomorrow
-            </span>
-            <ChevronRight className="size-4 shrink-0 text-ink-faint" aria-hidden />
-          </Link>
-        )}
-      </Card>
-
-      <section aria-labelledby="recovery-status" className="flex flex-col gap-4">
-        <div className="flex items-baseline justify-between px-1">
-          <h2 id="recovery-status" className="text-lg font-semibold text-ink">
-            Recovery status
-          </h2>
-          <span className="text-[13px] text-ink-faint">Last 7 days</span>
-        </div>
-
-        <Card className="p-6">
-          <p className="text-sm text-ink-soft">{recoveryOverall.label}</p>
-          <p className="mt-2 flex items-center gap-3 text-[26px] leading-tight font-semibold tracking-[-0.02em] text-ink">
-            <span className={`size-2.5 rounded-full ring-4 ${toneDot[recoveryOverall.tone]}`} aria-hidden />
-            {recoveryOverall.status}
-          </p>
-
-          <ul className="mt-6 flex flex-col gap-3 border-t border-line pt-5">
-            {recoverySignals.map((signal) => (
-              <StatusItem key={signal.id} {...signal} />
-            ))}
-          </ul>
-
-          <div className="mt-6 rounded-2xl bg-canvas p-4">
-            <p className="text-sm font-medium text-ink">{recoveryInsight.title}</p>
-            <p className="mt-1.5 text-[15px] leading-relaxed text-ink-soft">{recoveryInsight.text}</p>
-            <p className="mt-3 text-[13px] text-ink-faint">{recoveryInsight.basis}</p>
           </div>
+        )}
+      >
+        {(i) => (
+          <>
+            <DailyHero day={days[i]} />
+            <DailyPlanCard
+              day={days[i]}
+              professional={professional}
+              onViewSummary={() => setSummaryDay(days[i])}
+              onLogRest={() => setRestDay(days[i])}
+              restFeeling={restFeelings[dateKey(days[i].date)]}
+            />
+          </>
+        )}
+      </DayCarousel>
 
-          <Button
-            to="/progress"
-            variant="ghost"
-            icon={<ArrowRight className="size-4" aria-hidden />}
-            className="mt-3 -mb-2"
-          >
-            View progress
-          </Button>
-        </Card>
-      </section>
+      {/* Calendar and avatar sit above the carousel: one of each, whatever day is in view. */}
+      <button
+        type="button"
+        aria-label="Open calendar"
+        aria-haspopup="dialog"
+        aria-expanded={calendarOpen}
+        onClick={() => setCalendarOpen(true)}
+        className="absolute top-[max(env(safe-area-inset-top),2.75rem)] right-[3.75rem] flex size-11 items-center justify-center"
+      >
+        <span className="flex size-9 items-center justify-center rounded-full bg-white/80 text-ink-soft backdrop-blur-sm">
+          <CalendarDays className="size-[18px]" strokeWidth={1.75} aria-hidden />
+        </span>
+      </button>
+
+      <Link
+        to="/profile"
+        aria-label="Profile"
+        className="absolute top-[max(env(safe-area-inset-top),2.75rem)] right-4 flex size-11 items-center justify-center"
+      >
+        <span className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-white/80 text-caption font-semibold text-ink-soft backdrop-blur-sm">
+          {photo ? <img src={photo} alt="" className="size-full object-cover" /> : initialsOf(name) || '?'}
+        </span>
+      </Link>
+
+      {/* The reading follows close under the day — a gap of about a sixty-fourth of the screen, so the two
+          read as one column rather than two things at opposite ends of the room. The gap grows into the
+          room the screen has left over but no further than that sliver, and what remains falls below
+          it, so a screen with nothing to spare simply gives less instead of scrolling the day out of
+          one screen. */}
+      <span className="max-h-[1.5dvh] grow basis-0" aria-hidden />
+      <div className="px-5">
+        <RecoveryStatus assessment={assessment} day={days[activeIndex]} records={records} />
+      </div>
+      <span className="grow basis-0" aria-hidden />
+
+      {calendarOpen && (
+        <DayCalendarSheet
+          days={buildDayMonth(context)}
+          selected={days[activeIndex].date}
+          onClose={() => setCalendarOpen(false)}
+          onSelect={(date) => {
+            setCenter((previous) => ({ date, pick: previous.pick + 1 }))
+            setCalendarOpen(false)
+          }}
+        />
+      )}
+
+      {summaryDay?.calendar && (
+        <DaySummarySheet day={summaryDay.calendar} professional={professional} onClose={() => setSummaryDay(undefined)} />
+      )}
+      {restDay && (
+        <RestFeelingSheet
+          day={restDay}
+          onClose={() => setRestDay(undefined)}
+          onSave={(feeling) => {
+            const next = { ...restFeelings, [dateKey(restDay.date)]: feeling }
+            writeStored(storageKeys.restFeelings, next)
+            setRestFeelings(next)
+            setRestDay(undefined)
+          }}
+        />
+      )}
     </div>
+  )
+}
+
+// A rest day's check-in is one light question, kept on this device.
+function RestFeelingSheet({ day, onClose, onSave }: { day: DayView; onClose: () => void; onSave: (feeling: string) => void }) {
+  const [feeling, setFeeling] = useState<string>()
+  return (
+    <Sheet title={day.offset < 0 ? 'How did your rest day feel?' : 'How do you feel today?'} onClose={onClose}>
+      <p className="mt-2 text-body text-ink-soft">Compared with your last session day.</p>
+      <div role="radiogroup" aria-label="How you feel" className="mt-5 flex flex-col gap-3">
+        {feelings.map((f) => (
+          <ChoiceOption key={f} label={f} selected={feeling === f} onSelect={() => setFeeling(f)} />
+        ))}
+      </div>
+      <Button className="mt-6" disabled={!feeling} onClick={() => feeling && onSave(feeling)}>
+        Save
+      </Button>
+    </Sheet>
   )
 }

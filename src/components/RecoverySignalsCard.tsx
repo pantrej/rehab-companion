@@ -7,6 +7,8 @@ import { TrendLine } from './TrendLine'
 type Trend = {
   points: TrendPoint[]
   reading: string
+  // The person's usual range, shaded behind the line.
+  band?: { low: number; high: number }
 }
 
 type Props = {
@@ -32,7 +34,7 @@ export function RecoverySignalsCard({ signals, pain, difficulty }: Props) {
             <SignalDetail key={signal.id} {...signal}>
               {trend && (
                 <>
-                  <TrendLine points={trend.points} max={10} label={trend.label} formatValue={(v) => `${v}/10`} />
+                  <TrendLine points={trend.points} max={10} label={trend.label} band={trend.band} formatValue={(v) => `${v}/10`} />
                   <p className="mt-3 text-[15px] leading-relaxed text-ink">{trend.reading}</p>
                 </>
               )}

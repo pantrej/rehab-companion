@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { professional } from '../data/professional'
 import type { CareState } from '../types/care'
 import type { OnboardingAnswers } from '../types/onboarding'
+import { isSignedIn } from './auth'
 import { readStored, storageKeys, writeStored } from './storage'
 
 export function readCare(): CareState | null {
@@ -12,8 +13,14 @@ export function readCare(): CareState | null {
   return legacy ? { mode: 'independent', setup: legacy } : null
 }
 
+// True while a setup was saved before any account existed: the account step still owes it a home.
+export function hasPendingSetup() {
+  return readStored<boolean>(storageKeys.pendingSetup, false)
+}
+
 export function saveCare(care: CareState) {
   writeStored(storageKeys.care, care)
+  writeStored(storageKeys.pendingSetup, !isSignedIn())
 }
 
 // The care state for a screen. The professional exists only in connected care, so screens that

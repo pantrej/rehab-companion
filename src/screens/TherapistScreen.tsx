@@ -28,7 +28,7 @@ export function TherapistScreen() {
         <div className="mt-5 flex items-center gap-5">
           <ProfessionalAvatar professional={professional} size="xl" />
           <div>
-            <h1 className="text-[26px] leading-tight font-semibold tracking-[-0.02em] text-ink">{professional.name}</h1>
+            <h1 className="text-title font-semibold text-ink">{professional.name}</h1>
             <p className="mt-1 text-[15px] text-ink-soft">{professional.role}</p>
           </div>
         </div>

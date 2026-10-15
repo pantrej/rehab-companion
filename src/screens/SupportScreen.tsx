@@ -17,7 +17,7 @@ export function SupportScreen() {
   return (
     <div className="flex flex-col gap-10 px-5 pt-[max(env(safe-area-inset-top),3.5rem)] pb-10">
       <header>
-        <h1 className="text-[28px] leading-tight font-semibold tracking-[-0.02em] text-ink">{supportIntro.title}</h1>
+        <h1 className="text-title font-semibold text-ink">{supportIntro.title}</h1>
       </header>
 
       {professional ? (
@@ -81,7 +81,7 @@ export function SupportScreen() {
         </Card>
       </Section>
 
-      <p className="px-1 text-[13px] leading-relaxed text-ink-faint">{supportDisclaimer}</p>
+      <p className="px-1 text-caption leading-relaxed text-ink-faint">{supportDisclaimer}</p>
 
       {contactOpen && professional && <ContactSheet professional={professional} onClose={closeContact} />}
     </div>
